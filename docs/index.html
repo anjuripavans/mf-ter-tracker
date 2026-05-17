@@ -11,27 +11,27 @@
   
   <style>  
     :root{  
-      --bg:#f5f7fb;  
+      --bg:#f7f8fa;  
       --surface:#ffffff;  
-      --surface-soft:#fafbfc;  
-      --border:#e7ebf2;  
-      --border-strong:#d9dfeb;  
-      --text:#0f172a;  
-      --muted:#64748b;  
-      --muted-2:#94a3b8;  
-      --primary:#111827;  
-      --accent:#2563eb;  
+      --surface-2:#fbfbfc;  
+      --line:#e8eaee;  
+      --line-2:#dde2e8;  
+      --text:#0f1720;  
+      --muted:#667085;  
+      --muted-2:#98a2b3;  
   
-      --green:#16a34a;  
-      --amber:#d97706;  
+      --accent:#111827;  
+      --accent-soft:#f2f4f7;  
+  
+      --green:#159947;  
+      --amber:#c77a11;  
       --blue:#2563eb;  
       --purple:#7c3aed;  
       --red:#dc2626;  
   
-      --radius:16px;  
-      --radius-sm:12px;  
-      --shadow:0 6px 20px rgba(15,23,42,0.05);  
-      --shadow-sm:0 2px 8px rgba(15,23,42,0.04);  
+      --radius:14px;  
+      --radius-sm:10px;  
+      --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.04);  
   
       --container:1180px;  
     }  
@@ -44,155 +44,164 @@
       color:var(--text);  
       line-height:1.45;  
       -webkit-font-smoothing:antialiased;  
+      text-rendering:optimizeLegibility;  
     }  
-    a{color:var(--accent);text-decoration:none}  
+    a{color:#2563eb;text-decoration:none}  
     a:hover{text-decoration:underline}  
   
     .page{  
       max-width:var(--container);  
       margin:0 auto;  
-      padding:24px;  
+      padding:20px;  
     }  
   
-    /* Top bar */  
+    /* Top */  
     .topbar{  
       display:flex;  
       justify-content:space-between;  
       align-items:flex-start;  
       gap:16px;  
-      margin-bottom:20px;  
+      margin-bottom:16px;  
       flex-wrap:wrap;  
     }  
   
-    .title-wrap h1{  
-      font-size:1.6rem;  
+    .title-block h1{  
+      font-size:1.25rem;  
       font-weight:800;  
       letter-spacing:-0.03em;  
-      margin-bottom:6px;  
+      margin-bottom:4px;  
     }  
   
-    .title-wrap p{  
+    .title-block p{  
+      font-size:.92rem;  
       color:var(--muted);  
-      font-size:0.95rem;  
       max-width:720px;  
     }  
   
-    .meta-chips{  
+    .meta-inline{  
       display:flex;  
       gap:10px;  
       flex-wrap:wrap;  
+      align-items:center;  
     }  
   
-    .chip{  
-      background:var(--surface);  
-      border:1px solid var(--border);  
+    .meta-pill{  
+      display:flex;  
+      align-items:center;  
+      gap:6px;  
+      padding:8px 10px;  
+      border:1px solid var(--line);  
       border-radius:999px;  
-      padding:10px 14px;  
-      box-shadow:var(--shadow-sm);  
-      font-size:0.84rem;  
+      background:rgba(255,255,255,.7);  
       color:var(--muted);  
+      font-size:.82rem;  
       white-space:nowrap;  
     }  
   
-    .chip strong{  
+    .meta-pill strong{  
       color:var(--text);  
       font-weight:700;  
     }  
   
-    /* Card shells */  
-    .card-shell{  
+    /* Surface */  
+    .surface{  
       background:var(--surface);  
-      border:1px solid var(--border);  
+      border:1px solid var(--line);  
       border-radius:var(--radius);  
-      box-shadow:var(--shadow-sm);  
+      box-shadow:var(--shadow);  
     }  
   
     /* Controls */  
     .controls{  
-      padding:18px;  
-      margin-bottom:18px;  
+      padding:14px;  
+      margin-bottom:14px;  
+      position:sticky;  
+      top:12px;  
+      z-index:20;  
+      backdrop-filter:blur(10px);  
+      background:rgba(255,255,255,.88);  
     }  
   
     .controls-grid{  
       display:grid;  
-      grid-template-columns: 220px 1fr 1fr;  
-      gap:14px;  
+      grid-template-columns:180px 180px 1fr 220px;  
+      gap:12px;  
       align-items:end;  
     }  
   
     .field label{  
       display:block;  
-      margin-bottom:8px;  
-      font-size:0.74rem;  
+      margin-bottom:7px;  
+      font-size:.72rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
-      font-weight:700;  
       color:var(--muted);  
+      font-weight:700;  
     }  
   
     .field input,  
     .field select{  
       width:100%;  
-      height:46px;  
-      border:1px solid var(--border);  
-      border-radius:12px;  
-      padding:0 14px;  
-      font:inherit;  
-      font-size:0.92rem;  
+      height:42px;  
+      border:1px solid var(--line);  
+      border-radius:10px;  
       background:#fff;  
+      padding:0 12px;  
+      font:inherit;  
+      font-size:.9rem;  
       color:var(--text);  
       outline:none;  
-      transition:.18s ease;  
+      transition:.16s ease;  
     }  
   
     .field input:focus,  
-    .field select:focus{  
-      border-color:#bfd2ff;  
-      box-shadow:0 0 0 4px rgba(37,99,235,.08);  
+    .field select:focus,  
+    .custom-days-input:focus{  
+      border-color:#b9c3d0;  
+      box-shadow:0 0 0 3px rgba(17,24,39,.05);  
     }  
   
     .segmented{  
-      display:inline-flex;  
-      width:100%;  
-      padding:4px;  
-      background:var(--surface-soft);  
-      border:1px solid var(--border);  
-      border-radius:12px;  
+      display:flex;  
       gap:4px;  
+      padding:4px;  
+      border:1px solid var(--line);  
+      background:var(--surface-2);  
+      border-radius:10px;  
+      height:42px;  
     }  
   
     .segmented button{  
       flex:1;  
-      height:38px;  
       border:0;  
       background:transparent;  
-      border-radius:10px;  
+      border-radius:8px;  
       font:inherit;  
-      font-size:0.9rem;  
+      font-size:.88rem;  
       font-weight:700;  
       color:var(--muted);  
       cursor:pointer;  
-      transition:.18s ease;  
+      transition:.16s ease;  
     }  
   
     .segmented button.active{  
       background:#fff;  
       color:var(--text);  
-      box-shadow:var(--shadow-sm);  
+      box-shadow:0 1px 2px rgba(16,24,40,.05);  
     }  
   
     .controls-bottom{  
       display:flex;  
       justify-content:space-between;  
       align-items:center;  
-      gap:14px;  
-      margin-top:14px;  
+      gap:12px;  
       flex-wrap:wrap;  
-      padding-top:14px;  
-      border-top:1px solid var(--border);  
+      padding-top:12px;  
+      margin-top:12px;  
+      border-top:1px solid var(--line);  
     }  
   
-    .window-group{  
+    .window-row{  
       display:flex;  
       align-items:center;  
       gap:10px;  
@@ -200,82 +209,83 @@
     }  
   
     .mini-label{  
-      font-size:0.78rem;  
-      font-weight:700;  
-      color:var(--muted);  
+      font-size:.72rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
+      color:var(--muted);  
+      font-weight:700;  
     }  
   
     .window-buttons{  
       display:flex;  
-      gap:8px;  
+      gap:6px;  
       flex-wrap:wrap;  
     }  
   
     .window-btn{  
-      border:1px solid var(--border);  
+      height:32px;  
+      padding:0 10px;  
+      border:1px solid var(--line);  
+      border-radius:9px;  
       background:#fff;  
       color:var(--muted);  
-      height:36px;  
-      padding:0 12px;  
-      border-radius:10px;  
       font:inherit;  
-      font-size:0.83rem;  
+      font-size:.8rem;  
       font-weight:700;  
       cursor:pointer;  
-      transition:.18s ease;  
+      transition:.16s ease;  
     }  
   
     .window-btn:hover{  
-      border-color:var(--border-strong);  
+      border-color:var(--line-2);  
       color:var(--text);  
     }  
   
     .window-btn.active{  
-      background:var(--primary);  
+      background:var(--accent);  
       color:#fff;  
-      border-color:var(--primary);  
+      border-color:var(--accent);  
     }  
   
     .custom-days-wrapper{  
       display:none;  
       align-items:center;  
-      gap:8px;  
+      gap:6px;  
       flex-wrap:wrap;  
     }  
   
     .custom-days-wrapper.show{display:flex}  
   
     .custom-days-input{  
-      width:80px;  
-      height:36px;  
-      border:1px solid var(--border);  
-      border-radius:10px;  
-      padding:0 10px;  
+      width:74px;  
+      height:32px;  
+      border:1px solid var(--line);  
+      border-radius:9px;  
       text-align:center;  
       font:inherit;  
+      outline:none;  
+      background:#fff;  
     }  
   
     .apply-btn{  
-      height:36px;  
-      border:0;  
-      background:var(--accent);  
-      color:#fff;  
-      padding:0 12px;  
-      border-radius:10px;  
+      height:32px;  
+      padding:0 10px;  
+      border:1px solid var(--line);  
+      border-radius:9px;  
+      background:#fff;  
+      color:var(--text);  
       font:inherit;  
-      font-size:0.82rem;  
+      font-size:.8rem;  
       font-weight:700;  
       cursor:pointer;  
     }  
   
-    .window-note{  
+    .window-info{  
       color:var(--muted);  
-      font-size:0.84rem;  
+      font-size:.82rem;  
     }  
   
-    /* autocomplete */  
+    /* Autocomplete */  
     .autocomplete-wrapper{position:relative}  
     .autocomplete-dropdown{  
       display:none;  
@@ -284,138 +294,137 @@
       left:0;  
       right:0;  
       background:#fff;  
-      border:1px solid var(--border-strong);  
-      border-radius:14px;  
-      box-shadow:var(--shadow);  
+      border:1px solid var(--line-2);  
+      border-radius:12px;  
+      box-shadow:0 16px 40px rgba(15,23,42,.10);  
       max-height:280px;  
       overflow:auto;  
-      z-index:10;  
+      z-index:50;  
       padding:6px;  
     }  
     .autocomplete-dropdown.show{display:block}  
+  
     .autocomplete-item{  
-      padding:10px 12px;  
+      padding:10px 11px;  
       border-radius:10px;  
       cursor:pointer;  
     }  
-    .autocomplete-item:hover{background:#f8fafc}  
-    .scheme-cat{font-size:.76rem;color:var(--muted);margin-top:2px}  
-    .highlight{  
-      background:#e8f0ff;  
-      color:#1d4ed8;  
+    .autocomplete-item:hover{background:#f6f7f8}  
+    .autocomplete-item .scheme-cat{  
+      font-size:.75rem;  
+      color:var(--muted);  
+      margin-top:2px;  
+    }  
+    .autocomplete-item .highlight{  
+      background:#eef2f6;  
       border-radius:4px;  
       padding:0 2px;  
+      font-weight:700;  
     }  
     .autocomplete-no-results{  
-      padding:10px 12px;  
+      padding:10px 11px;  
       color:var(--muted);  
-      font-size:.84rem;  
+      font-size:.82rem;  
     }  
   
-    /* Scheme summary */  
-    .summary-bar{  
-      display:flex;  
-      justify-content:space-between;  
-      align-items:flex-start;  
-      gap:18px;  
-      padding:18px;  
-      margin-bottom:18px;  
-      flex-wrap:wrap;  
+    /* Scheme strip */  
+    .scheme-strip{  
+      padding:14px 16px;  
+      margin-bottom:14px;  
+      display:grid;  
+      grid-template-columns:1.4fr repeat(4, minmax(120px, .6fr));  
+      gap:14px;  
+      align-items:center;  
     }  
   
-    .summary-main{  
-      min-width:280px;  
-      flex:1.3;  
+    .scheme-main{  
+      min-width:0;  
     }  
   
-    .summary-kicker{  
-      font-size:0.74rem;  
+    .scheme-kicker{  
+      font-size:.7rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
       color:var(--muted);  
       font-weight:700;  
-      margin-bottom:8px;  
+      margin-bottom:6px;  
     }  
   
-    .summary-name{  
-      font-size:1.15rem;  
+    .scheme-name{  
+      font-size:1rem;  
       font-weight:800;  
       letter-spacing:-0.02em;  
-      margin-bottom:8px;  
+      white-space:nowrap;  
+      overflow:hidden;  
+      text-overflow:ellipsis;  
+      margin-bottom:4px;  
     }  
   
-    .summary-sub{  
+    .scheme-sub{  
       color:var(--muted);  
-      font-size:0.92rem;  
+      font-size:.86rem;  
+      white-space:nowrap;  
+      overflow:hidden;  
+      text-overflow:ellipsis;  
     }  
   
-    .summary-meta{  
-      display:grid;  
-      grid-template-columns:repeat(3,minmax(140px,1fr));  
-      gap:12px;  
-      flex:1;  
-      min-width:320px;  
+    .mini-stat{  
+      min-width:0;  
     }  
   
-    .meta-box{  
-      background:var(--surface-soft);  
-      border:1px solid var(--border);  
-      border-radius:12px;  
-      padding:12px 14px;  
-    }  
-  
-    .meta-box-label{  
+    .mini-stat-label{  
       display:block;  
-      font-size:.72rem;  
-      color:var(--muted);  
+      font-size:.68rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
+      color:var(--muted);  
       font-weight:700;  
       margin-bottom:5px;  
     }  
   
-    .meta-box-value{  
-      font-size:.92rem;  
+    .mini-stat-value{  
+      font-size:.88rem;  
       font-weight:700;  
       color:var(--text);  
-      line-height:1.35;  
-      word-break:break-word;  
+      white-space:nowrap;  
+      overflow:hidden;  
+      text-overflow:ellipsis;  
     }  
   
-    /* KPI cards */  
-    .kpis{  
+    /* KPI row */  
+    .kpi-grid{  
       display:grid;  
-      grid-template-columns:repeat(5,1fr);  
-      gap:14px;  
-      margin-bottom:18px;  
+      grid-template-columns:repeat(5, 1fr);  
+      gap:10px;  
+      margin-bottom:14px;  
     }  
   
     .kpi{  
-      padding:16px;  
+      padding:14px;  
+      border:1px solid var(--line);  
+      border-radius:12px;  
       background:var(--surface);  
-      border:1px solid var(--border);  
-      border-radius:16px;  
-      box-shadow:var(--shadow-sm);  
+      box-shadow:var(--shadow);  
     }  
   
     .kpi-label{  
-      font-size:.75rem;  
+      font-size:.7rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
       color:var(--muted);  
       font-weight:700;  
-      margin-bottom:10px;  
+      margin-bottom:8px;  
     }  
   
     .kpi-value{  
-      font-size:1.55rem;  
+      font-size:1.28rem;  
       font-weight:800;  
       letter-spacing:-0.03em;  
-      margin-bottom:6px;  
+      margin-bottom:4px;  
     }  
   
     .kpi-sub{  
-      font-size:.82rem;  
+      font-size:.78rem;  
       color:var(--muted);  
     }  
   
@@ -425,187 +434,188 @@
     .kpi.stat .kpi-value{color:var(--purple)}  
     .kpi.total .kpi-value{color:var(--red)}  
   
-    /* Chart section */  
+    /* Sections */  
     .section{  
-      background:var(--surface);  
-      border:1px solid var(--border);  
-      border-radius:var(--radius);  
-      box-shadow:var(--shadow-sm);  
+      margin-bottom:14px;  
       overflow:hidden;  
-      margin-bottom:18px;  
     }  
   
     .section-head{  
-      padding:18px 20px 0;  
       display:flex;  
+      align-items:center;  
       justify-content:space-between;  
-      align-items:flex-start;  
       gap:12px;  
+      padding:14px 16px 0;  
       flex-wrap:wrap;  
     }  
   
     .section-title{  
-      font-size:1.02rem;  
+      font-size:.95rem;  
       font-weight:800;  
       letter-spacing:-0.02em;  
     }  
   
-    .section-desc{  
-      margin-top:4px;  
+    .section-sub{  
       color:var(--muted);  
-      font-size:.88rem;  
+      font-size:.84rem;  
+      margin-top:2px;  
     }  
   
-    .section-tag{  
-      font-size:.8rem;  
+    .section-meta{  
+      font-size:.78rem;  
       color:var(--muted);  
-      background:var(--surface-soft);  
-      border:1px solid var(--border);  
+      border:1px solid var(--line);  
       border-radius:999px;  
-      padding:8px 12px;  
+      padding:6px 10px;  
+      background:var(--surface-2);  
     }  
   
     .chart-wrap{  
-      height:420px;  
-      padding:12px 20px 20px;  
+      padding:10px 14px 14px;  
+      height:380px;  
     }  
   
     /* Table */  
     .table-wrap{  
+      margin-top:12px;  
+      border-top:1px solid var(--line);  
       overflow:auto;  
-      margin-top:14px;  
-      border-top:1px solid var(--border);  
+      max-height:560px;  
     }  
   
     table{  
       width:100%;  
       border-collapse:collapse;  
-      min-width:780px;  
+      min-width:760px;  
     }  
   
     thead th{  
       position:sticky;  
       top:0;  
-      background:#fbfcfe;  
-      z-index:1;  
-      padding:14px 12px;  
-      border-bottom:1px solid var(--border);  
+      background:#fcfcfd;  
+      border-bottom:1px solid var(--line);  
+      padding:12px 10px;  
       text-align:center;  
-      font-size:.74rem;  
-      font-weight:800;  
+      font-size:.72rem;  
       text-transform:uppercase;  
       letter-spacing:.08em;  
       color:var(--muted);  
+      font-weight:800;  
+      z-index:1;  
     }  
   
     tbody td{  
-      padding:13px 12px;  
+      padding:11px 10px;  
+      border-bottom:1px solid #eff2f5;  
       text-align:center;  
-      border-bottom:1px solid #eef2f7;  
-      font-size:.9rem;  
+      font-size:.86rem;  
       font-variant-numeric:tabular-nums;  
       white-space:nowrap;  
     }  
   
     tbody tr:hover{  
-      background:#fafcff;  
+      background:#fafbfc;  
     }  
   
     .empty-msg{  
-      padding:30px !important;  
+      padding:26px !important;  
       color:var(--muted);  
       font-style:italic;  
     }  
   
     footer{  
-      padding:6px 2px 30px;  
+      padding:2px 2px 24px;  
       color:var(--muted);  
-      font-size:.84rem;  
+      font-size:.82rem;  
       text-align:center;  
     }  
-    footer p + p{margin-top:6px}  
+    footer p + p{margin-top:5px}  
   
     /* Responsive */  
     @media (max-width: 1100px){  
       .controls-grid{  
-        grid-template-columns:1fr 1fr;  
+        grid-template-columns:180px 1fr 1fr;  
       }  
       .controls-grid .field:first-child{  
         grid-column:1 / -1;  
       }  
-      .kpis{  
-        grid-template-columns:repeat(3,1fr);  
+      .scheme-strip{  
+        grid-template-columns:1fr 1fr 1fr;  
       }  
-      .summary-meta{  
-        grid-template-columns:repeat(2,1fr);  
+      .scheme-main{  
+        grid-column:1 / -1;  
+      }  
+      .kpi-grid{  
+        grid-template-columns:repeat(3, 1fr);  
       }  
     }  
   
     @media (max-width: 760px){  
-      .page{padding:16px}  
-      .topbar{margin-bottom:16px}  
-      .title-wrap h1{font-size:1.35rem}  
-      .title-wrap p{font-size:.9rem}  
+      .page{padding:14px}  
+      .topbar{  
+        margin-bottom:12px;  
+      }  
+      .title-block h1{  
+        font-size:1.08rem;  
+      }  
+      .title-block p{  
+        font-size:.86rem;  
+      }  
   
-      .controls{padding:14px}  
+      .controls{  
+        position:static;  
+        padding:12px;  
+      }  
+  
       .controls-grid{  
         grid-template-columns:1fr;  
       }  
   
-      .controls-bottom{  
-        align-items:flex-start;  
-      }  
-  
-      .summary-bar{  
-        padding:14px;  
-      }  
-  
-      .summary-meta{  
+      .scheme-strip{  
         grid-template-columns:1fr 1fr;  
-        width:100%;  
-        min-width:0;  
+        gap:12px;  
       }  
   
-      .kpis{  
+      .kpi-grid{  
         grid-template-columns:1fr 1fr;  
-      }  
-  
-      .section-head{  
-        padding:16px 16px 0;  
       }  
   
       .chart-wrap{  
-        height:320px;  
-        padding:10px 16px 16px;  
+        height:300px;  
+      }  
+  
+      .section-head{  
+        padding:12px 14px 0;  
       }  
     }  
   
     @media (max-width: 520px){  
-      .meta-chips{width:100%}  
-      .chip{width:100%}  
+      .meta-inline{  
+        width:100%;  
+      }  
+      .meta-pill{  
+        width:100%;  
+        justify-content:space-between;  
+      }  
   
       .window-buttons{  
         width:100%;  
       }  
-  
       .window-btn{  
-        flex:1 1 calc(33.33% - 8px);  
+        flex:1 1 calc(25% - 6px);  
       }  
   
-      .summary-meta{  
+      .scheme-strip{  
         grid-template-columns:1fr;  
       }  
   
-      .kpis{  
+      .kpi-grid{  
         grid-template-columns:1fr;  
       }  
   
-      .segmented button{  
-        font-size:.86rem;  
-      }  
-  
-      .window-note{  
-        width:100%;  
+      .chart-wrap{  
+        height:280px;  
+        padding:8px 10px 12px;  
       }  
     }  
   </style>  
@@ -614,22 +624,22 @@
   <main class="page">  
   
     <div class="topbar">  
-      <div class="title-wrap">  
+      <div class="title-block">  
         <h1>Mutual Fund TER Tracker</h1>  
-        <p>Track daily expense ratio components across Indian mutual funds with cleaner comparisons, better filtering, and a more readable analysis view.</p>  
+        <p>Daily expense ratio breakdown for Indian mutual funds.</p>  
       </div>  
   
-      <div class="meta-chips">  
-        <div class="chip">Updated: <strong id="lastUpdated">Loading...</strong></div>  
-        <div class="chip">Schemes: <strong id="totalSchemes">-</strong></div>  
-        <div class="chip">Period: <strong id="dataPeriod">-</strong></div>  
+      <div class="meta-inline">  
+        <div class="meta-pill">Updated <strong id="lastUpdated">Loading...</strong></div>  
+        <div class="meta-pill">Schemes <strong id="totalSchemes">-</strong></div>  
+        <div class="meta-pill">Period <strong id="dataPeriod">-</strong></div>  
       </div>  
     </div>  
   
-    <section class="card-shell controls">  
+    <section class="surface controls">  
       <div class="controls-grid">  
         <div class="field">  
-          <label>Plan Type</label>  
+          <label>Plan</label>  
           <div class="segmented">  
             <button id="btnDirect" class="active" onclick="switchPlan('direct')">Direct</button>  
             <button id="btnRegular" onclick="switchPlan('regular')">Regular</button>  
@@ -644,24 +654,25 @@
         </div>  
   
         <div class="field">  
+          <label for="searchInput">Search Scheme</label>  
+          <div class="autocomplete-wrapper">  
+            <input type="text" id="searchInput" placeholder="Search by scheme name..." autocomplete="off">  
+            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
+          </div>  
+        </div>  
+  
+        <div class="field">  
           <label for="schemeFilter">Scheme</label>  
           <select id="schemeFilter">  
             <option value="">Select a scheme...</option>  
           </select>  
         </div>  
-  
-        <div class="field" style="grid-column:1 / -1;">  
-          <label for="searchInput">Search Scheme</label>  
-          <div class="autocomplete-wrapper">  
-            <input type="text" id="searchInput" placeholder="Type at least 2 letters to search..." autocomplete="off">  
-            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
-          </div>  
-        </div>  
       </div>  
   
       <div class="controls-bottom">  
-        <div class="window-group">  
+        <div class="window-row">  
           <span class="mini-label">Average Window</span>  
+  
           <div class="window-buttons">  
             <button class="window-btn active" onclick="setWindow(0)">All</button>  
             <button class="window-btn" onclick="setWindow(7)">7D</button>  
@@ -679,38 +690,43 @@
           </div>  
         </div>  
   
-        <div class="window-note" id="windowInfo">Using all available data (max 365 days)</div>  
+        <div class="window-info" id="windowInfo">Using all available data (max 365 days)</div>  
       </div>  
     </section>  
   
-    <section class="card-shell summary-bar" id="schemeInfo">  
-      <div class="summary-main">  
-        <div class="summary-kicker">Selected Scheme</div>  
-        <div class="summary-name" id="schemeName">Select a scheme to begin</div>  
-        <div class="summary-sub">  
+    <section class="surface scheme-strip" id="schemeInfo">  
+      <div class="scheme-main">  
+        <div class="scheme-kicker">Selected Scheme</div>  
+        <div class="scheme-name" id="schemeName">Select a scheme to begin</div>  
+        <div class="scheme-sub">  
           <span id="schemeType">-</span> •  
           <span id="schemeCategory">-</span> •  
           <span id="planLabel">Direct Plan</span>  
         </div>  
       </div>  
   
-      <div class="summary-meta">  
-        <div class="meta-box">  
-          <span class="meta-box-label">Data Period</span>  
-          <span class="meta-box-value" id="dateRange">-</span>  
-        </div>  
-        <div class="meta-box">  
-          <span class="meta-box-label">Data Points</span>  
-          <span class="meta-box-value" id="dataPoints">-</span>  
-        </div>  
-        <div class="meta-box">  
-          <span class="meta-box-label">Average Window</span>  
-          <span class="meta-box-value" id="windowLabel">All (max 1Y)</span>  
-        </div>  
+      <div class="mini-stat">  
+        <span class="mini-stat-label">Data Period</span>  
+        <span class="mini-stat-value" id="dateRange">-</span>  
+      </div>  
+  
+      <div class="mini-stat">  
+        <span class="mini-stat-label">Data Points</span>  
+        <span class="mini-stat-value" id="dataPoints">-</span>  
+      </div>  
+  
+      <div class="mini-stat">  
+        <span class="mini-stat-label">Avg Window</span>  
+        <span class="mini-stat-value" id="windowLabel">All (max 1Y)</span>  
+      </div>  
+  
+      <div class="mini-stat">  
+        <span class="mini-stat-label">Viewing</span>  
+        <span class="mini-stat-value" id="planSummaryLabel">Direct</span>  
       </div>  
     </section>  
   
-    <section class="kpis">  
+    <section class="kpi-grid">  
       <div class="kpi ber">  
         <div class="kpi-label">Avg Base ER</div>  
         <div class="kpi-value" id="avgBer">-</div>  
@@ -742,24 +758,24 @@
       </div>  
     </section>  
   
-    <section class="section">  
+    <section class="surface section">  
       <div class="section-head">  
         <div>  
           <div class="section-title">Daily TER Breakdown</div>  
-          <div class="section-desc">Expense ratio components over time for <span id="chartPlanLabel">Direct Plan</span></div>  
+          <div class="section-sub">Component trend for <span id="chartPlanLabel">Direct Plan</span></div>  
         </div>  
-        <div class="section-tag">Interactive chart</div>  
+        <div class="section-meta" id="chartMeta">All data</div>  
       </div>  
       <div class="chart-wrap">  
         <canvas id="terChart"></canvas>  
       </div>  
     </section>  
   
-    <section class="section">  
+    <section class="surface section">  
       <div class="section-head">  
         <div>  
           <div class="section-title">Daily Data</div>  
-          <div class="section-desc">Full day-wise TER component values for <span id="tablePlanLabel">Direct Plan</span></div>  
+          <div class="section-sub">Day-wise values for <span id="tablePlanLabel">Direct Plan</span></div>  
         </div>  
       </div>  
   
@@ -868,9 +884,11 @@
       if (days === 0) {  
         label = "All (max 1Y)";  
         document.getElementById("windowInfo").textContent = "Using all available data (max 365 days)";  
+        document.getElementById("chartMeta").textContent = "All data";  
       } else {  
         label = "Last " + days + " days";  
         document.getElementById("windowInfo").textContent = "Averaging last " + days + " days of data";  
+        document.getElementById("chartMeta").textContent = "Last " + days + " days";  
       }  
       document.getElementById("windowLabel").textContent = label;  
     }  
@@ -888,7 +906,9 @@
       if (!data || data.length === 0) return data;  
   
       if (currentWindowDays === 0) {  
-        if (data.length > 365) return data.slice(data.length - 365);  
+        if (data.length > 365) {  
+          return data.slice(data.length - 365);  
+        }  
         return data;  
       }  
   
@@ -917,6 +937,7 @@
       document.getElementById("planLabel").textContent = label;  
       document.getElementById("chartPlanLabel").textContent = label;  
       document.getElementById("tablePlanLabel").textContent = label;  
+      document.getElementById("planSummaryLabel").textContent = plan === "direct" ? "Direct" : "Regular";  
   
       refreshDisplay();  
     }  
@@ -1112,97 +1133,126 @@
             {  
               label: "BER",  
               data: data.map(function (d) { return d[p + "_ber"] || 0; }),  
-              borderColor: "#16a34a",  
-              backgroundColor: "rgba(22,163,74,0.08)",  
-              fill: true,  
-              tension: 0.3,  
+              borderColor: "#159947",  
+              backgroundColor: "rgba(21,153,71,.06)",  
+              fill: false,  
+              tension: 0.28,  
               pointRadius: 0,  
+              pointHoverRadius: 3,  
               borderWidth: 2  
             },  
             {  
               label: "Brokerage",  
               data: data.map(function (d) { return d[p + "_brokerage"] || 0; }),  
-              borderColor: "#d97706",  
-              backgroundColor: "rgba(217,119,6,0.08)",  
-              fill: true,  
-              tension: 0.3,  
+              borderColor: "#c77a11",  
+              backgroundColor: "rgba(199,122,17,.06)",  
+              fill: false,  
+              tension: 0.28,  
               pointRadius: 0,  
+              pointHoverRadius: 3,  
               borderWidth: 2  
             },  
             {  
               label: "Transaction",  
               data: data.map(function (d) { return d[p + "_transaction"] || 0; }),  
               borderColor: "#2563eb",  
-              backgroundColor: "rgba(37,99,235,0.08)",  
-              fill: true,  
-              tension: 0.3,  
+              backgroundColor: "rgba(37,99,235,.06)",  
+              fill: false,  
+              tension: 0.28,  
               pointRadius: 0,  
+              pointHoverRadius: 3,  
               borderWidth: 2  
             },  
             {  
               label: "Statutory",  
               data: data.map(function (d) { return d[p + "_statutory"] || 0; }),  
               borderColor: "#7c3aed",  
-              backgroundColor: "rgba(124,58,237,0.08)",  
-              fill: true,  
-              tension: 0.3,  
+              backgroundColor: "rgba(124,58,237,.06)",  
+              fill: false,  
+              tension: 0.28,  
               pointRadius: 0,  
+              pointHoverRadius: 3,  
               borderWidth: 2  
             },  
             {  
               label: "Total TER",  
               data: data.map(function (d) { return d[p + "_total_ter"] || 0; }),  
               borderColor: "#dc2626",  
-              borderDash: [6, 4],  
               fill: false,  
-              tension: 0.3,  
+              tension: 0.28,  
               pointRadius: 0,  
-              borderWidth: 2.5  
+              pointHoverRadius: 4,  
+              borderWidth: 2.4  
             }  
           ]  
         },  
         options: {  
           responsive: true,  
           maintainAspectRatio: false,  
+          animation: false,  
           plugins: {  
-            title: {  
-              display: true,  
-              text: planLabel + " Plan TER — " + name + " (" + windowText + ")",  
-              font: { size: 14, weight: '700' },  
-              color: "#0f172a",  
-              padding: { bottom: 14 }  
-            },  
             legend: {  
               position: "top",  
+              align: "start",  
               labels: {  
                 usePointStyle: true,  
                 boxWidth: 8,  
-                color: "#475569",  
-                font: { weight: "600" }  
+                boxHeight: 8,  
+                color: "#667085",  
+                padding: 16,  
+                font: { size: 11, weight: "600" }  
               }  
+            },  
+            title: {  
+              display: true,  
+              text: planLabel + " Plan TER — " + name + " (" + windowText + ")",  
+              color: "#0f1720",  
+              font: { size: 13, weight: "700" },  
+              padding: { bottom: 14 }  
             },  
             tooltip: {  
               mode: "index",  
-              intersect: false  
-            }  
-          },  
-          scales: {  
-            y: {  
-              title: { display: true, text: "Expense Ratio (%)" },  
-              beginAtZero: true,  
-              grid: { color: "rgba(148,163,184,0.18)" },  
-              ticks: { color: "#64748b" }  
-            },  
-            x: {  
-              title: { display: true, text: "Date" },  
-              grid: { display: false },  
-              ticks: { color: "#64748b", maxTicksLimit: 10 }  
+              intersect: false,  
+              backgroundColor: "rgba(17,24,39,.95)",  
+              titleColor: "#fff",  
+              bodyColor: "#e5e7eb",  
+              borderWidth: 0,  
+              padding: 10  
             }  
           },  
           interaction: {  
             mode: "nearest",  
             axis: "x",  
             intersect: false  
+          },  
+          scales: {  
+            x: {  
+              grid: { display: false },  
+              ticks: {  
+                color: "#98a2b3",  
+                maxTicksLimit: 8,  
+                font: { size: 11 }  
+              },  
+              border: { display: false }  
+            },  
+            y: {  
+              beginAtZero: true,  
+              grid: {  
+                color: "rgba(152,162,179,.18)",  
+                drawBorder: false  
+              },  
+              ticks: {  
+                color: "#98a2b3",  
+                font: { size: 11 }  
+              },  
+              border: { display: false },  
+              title: {  
+                display: true,  
+                text: "Expense Ratio (%)",  
+                color: "#667085",  
+                font: { size: 11, weight: "600" }  
+              }  
+            }  
           }  
         }  
       });  
