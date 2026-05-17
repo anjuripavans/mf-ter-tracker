@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF TER Tracker | Daily Expense Ratio Breakdown</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📊 Mutual Fund TER Tracker</h1>
+        <p>Daily expense ratio breakdown for Indian mutual funds (Direct Plan)</p>
+        <div class="header-meta">
+            <span>Last updated: <strong id="lastUpdated">Loading...</strong></span>
+            <span>Schemes: <strong id="totalSchemes">-</strong></span>
+            <span>Period: <strong id="dataPeriod">-</strong></span>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="filter-group search-group">
+                <label for="searchInput">Search</label>
+                <input type="text" id="searchInput" placeholder="Type scheme name...">
+            </div>
+            <div class="filter-group">
+                <label for="schemeFilter">Scheme</label>
+                <select id="schemeFilter">
+                    <option value="">Select a scheme...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Scheme Info Bar -->
+        <div class="scheme-info" id="schemeInfo">
+            <div class="info-item">
+                <span class="info-label">Scheme</span>
+                <span class="info-value" id="schemeName">Select a scheme above ☝️</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Category</span>
+                <span class="info-value" id="schemeCategory">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Data Period</span>
+                <span class="info-value" id="dateRange">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Data Points</span>
+                <span class="info-value" id="dataPoints">-</span>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-cards">
+            <div class="card ber">
+                <div class="card-icon">📗</div>
+                <div class="card-label">Avg Base ER (BER)</div>
+                <div class="card-value" id="avgBer">-</div>
+            </div>
+            <div class="card brk">
+                <div class="card-icon">📙</div>
+                <div class="card-label">Avg Brokerage</div>
+                <div class="card-value" id="avgBrk">-</div>
+            </div>
+            <div class="card txn">
+                <div class="card-icon">📘</div>
+                <div class="card-label">Avg Transaction</div>
+                <div class="card-value" id="avgTxn">-</div>
+            </div>
+            <div class="card stat">
+                <div class="card-icon">📕</div>
+                <div class="card-label">Avg Statutory</div>
+                <div class="card-value" id="avgStat">-</div>
+            </div>
+            <div class="card total">
+                <div class="card-icon">🔴</div>
+                <div class="card-label">Avg Total TER</div>
+                <div class="card-value" id="avgTotal">-</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <h2>📈 Daily TER Breakdown</h2>
+            <canvas id="terChart"></canvas>
+        </div>
+
+        <!-- Table -->
+        <div class="table-section">
+            <h2>📋 Daily Data</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>BER (%)</th>
+                            <th>Brokerage (%)</th>
+                            <th>Transaction (%)</th>
+                            <th>Statutory (%)</th>
+                            <th>Total TER (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTableBody">
+                        <tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank">AMFI India</a> | Auto-updated daily via GitHub Actions</p>
+        <p>Built by Pavan | Rolling 365-day averages (or all available data if &lt; 1 year)</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
