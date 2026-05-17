@@ -1,6 +1,6 @@
 """
-AMFI TER Data Pipeline
-======================
+AMFI TER Data Pipeline (v2 — Direct + Regular Plan)
+====================================================
 Downloads TER Excel from AMFI, processes data,
 generates JSON files for the website.
 Runs daily via GitHub Actions.
@@ -25,9 +25,8 @@ os.makedirs(DAILY_DIR, exist_ok=True)
 def get_months_list():
     """Generate list of months from March 2026 to current month"""
     months = []
-    year, month = 2026, 3  # Start: March 2026
+    year, month = 2026, 3
     now = datetime.now()
-
     while (year, month) <= (now.year, now.month):
         months.append(f"{month:02d}-{year}")
         month += 1
@@ -54,8 +53,6 @@ def download_excels():
 
     for month in months:
         file_path = os.path.join(DATA_DIR, f"TER_{month}.xlsx")
-
-        # Always re-download current month; skip past months if file exists
         if month != current_month and os.path.exists(file_path):
             size = os.path.getsize(file_path)
             if size > 1000:
@@ -77,7 +74,7 @@ def download_excels():
 
 
 def process_data():
-    """Read all Excels, compute averages, generate JSON files for website"""
+    """Read all Excels, compute averages for BOTH plans, generate JSONs"""
 
     # --- Read all Excel files ---
     all_dfs = []
@@ -101,27 +98,42 @@ def process_data():
 
     # --- Map columns ---
     cols = combined.columns.tolist()
+
     col_scheme_code = find_column(cols, "nsdl", "scheme", "code") or find_column(cols, "scheme", "code")
     col_scheme_name = find_column(cols, "scheme", "name")
     col_scheme_type = find_column(cols, "scheme", "type")
     col_category = find_column(cols, "scheme", "category") or find_column(cols, "category")
     col_date = find_column(cols, "ter", "date") or find_column(cols, "date")
-    col_ber = find_column(cols, "direct", "ber") or find_column(cols, "direct", "base")
-    col_brokerage = find_column(cols, "direct", "brokerage")
-    col_transaction = find_column(cols, "direct", "transaction")
-    col_statutory = find_column(cols, "direct", "statutory")
-    col_total_ter = find_column(cols, "direct", "total", "ter")
+
+    # Direct Plan columns
+    col_d_ber = find_column(cols, "direct", "ber") or find_column(cols, "direct", "base")
+    col_d_brokerage = find_column(cols, "direct", "brokerage")
+    col_d_transaction = find_column(cols, "direct", "transaction")
+    col_d_statutory = find_column(cols, "direct", "statutory")
+    col_d_total = find_column(cols, "direct", "total", "ter")
+
+    # Regular Plan columns
+    col_r_ber = find_column(cols, "regular", "ber") or find_column(cols, "regular", "base")
+    col_r_brokerage = find_column(cols, "regular", "brokerage")
+    col_r_transaction = find_column(cols, "regular", "transaction")
+    col_r_statutory = find_column(cols, "regular", "statutory")
+    col_r_total = find_column(cols, "regular", "total", "ter")
 
     print(f"\n  Column mapping:")
-    print(f"    Scheme Code : {col_scheme_code}")
-    print(f"    Scheme Name : {col_scheme_name}")
-    print(f"    Category    : {col_category}")
-    print(f"    Date        : {col_date}")
-    print(f"    BER         : {col_ber}")
-    print(f"    Brokerage   : {col_brokerage}")
-    print(f"    Transaction : {col_transaction}")
-    print(f"    Statutory   : {col_statutory}")
-    print(f"    Total TER   : {col_total_ter}")
+    print(f"    Scheme Code      : {col_scheme_code}")
+    print(f"    Scheme Name      : {col_scheme_name}")
+    print(f"    Category         : {col_category}")
+    print(f"    Date             : {col_date}")
+    print(f"    Direct BER       : {col_d_ber}")
+    print(f"    Direct Brokerage : {col_d_brokerage}")
+    print(f"    Direct Txn       : {col_d_transaction}")
+    print(f"    Direct Statutory : {col_d_statutory}")
+    print(f"    Direct Total     : {col_d_total}")
+    print(f"    Regular BER      : {col_r_ber}")
+    print(f"    Regular Brokerage: {col_r_brokerage}")
+    print(f"    Regular Txn      : {col_r_transaction}")
+    print(f"    Regular Statutory: {col_r_statutory}")
+    print(f"    Regular Total    : {col_r_total}")
 
     # --- Rename for consistency ---
     rename_map = {}
@@ -130,11 +142,20 @@ def process_data():
     if col_scheme_type: rename_map[col_scheme_type] = "scheme_type"
     if col_category: rename_map[col_category] = "category"
     if col_date: rename_map[col_date] = "date"
-    if col_ber: rename_map[col_ber] = "ber"
-    if col_brokerage: rename_map[col_brokerage] = "brokerage"
-    if col_transaction: rename_map[col_transaction] = "transaction"
-    if col_statutory: rename_map[col_statutory] = "statutory"
-    if col_total_ter: rename_map[col_total_ter] = "total_ter"
+
+    # Direct
+    if col_d_ber: rename_map[col_d_ber] = "d_ber"
+    if col_d_brokerage: rename_map[col_d_brokerage] = "d_brokerage"
+    if col_d_transaction: rename_map[col_d_transaction] = "d_transaction"
+    if col_d_statutory: rename_map[col_d_statutory] = "d_statutory"
+    if col_d_total: rename_map[col_d_total] = "d_total_ter"
+
+    # Regular
+    if col_r_ber: rename_map[col_r_ber] = "r_ber"
+    if col_r_brokerage: rename_map[col_r_brokerage] = "r_brokerage"
+    if col_r_transaction: rename_map[col_r_transaction] = "r_transaction"
+    if col_r_statutory: rename_map[col_r_statutory] = "r_statutory"
+    if col_r_total: rename_map[col_r_total] = "r_total_ter"
 
     combined = combined.rename(columns=rename_map)
 
@@ -143,7 +164,11 @@ def process_data():
     combined = combined.dropna(subset=["date", "scheme_code"])
 
     # Convert numeric columns
-    for col in ["ber", "brokerage", "transaction", "statutory", "total_ter"]:
+    all_numeric = [
+        "d_ber", "d_brokerage", "d_transaction", "d_statutory", "d_total_ter",
+        "r_ber", "r_brokerage", "r_transaction", "r_statutory", "r_total_ter"
+    ]
+    for col in all_numeric:
         if col in combined.columns:
             combined[col] = pd.to_numeric(combined[col], errors="coerce").fillna(0)
 
@@ -155,8 +180,6 @@ def process_data():
     today = pd.Timestamp.now()
     cutoff = today - pd.Timedelta(days=365)
     data_start = combined["date"].min()
-
-    # If less than 365 days of data, use all data
     if data_start > cutoff:
         cutoff = data_start
 
@@ -164,14 +187,14 @@ def process_data():
     print(f"\n  Data after cutoff ({cutoff.strftime('%Y-%m-%d')}): {len(recent)} rows")
 
     # --- Generate per-scheme data ---
-    numeric_cols = ["ber", "brokerage", "transaction", "statutory", "total_ter"]
+    direct_cols = ["d_ber", "d_brokerage", "d_transaction", "d_statutory", "d_total_ter"]
+    regular_cols = ["r_ber", "r_brokerage", "r_transaction", "r_statutory", "r_total_ter"]
     summary_list = []
     scheme_count = 0
 
     for code, group in recent.groupby("scheme_code"):
         scheme_id = str(code).replace("/", "_").replace(" ", "_")
 
-        # Summary entry
         entry = {
             "id": scheme_id,
             "scheme_code": str(code),
@@ -183,23 +206,34 @@ def process_data():
             "date_to": group["date"].max().strftime("%Y-%m-%d"),
         }
 
-        for col in numeric_cols:
+        # Direct Plan averages
+        for col in direct_cols:
+            short = col.replace("d_", "")
             if col in group.columns:
-                entry[f"avg_{col}"] = round(float(group[col].mean()), 4)
+                entry[f"avg_d_{short}"] = round(float(group[col].mean()), 4)
             else:
-                entry[f"avg_{col}"] = 0
+                entry[f"avg_d_{short}"] = 0
+
+        # Regular Plan averages
+        for col in regular_cols:
+            short = col.replace("r_", "")
+            if col in group.columns:
+                entry[f"avg_r_{short}"] = round(float(group[col].mean()), 4)
+            else:
+                entry[f"avg_r_{short}"] = 0
 
         summary_list.append(entry)
 
-        # Daily data JSON for this scheme
+        # Daily data JSON (both plans)
         daily_data = []
         for _, row in group.iterrows():
             day_entry = {"date": row["date"].strftime("%Y-%m-%d")}
-            for col in numeric_cols:
-                if col in row and pd.notna(row[col]):
-                    day_entry[col] = round(float(row[col]), 4)
-                else:
-                    day_entry[col] = 0
+            for col in direct_cols:
+                short = col.replace("d_", "")
+                day_entry[f"d_{short}"] = round(float(row[col]), 4) if col in row and pd.notna(row[col]) else 0
+            for col in regular_cols:
+                short = col.replace("r_", "")
+                day_entry[f"r_{short}"] = round(float(row[col]), 4) if col in row and pd.notna(row[col]) else 0
             daily_data.append(day_entry)
 
         daily_path = os.path.join(DAILY_DIR, f"{scheme_id}.json")
@@ -232,7 +266,7 @@ def process_data():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("AMFI TER Data Pipeline")
+    print("AMFI TER Data Pipeline v2")
     print(f"Run at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 50)
 
