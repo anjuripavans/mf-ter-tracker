@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MF TER Tracker | Daily Expense Ratio Breakdown</title>
-    https://fonts.googleapis.com
-    ;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* ============================================================
@@ -333,7 +334,7 @@ footer p { margin-bottom: 0.3rem; }
         <p>Built by Pavan | Rolling 365-day averages (or all available data if &lt; 1 year)</p>
     </footer>
 
-    https://cdn.jsdelivr.net/npm/chart.js
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 /* ============================================================
@@ -341,16 +342,16 @@ footer p { margin-bottom: 0.3rem; }
    Change chart behavior, filters, calculations here
    ============================================================ */
 
-let summaryData = null;
-let chart = null;
-let currentPlan = "direct";
-let currentScheme = null;
-let currentDailyData = null;
+var summaryData = null;
+var chart = null;
+var currentPlan = "direct";
+var currentScheme = null;
+var currentDailyData = null;
 
 /* ====== INIT ====== */
 async function init() {
     try {
-        const res = await fetch("data/summary.json");
+        var res = await fetch("data/summary.json");
         if (!res.ok) throw new Error("summary.json not found. Run the workflow first!");
         summaryData = await res.json();
 
@@ -610,7 +611,7 @@ function updateChart(data, name) {
         options: {
             responsive: true,
             plugins: {
-                title: { display: true, text: planLabel + " Plan TER — " + name, font: { size: 14 } },
+                title: { display: true, text: planLabel + " Plan TER \u2014 " + name, font: { size: 14 } },
                 tooltip: { mode: "index", intersect: false }
             },
             scales: {
