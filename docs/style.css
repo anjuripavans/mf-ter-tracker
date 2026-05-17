@@ -1,0 +1,207 @@
+/* ============ RESET & BASE ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+a { color: #4f8cff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============ HEADER ============ */
+header {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+    color: white;
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+header p {
+    opacity: 0.85;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.header-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.header-meta strong { color: #bbdefb; }
+
+/* ============ CONTAINER ============ */
+.container {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* ============ FILTERS ============ */
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: white;
+    transition: border-color 0.2s;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: #3949ab;
+}
+
+.search-group { flex: 1.5; }
+
+/* ============ SCHEME INFO ============ */
+.scheme-info {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.info-item { text-align: center; }
+
+.info-label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+}
+
+.info-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1a237e;
+}
+
+/* ============ KPI CARDS ============ */
+.kpi-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-top: 4px solid transparent;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.card.ber   { border-top-color: #4CAF50; }
+.card.brk   { border-top-color: #FF9800; }
+.card.txn   { border-top-color: #2196F3; }
+.card.stat  { border-top-color: #9C27B0; }
+.card.total { border-top-color: #F44336; }
+
+.card-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+
+.card-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #777;
+    margin-bottom: 0.4rem;
+}
+
+.card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.card.ber .card-value   { color: #4CAF50; }
+.card.brk .card-value   { color: #FF9800; }
+.card.txn .card-value   { color: #2196F3; }
+.card.stat .card-value  { color: #9C27B0; }
+.card.total .card-value { color: #F44336; }
+
+/* ============ CHART ============ */
+.chart-container {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+}
+
+.chart-container h2 {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* ============ TABLE ============ */
+.table-section { margin-bottom: 2rem; }
+
+.table-section h2 {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 0.8rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+table {
