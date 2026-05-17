@@ -65,6 +65,43 @@ header p { opacity: 0.85; font-size: 0.95rem; margin-bottom: 1rem; }
     box-shadow: 0 2px 8px rgba(57,73,171,0.3);
 }
 
+/* --- AVERAGE WINDOW SELECTOR --- */
+.avg-window-bar {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+    background: white; border-radius: 12px; padding: 0.8rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-wrap: wrap;
+}
+.window-label {
+    font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #666;
+}
+.window-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.window-btn {
+    padding: 0.4rem 0.9rem; border: 2px solid #e0e0e0; border-radius: 8px;
+    background: white; font-family: inherit; font-size: 0.78rem;
+    font-weight: 500; cursor: pointer; transition: all 0.2s; color: #666;
+}
+.window-btn:hover { border-color: #1a237e; color: #1a237e; background: #f5f7ff; }
+.window-btn.active {
+    background: #1a237e; color: white; border-color: #1a237e;
+    box-shadow: 0 2px 8px rgba(26,35,126,0.3);
+}
+.custom-days-wrapper {
+    display: none; align-items: center; gap: 0.4rem;
+}
+.custom-days-wrapper.show { display: flex; }
+.custom-days-input {
+    width: 70px; padding: 0.4rem 0.6rem; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 0.85rem; font-family: inherit;
+    text-align: center; transition: border-color 0.2s;
+}
+.custom-days-input:focus { outline: none; border-color: #1a237e; }
+.custom-days-label { font-size: 0.78rem; color: #666; }
+.avg-window-info {
+    margin-left: auto; font-size: 0.75rem; color: #999;
+    font-style: italic;
+}
+
 /* --- FILTERS --- */
 .filters { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .filter-group { flex: 1; min-width: 200px; }
@@ -135,6 +172,9 @@ header p { opacity: 0.85; font-size: 0.95rem; margin-bottom: 1rem; }
     font-size: 0.72rem; text-transform: uppercase;
     letter-spacing: 0.3px; color: #777; margin-bottom: 0.4rem;
 }
+.card-sublabel {
+    font-size: 0.65rem; color: #aaa; margin-top: 0.2rem;
+}
 .card-value { font-size: 1.5rem; font-weight: 700; }
 .card.ber .card-value   { color: #4CAF50; }
 .card.brk .card-value   { color: #FF9800; }
@@ -188,6 +228,9 @@ footer p { margin-bottom: 0.3rem; }
     .plan-toggle { flex-direction: column; align-items: flex-start; }
     .toggle-buttons { width: 100%; }
     .toggle-btn { flex: 1; text-align: center; }
+    .avg-window-bar { flex-direction: column; align-items: flex-start; }
+    .window-buttons { width: 100%; }
+    .avg-window-info { margin-left: 0; margin-top: 0.3rem; }
 }
 </style>
 </head>
@@ -217,6 +260,27 @@ footer p { margin-bottom: 0.3rem; }
                 <button id="btnDirect" class="toggle-btn active" onclick="switchPlan('direct')">📗 Direct Plan</button>
                 <button id="btnRegular" class="toggle-btn" onclick="switchPlan('regular')">📙 Regular Plan</button>
             </div>
+        </div>
+
+        <!-- Average Window Selector -->
+        <div class="avg-window-bar">
+            <span class="window-label">Average Window:</span>
+            <div class="window-buttons">
+                <button class="window-btn active" onclick="setWindow(0)">All (max 1Y)</button>
+                <button class="window-btn" onclick="setWindow(7)">7D</button>
+                <button class="window-btn" onclick="setWindow(15)">15D</button>
+                <button class="window-btn" onclick="setWindow(30)">30D</button>
+                <button class="window-btn" onclick="setWindow(60)">60D</button>
+                <button class="window-btn" onclick="setWindow(90)">90D</button>
+                <button class="window-btn" onclick="setWindow(180)">180D</button>
+                <button class="window-btn" onclick="setWindow(-1)">Custom</button>
+            </div>
+            <div class="custom-days-wrapper" id="customDaysWrapper">
+                <input type="number" class="custom-days-input" id="customDaysInput" min="1" max="365" placeholder="45">
+                <span class="custom-days-label">days</span>
+                <button class="window-btn" onclick="applyCustomDays()" style="padding:0.3rem 0.7rem; font-size:0.75rem;">Apply</button>
+            </div>
+            <span class="avg-window-info" id="windowInfo">Using all available data (max 365 days)</span>
         </div>
 
         <!-- Filters -->
@@ -265,6 +329,10 @@ footer p { margin-bottom: 0.3rem; }
                 <span class="info-value" id="dataPoints">-</span>
             </div>
             <div class="info-item">
+                <span class="info-label">Avg Window</span>
+                <span class="info-value" id="windowLabel">All (max 1Y)</span>
+            </div>
+            <div class="info-item">
                 <span class="info-label">Viewing</span>
                 <span class="info-value" id="planLabel">Direct Plan</span>
             </div>
@@ -276,26 +344,31 @@ footer p { margin-bottom: 0.3rem; }
                 <div class="card-icon">📗</div>
                 <div class="card-label">Avg Base ER (BER)</div>
                 <div class="card-value" id="avgBer">-</div>
+                <div class="card-sublabel" id="avgBerDays"></div>
             </div>
             <div class="card brk">
                 <div class="card-icon">📙</div>
                 <div class="card-label">Avg Brokerage</div>
                 <div class="card-value" id="avgBrk">-</div>
+                <div class="card-sublabel" id="avgBrkDays"></div>
             </div>
             <div class="card txn">
                 <div class="card-icon">📘</div>
                 <div class="card-label">Avg Transaction</div>
                 <div class="card-value" id="avgTxn">-</div>
+                <div class="card-sublabel" id="avgTxnDays"></div>
             </div>
             <div class="card stat">
                 <div class="card-icon">📕</div>
                 <div class="card-label">Avg Statutory</div>
                 <div class="card-value" id="avgStat">-</div>
+                <div class="card-sublabel" id="avgStatDays"></div>
             </div>
             <div class="card total">
                 <div class="card-icon">🔴</div>
                 <div class="card-label">Avg Total TER</div>
                 <div class="card-value" id="avgTotal">-</div>
+                <div class="card-sublabel" id="avgTotalDays"></div>
             </div>
         </div>
 
@@ -331,7 +404,7 @@ footer p { margin-bottom: 0.3rem; }
 
     <footer>
         <p>Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank">AMFI India</a> | Auto-updated daily via GitHub Actions</p>
-        <p>Built by Pavan | Rolling 365-day averages (or all available data if &lt; 1 year)</p>
+        <p>Built by Pavan | Rolling averages with customizable window</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -347,6 +420,7 @@ var chart = null;
 var currentPlan = "direct";
 var currentScheme = null;
 var currentDailyData = null;
+var currentWindowDays = 0;  /* 0 = all data (max 365), any other number = that many days */
 
 /* ====== INIT ====== */
 async function init() {
@@ -377,6 +451,97 @@ async function init() {
     }
 }
 
+/* ====== AVERAGE WINDOW SELECTOR ====== */
+function setWindow(days) {
+    /* days: 0 = all (max 365), -1 = custom, else = that number */
+    var buttons = document.querySelectorAll(".window-btn");
+    var customWrapper = document.getElementById("customDaysWrapper");
+
+    if (days === -1) {
+        /* Show custom input */
+        customWrapper.classList.add("show");
+        /* Highlight the Custom button */
+        buttons.forEach(function(b) { b.classList.remove("active"); });
+        buttons[buttons.length - 1].classList.add("active"); /* last button = Custom */
+        return;
+    }
+
+    /* Hide custom input */
+    customWrapper.classList.remove("show");
+
+    /* Update active button */
+    buttons.forEach(function(b) { b.classList.remove("active"); });
+    /* Find which button was clicked based on days value */
+    var dayMap = [0, 7, 15, 30, 60, 90, 180, -1];
+    var idx = dayMap.indexOf(days);
+    if (idx >= 0 && idx < buttons.length) {
+        buttons[idx].classList.add("active");
+    }
+
+    currentWindowDays = days;
+    updateWindowLabels(days);
+    refreshDisplay();
+}
+window.setWindow = setWindow;
+
+function applyCustomDays() {
+    var input = document.getElementById("customDaysInput");
+    var days = parseInt(input.value);
+    if (!days || days < 1) {
+        alert("Please enter a number between 1 and 365");
+        return;
+    }
+    if (days > 365) days = 365;
+    currentWindowDays = days;
+    updateWindowLabels(days);
+    refreshDisplay();
+}
+window.applyCustomDays = applyCustomDays;
+
+function updateWindowLabels(days) {
+    var label;
+    if (days === 0) {
+        label = "All (max 1Y)";
+        document.getElementById("windowInfo").textContent = "Using all available data (max 365 days)";
+    } else {
+        label = "Last " + days + " days";
+        document.getElementById("windowInfo").textContent = "Averaging last " + days + " days of data";
+    }
+    document.getElementById("windowLabel").textContent = label;
+}
+
+/* ====== REFRESH DISPLAY (after window or plan change) ====== */
+function refreshDisplay() {
+    if (currentScheme && currentDailyData) {
+        var filteredData = filterDataByWindow(currentDailyData);
+        updateKPICards(filteredData);
+        updateChart(filteredData, currentScheme.scheme_name);
+        updateTable(filteredData);
+    }
+}
+
+/* ====== FILTER DATA BY WINDOW ====== */
+function filterDataByWindow(data) {
+    if (!data || data.length === 0) return data;
+
+    if (currentWindowDays === 0) {
+        /* All data, max 365 days — take from the end */
+        if (data.length > 365) {
+            return data.slice(data.length - 365);
+        }
+        return data;
+    }
+
+    /* Last N days from the most recent date in data */
+    var lastDate = new Date(data[data.length - 1].date);
+    var cutoffDate = new Date(lastDate);
+    cutoffDate.setDate(cutoffDate.getDate() - currentWindowDays);
+
+    return data.filter(function(d) {
+        return new Date(d.date) > cutoffDate;
+    });
+}
+
 /* ====== PLAN TOGGLE ====== */
 function switchPlan(plan) {
     currentPlan = plan;
@@ -394,11 +559,7 @@ function switchPlan(plan) {
     document.getElementById("chartPlanLabel").textContent = label;
     document.getElementById("tablePlanLabel").textContent = label;
 
-    if (currentScheme && currentDailyData) {
-        updateKPICards(currentScheme);
-        updateChart(currentDailyData, currentScheme.scheme_name);
-        updateTable(currentDailyData);
-    }
+    refreshDisplay();
 }
 window.switchPlan = switchPlan;
 
@@ -533,34 +694,53 @@ document.getElementById("schemeFilter").addEventListener("change", function () {
 async function selectScheme(scheme) {
     currentScheme = scheme;
 
-    updateKPICards(scheme);
-
     document.getElementById("schemeName").textContent = scheme.scheme_name;
     document.getElementById("schemeType").textContent = scheme.scheme_type || "-";
     document.getElementById("schemeCategory").textContent = scheme.category;
-    document.getElementById("dateRange").textContent = scheme.date_from + " → " + scheme.date_to;
+    document.getElementById("dateRange").textContent = scheme.date_from + " \u2192 " + scheme.date_to;
     document.getElementById("dataPoints").textContent = scheme.data_points + " days";
 
     try {
         var res = await fetch("data/daily/" + scheme.id + ".json");
         if (!res.ok) throw new Error("Daily data not found");
         currentDailyData = await res.json();
-        updateChart(currentDailyData, scheme.scheme_name);
-        updateTable(currentDailyData);
+        refreshDisplay();
     } catch (e) {
         console.error("Error loading daily data:", e);
         currentDailyData = null;
     }
 }
 
-/* ====== UPDATE KPI CARDS ====== */
-function updateKPICards(scheme) {
+/* ====== CALCULATE AVERAGE FROM DATA ====== */
+function calcAvg(data, key) {
+    if (!data || data.length === 0) return 0;
+    var sum = 0;
+    var count = 0;
+    data.forEach(function(d) {
+        var val = d[key] || 0;
+        sum += val;
+        count++;
+    });
+    return count > 0 ? sum / count : 0;
+}
+
+/* ====== UPDATE KPI CARDS (calculated from daily data) ====== */
+function updateKPICards(data) {
     var p = currentPlan === "direct" ? "d" : "r";
-    document.getElementById("avgBer").textContent = (scheme["avg_" + p + "_ber"] || 0).toFixed(4) + "%";
-    document.getElementById("avgBrk").textContent = (scheme["avg_" + p + "_brokerage"] || 0).toFixed(4) + "%";
-    document.getElementById("avgTxn").textContent = (scheme["avg_" + p + "_transaction"] || 0).toFixed(4) + "%";
-    document.getElementById("avgStat").textContent = (scheme["avg_" + p + "_statutory"] || 0).toFixed(4) + "%";
-    document.getElementById("avgTotal").textContent = (scheme["avg_" + p + "_total_ter"] || 0).toFixed(4) + "%";
+    var days = data ? data.length : 0;
+    var daysText = "based on " + days + " days";
+
+    document.getElementById("avgBer").textContent = calcAvg(data, p + "_ber").toFixed(4) + "%";
+    document.getElementById("avgBrk").textContent = calcAvg(data, p + "_brokerage").toFixed(4) + "%";
+    document.getElementById("avgTxn").textContent = calcAvg(data, p + "_transaction").toFixed(4) + "%";
+    document.getElementById("avgStat").textContent = calcAvg(data, p + "_statutory").toFixed(4) + "%";
+    document.getElementById("avgTotal").textContent = calcAvg(data, p + "_total_ter").toFixed(4) + "%";
+
+    document.getElementById("avgBerDays").textContent = daysText;
+    document.getElementById("avgBrkDays").textContent = daysText;
+    document.getElementById("avgTxnDays").textContent = daysText;
+    document.getElementById("avgStatDays").textContent = daysText;
+    document.getElementById("avgTotalDays").textContent = daysText;
 }
 
 /* ====== CHART ====== */
@@ -570,6 +750,7 @@ function updateChart(data, name) {
 
     var p = currentPlan === "direct" ? "d" : "r";
     var planLabel = currentPlan === "direct" ? "Direct" : "Regular";
+    var windowText = currentWindowDays === 0 ? "All Data" : "Last " + currentWindowDays + "D";
 
     chart = new Chart(ctx, {
         type: "line",
@@ -611,7 +792,7 @@ function updateChart(data, name) {
         options: {
             responsive: true,
             plugins: {
-                title: { display: true, text: planLabel + " Plan TER \u2014 " + name, font: { size: 14 } },
+                title: { display: true, text: planLabel + " Plan TER \u2014 " + name + " (" + windowText + ")", font: { size: 14 } },
                 tooltip: { mode: "index", intersect: false }
             },
             scales: {
@@ -643,6 +824,16 @@ function updateTable(data) {
         tbody.appendChild(tr);
     });
 }
+
+/* ====== ENTER KEY ON CUSTOM INPUT ====== */
+document.addEventListener("DOMContentLoaded", function() {
+    var customInput = document.getElementById("customDaysInput");
+    if (customInput) {
+        customInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") { applyCustomDays(); }
+        });
+    }
+});
 
 /* ====== START ====== */
 init();
