@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MF TER Tracker | Daily Expense Ratio Breakdown</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
         <h1>📊 Mutual Fund TER Tracker</h1>
-        <p>Daily expense ratio breakdown for Indian mutual funds (Direct Plan)</p>
+        <p>Daily expense ratio breakdown for Indian mutual funds</p>
         <div class="header-meta">
             <span>Last updated: <strong id="lastUpdated">Loading...</strong></span>
             <span>Schemes: <strong id="totalSchemes">-</strong></span>
@@ -20,6 +21,15 @@
     </header>
 
     <div class="container">
+
+        <!-- Plan Toggle -->
+        <div class="plan-toggle">
+            <span class="toggle-label">Plan Type:</span>
+            <div class="toggle-buttons">
+                <button id="btnDirect" class="toggle-btn active" onclick="switchPlan('direct')">📗 Direct Plan</button>
+                <button id="btnRegular" class="toggle-btn" onclick="switchPlan('regular')">📙 Regular Plan</button>
+            </div>
+        </div>
 
         <!-- Filters -->
         <div class="filters">
@@ -30,8 +40,11 @@
                 </select>
             </div>
             <div class="filter-group search-group">
-                <label for="searchInput">Search</label>
-                <input type="text" id="searchInput" placeholder="Type scheme name...">
+                <label for="searchInput">Search Scheme</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="searchInput" placeholder="Start typing scheme name..." autocomplete="off">
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
             </div>
             <div class="filter-group">
                 <label for="schemeFilter">Scheme</label>
@@ -48,6 +61,10 @@
                 <span class="info-value" id="schemeName">Select a scheme above ☝️</span>
             </div>
             <div class="info-item">
+                <span class="info-label">Type</span>
+                <span class="info-value" id="schemeType">-</span>
+            </div>
+            <div class="info-item">
                 <span class="info-label">Category</span>
                 <span class="info-value" id="schemeCategory">-</span>
             </div>
@@ -58,6 +75,10 @@
             <div class="info-item">
                 <span class="info-label">Data Points</span>
                 <span class="info-value" id="dataPoints">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Viewing</span>
+                <span class="info-value" id="planLabel">Direct Plan</span>
             </div>
         </div>
 
@@ -92,13 +113,13 @@
 
         <!-- Chart -->
         <div class="chart-container">
-            <h2>📈 Daily TER Breakdown</h2>
+            <h2>📈 Daily TER Breakdown — <span id="chartPlanLabel">Direct Plan</span></h2>
             <canvas id="terChart"></canvas>
         </div>
 
         <!-- Table -->
         <div class="table-section">
-            <h2>📋 Daily Data</h2>
+            <h2>📋 Daily Data — <span id="tablePlanLabel">Direct Plan</span></h2>
             <div class="table-container">
                 <table>
                     <thead>
