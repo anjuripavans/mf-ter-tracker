@@ -1,843 +1,1447 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF TER Tracker | Daily Expense Ratio Breakdown</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-/* ============================================================
-   SECTION 1: DESIGN & STYLING
-   Change colors, fonts, sizes, spacing here
-   ============================================================ */
-
-/* --- RESET & BASE --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #f0f2f5;
-    color: #333;
-    line-height: 1.6;
-}
-a { color: #4f8cff; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* --- HEADER --- */
-header {
-    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
-    color: white;
-    padding: 2rem 1.5rem 1.5rem;
-    text-align: center;
-}
-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
-header p { opacity: 0.85; font-size: 0.95rem; margin-bottom: 1rem; }
-.header-meta {
-    display: flex; justify-content: center; gap: 2rem;
-    flex-wrap: wrap; font-size: 0.85rem; opacity: 0.9;
-}
-.header-meta strong { color: #bbdefb; }
-
-/* --- CONTAINER --- */
-.container { max-width: 1250px; margin: 0 auto; padding: 1.5rem; }
-
-/* --- PLAN TOGGLE --- */
-.plan-toggle {
-    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
-    background: white; border-radius: 12px; padding: 0.8rem 1.2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-.toggle-label {
-    font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.5px; color: #666;
-}
-.toggle-buttons { display: flex; gap: 0.5rem; }
-.toggle-btn {
-    padding: 0.5rem 1.2rem; border: 2px solid #e0e0e0; border-radius: 8px;
-    background: white; font-family: inherit; font-size: 0.85rem;
-    font-weight: 500; cursor: pointer; transition: all 0.2s; color: #666;
-}
-.toggle-btn:hover { border-color: #3949ab; color: #3949ab; background: #f5f7ff; }
-.toggle-btn.active {
-    background: #3949ab; color: white; border-color: #3949ab;
-    box-shadow: 0 2px 8px rgba(57,73,171,0.3);
-}
-
-/* --- AVERAGE WINDOW SELECTOR --- */
-.avg-window-bar {
-    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
-    background: white; border-radius: 12px; padding: 0.8rem 1.2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-wrap: wrap;
-}
-.window-label {
-    font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.5px; color: #666;
-}
-.window-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.window-btn {
-    padding: 0.4rem 0.9rem; border: 2px solid #e0e0e0; border-radius: 8px;
-    background: white; font-family: inherit; font-size: 0.78rem;
-    font-weight: 500; cursor: pointer; transition: all 0.2s; color: #666;
-}
-.window-btn:hover { border-color: #1a237e; color: #1a237e; background: #f5f7ff; }
-.window-btn.active {
-    background: #1a237e; color: white; border-color: #1a237e;
-    box-shadow: 0 2px 8px rgba(26,35,126,0.3);
-}
-.custom-days-wrapper {
-    display: none; align-items: center; gap: 0.4rem;
-}
-.custom-days-wrapper.show { display: flex; }
-.custom-days-input {
-    width: 70px; padding: 0.4rem 0.6rem; border: 2px solid #e0e0e0;
-    border-radius: 8px; font-size: 0.85rem; font-family: inherit;
-    text-align: center; transition: border-color 0.2s;
-}
-.custom-days-input:focus { outline: none; border-color: #1a237e; }
-.custom-days-label { font-size: 0.78rem; color: #666; }
-.avg-window-info {
-    margin-left: auto; font-size: 0.75rem; color: #999;
-    font-style: italic;
-}
-
-/* --- FILTERS --- */
-.filters { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.filter-group { flex: 1; min-width: 200px; }
-.filter-group label {
-    display: block; font-size: 0.75rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 0.3rem;
-}
-.filter-group select, .filter-group input {
-    width: 100%; padding: 0.65rem 0.9rem; border: 2px solid #e0e0e0;
-    border-radius: 10px; font-size: 0.9rem; font-family: inherit;
-    background: white; transition: border-color 0.2s;
-}
-.filter-group select:focus, .filter-group input:focus { outline: none; border-color: #3949ab; }
-.search-group { flex: 1.5; }
-
-/* --- AUTOCOMPLETE --- */
-.autocomplete-wrapper { position: relative; }
-.autocomplete-dropdown {
-    display: none; position: absolute; top: 100%; left: 0; right: 0;
-    background: white; border: 2px solid #3949ab; border-top: none;
-    border-radius: 0 0 10px 10px; max-height: 280px; overflow-y: auto;
-    z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-}
-.autocomplete-dropdown.show { display: block; }
-.autocomplete-item {
-    padding: 0.6rem 0.9rem; cursor: pointer; font-size: 0.85rem;
-    border-bottom: 1px solid #f0f0f0; transition: background 0.15s;
-}
-.autocomplete-item:last-child { border-bottom: none; }
-.autocomplete-item:hover { background: #f0f4ff; }
-.autocomplete-item .scheme-cat { font-size: 0.7rem; color: #999; margin-top: 0.1rem; }
-.autocomplete-item .highlight {
-    background: #fff3cd; font-weight: 600; border-radius: 2px; padding: 0 1px;
-}
-.autocomplete-no-results { padding: 0.8rem 0.9rem; color: #aaa; font-size: 0.85rem; font-style: italic; }
-
-/* --- SCHEME INFO --- */
-.scheme-info {
-    background: white; border-radius: 12px; padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;
-}
-.info-item { text-align: center; }
-.info-label {
-    display: block; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.5px; color: #888;
-}
-.info-value { font-weight: 600; font-size: 0.9rem; color: #1a237e; }
-
-/* --- KPI CARDS --- */
-.kpi-cards {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 1rem; margin-bottom: 1.5rem;
-}
-.card {
-    background: white; border-radius: 14px; padding: 1.2rem 1rem;
-    text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    transition: transform 0.2s, box-shadow 0.2s; border-top: 4px solid transparent;
-}
-.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-.card.ber   { border-top-color: #4CAF50; }
-.card.brk   { border-top-color: #FF9800; }
-.card.txn   { border-top-color: #2196F3; }
-.card.stat  { border-top-color: #9C27B0; }
-.card.total { border-top-color: #F44336; }
-.card-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
-.card-label {
-    font-size: 0.72rem; text-transform: uppercase;
-    letter-spacing: 0.3px; color: #777; margin-bottom: 0.4rem;
-}
-.card-sublabel {
-    font-size: 0.65rem; color: #aaa; margin-top: 0.2rem;
-}
-.card-value { font-size: 1.5rem; font-weight: 700; }
-.card.ber .card-value   { color: #4CAF50; }
-.card.brk .card-value   { color: #FF9800; }
-.card.txn .card-value   { color: #2196F3; }
-.card.stat .card-value  { color: #9C27B0; }
-.card.total .card-value { color: #F44336; }
-
-/* --- CHART --- */
-.chart-container {
-    background: white; border-radius: 14px; padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 1.5rem;
-}
-.chart-container h2 { font-size: 1rem; color: #555; margin-bottom: 1rem; }
-
-/* --- TABLE --- */
-.table-section { margin-bottom: 2rem; }
-.table-section h2 { font-size: 1rem; color: #555; margin-bottom: 0.8rem; }
-.table-container {
-    background: white; border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    overflow-x: auto; max-height: 500px; overflow-y: auto;
-}
-table { width: 100%; border-collapse: collapse; }
-thead { position: sticky; top: 0; z-index: 1; }
-th {
-    background: #f5f5f5; padding: 0.75rem 0.8rem; text-align: center;
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
-    color: #555; border-bottom: 2px solid #e0e0e0;
-}
-td {
-    padding: 0.55rem 0.8rem; text-align: center;
-    border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; font-variant-numeric: tabular-nums;
-}
-tr:hover { background: #f8f9ff; }
-.empty-msg { padding: 2rem !important; color: #aaa; font-style: italic; }
-
-/* --- FOOTER --- */
-footer {
-    text-align: center; padding: 1.5rem; color: #999;
-    font-size: 0.82rem; border-top: 1px solid #e0e0e0; background: white;
-}
-footer p { margin-bottom: 0.3rem; }
-
-/* --- RESPONSIVE (Mobile) --- */
-@media (max-width: 768px) {
-    header h1 { font-size: 1.4rem; }
-    .filters { flex-direction: column; }
-    .kpi-cards { grid-template-columns: repeat(2, 1fr); }
-    .scheme-info { flex-direction: column; text-align: left; }
-    .header-meta { flex-direction: column; gap: 0.3rem; }
-    .plan-toggle { flex-direction: column; align-items: flex-start; }
-    .toggle-buttons { width: 100%; }
-    .toggle-btn { flex: 1; text-align: center; }
-    .avg-window-bar { flex-direction: column; align-items: flex-start; }
-    .window-buttons { width: 100%; }
-    .avg-window-info { margin-left: 0; margin-top: 0.3rem; }
-}
-</style>
-</head>
-<body>
-
-<!-- ============================================================
-     SECTION 2: STRUCTURE / LAYOUT
-     Add or remove buttons, cards, sections here
-     ============================================================ -->
-
-    <header>
-        <h1>📊 Mutual Fund TER Tracker</h1>
-        <p>Daily expense ratio breakdown for Indian mutual funds</p>
-        <div class="header-meta">
-            <span>Last updated: <strong id="lastUpdated">Loading...</strong></span>
-            <span>Schemes: <strong id="totalSchemes">-</strong></span>
-            <span>Period: <strong id="dataPeriod">-</strong></span>
-        </div>
-    </header>
-
-    <div class="container">
-
-        <!-- Plan Toggle -->
-        <div class="plan-toggle">
-            <span class="toggle-label">Plan Type:</span>
-            <div class="toggle-buttons">
-                <button id="btnDirect" class="toggle-btn active" onclick="switchPlan('direct')">📗 Direct Plan</button>
-                <button id="btnRegular" class="toggle-btn" onclick="switchPlan('regular')">📙 Regular Plan</button>
-            </div>
-        </div>
-
-        <!-- Average Window Selector -->
-        <div class="avg-window-bar">
-            <span class="window-label">Average Window:</span>
-            <div class="window-buttons">
-                <button class="window-btn active" onclick="setWindow(0)">All (max 1Y)</button>
-                <button class="window-btn" onclick="setWindow(7)">7D</button>
-                <button class="window-btn" onclick="setWindow(15)">15D</button>
-                <button class="window-btn" onclick="setWindow(30)">30D</button>
-                <button class="window-btn" onclick="setWindow(60)">60D</button>
-                <button class="window-btn" onclick="setWindow(90)">90D</button>
-                <button class="window-btn" onclick="setWindow(180)">180D</button>
-                <button class="window-btn" onclick="setWindow(-1)">Custom</button>
-            </div>
-            <div class="custom-days-wrapper" id="customDaysWrapper">
-                <input type="number" class="custom-days-input" id="customDaysInput" min="1" max="365" placeholder="45">
-                <span class="custom-days-label">days</span>
-                <button class="window-btn" onclick="applyCustomDays()" style="padding:0.3rem 0.7rem; font-size:0.75rem;">Apply</button>
-            </div>
-            <span class="avg-window-info" id="windowInfo">Using all available data (max 365 days)</span>
-        </div>
-
-        <!-- Filters -->
-        <div class="filters">
-            <div class="filter-group">
-                <label for="categoryFilter">Category</label>
-                <select id="categoryFilter">
-                    <option value="">All Categories</option>
-                </select>
-            </div>
-            <div class="filter-group search-group">
-                <label for="searchInput">Search Scheme</label>
-                <div class="autocomplete-wrapper">
-                    <input type="text" id="searchInput" placeholder="Start typing scheme name..." autocomplete="off">
-                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
-                </div>
-            </div>
-            <div class="filter-group">
-                <label for="schemeFilter">Scheme</label>
-                <select id="schemeFilter">
-                    <option value="">Select a scheme...</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Scheme Info Bar -->
-        <div class="scheme-info" id="schemeInfo">
-            <div class="info-item">
-                <span class="info-label">Scheme</span>
-                <span class="info-value" id="schemeName">Select a scheme above ☝️</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Type</span>
-                <span class="info-value" id="schemeType">-</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Category</span>
-                <span class="info-value" id="schemeCategory">-</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Data Period</span>
-                <span class="info-value" id="dateRange">-</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Data Points</span>
-                <span class="info-value" id="dataPoints">-</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Avg Window</span>
-                <span class="info-value" id="windowLabel">All (max 1Y)</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Viewing</span>
-                <span class="info-value" id="planLabel">Direct Plan</span>
-            </div>
-        </div>
-
-        <!-- KPI Cards -->
-        <div class="kpi-cards">
-            <div class="card ber">
-                <div class="card-icon">📗</div>
-                <div class="card-label">Avg Base ER (BER)</div>
-                <div class="card-value" id="avgBer">-</div>
-                <div class="card-sublabel" id="avgBerDays"></div>
-            </div>
-            <div class="card brk">
-                <div class="card-icon">📙</div>
-                <div class="card-label">Avg Brokerage</div>
-                <div class="card-value" id="avgBrk">-</div>
-                <div class="card-sublabel" id="avgBrkDays"></div>
-            </div>
-            <div class="card txn">
-                <div class="card-icon">📘</div>
-                <div class="card-label">Avg Transaction</div>
-                <div class="card-value" id="avgTxn">-</div>
-                <div class="card-sublabel" id="avgTxnDays"></div>
-            </div>
-            <div class="card stat">
-                <div class="card-icon">📕</div>
-                <div class="card-label">Avg Statutory</div>
-                <div class="card-value" id="avgStat">-</div>
-                <div class="card-sublabel" id="avgStatDays"></div>
-            </div>
-            <div class="card total">
-                <div class="card-icon">🔴</div>
-                <div class="card-label">Avg Total TER</div>
-                <div class="card-value" id="avgTotal">-</div>
-                <div class="card-sublabel" id="avgTotalDays"></div>
-            </div>
-        </div>
-
-        <!-- Chart -->
-        <div class="chart-container">
-            <h2>📈 Daily TER Breakdown — <span id="chartPlanLabel">Direct Plan</span></h2>
-            <canvas id="terChart"></canvas>
-        </div>
-
-        <!-- Table -->
-        <div class="table-section">
-            <h2>📋 Daily Data — <span id="tablePlanLabel">Direct Plan</span></h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>BER (%)</th>
-                            <th>Brokerage (%)</th>
-                            <th>Transaction (%)</th>
-                            <th>Statutory (%)</th>
-                            <th>Total TER (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dailyTableBody">
-                        <tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-    <footer>
-        <p>Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank">AMFI India</a> | Auto-updated daily via GitHub Actions</p>
-        <p>Built by Pavan | Rolling averages with customizable window</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-/* ============================================================
-   SECTION 3: LOGIC & CALCULATIONS
-   Change chart behavior, filters, calculations here
-   ============================================================ */
-
-var summaryData = null;
-var chart = null;
-var currentPlan = "direct";
-var currentScheme = null;
-var currentDailyData = null;
-var currentWindowDays = 0;  /* 0 = all data (max 365), any other number = that many days */
-
-/* ====== INIT ====== */
-async function init() {
-    try {
-        var res = await fetch("data/summary.json");
-        if (!res.ok) throw new Error("summary.json not found. Run the workflow first!");
-        summaryData = await res.json();
-
-        document.getElementById("lastUpdated").textContent = summaryData.last_updated;
-        document.getElementById("totalSchemes").textContent = summaryData.total_schemes.toLocaleString();
-        document.getElementById("dataPeriod").textContent =
-            summaryData.data_from + " to " + summaryData.data_to;
-
-        var catSel = document.getElementById("categoryFilter");
-        summaryData.categories.forEach(function (cat) {
-            var opt = document.createElement("option");
-            opt.value = cat;
-            opt.textContent = cat;
-            catSel.appendChild(opt);
-        });
-
-        populateSchemes(summaryData.schemes);
-        setupAutocomplete();
-
-    } catch (e) {
-        document.getElementById("lastUpdated").textContent = "Error loading data";
-        console.error(e);
-    }
-}
-
-/* ====== AVERAGE WINDOW SELECTOR ====== */
-function setWindow(days) {
-    /* days: 0 = all (max 365), -1 = custom, else = that number */
-    var buttons = document.querySelectorAll(".window-btn");
-    var customWrapper = document.getElementById("customDaysWrapper");
-
-    if (days === -1) {
-        /* Show custom input */
-        customWrapper.classList.add("show");
-        /* Highlight the Custom button */
-        buttons.forEach(function(b) { b.classList.remove("active"); });
-        buttons[buttons.length - 1].classList.add("active"); /* last button = Custom */
-        return;
-    }
-
-    /* Hide custom input */
-    customWrapper.classList.remove("show");
-
-    /* Update active button */
-    buttons.forEach(function(b) { b.classList.remove("active"); });
-    /* Find which button was clicked based on days value */
-    var dayMap = [0, 7, 15, 30, 60, 90, 180, -1];
-    var idx = dayMap.indexOf(days);
-    if (idx >= 0 && idx < buttons.length) {
-        buttons[idx].classList.add("active");
-    }
-
-    currentWindowDays = days;
-    updateWindowLabels(days);
-    refreshDisplay();
-}
-window.setWindow = setWindow;
-
-function applyCustomDays() {
-    var input = document.getElementById("customDaysInput");
-    var days = parseInt(input.value);
-    if (!days || days < 1) {
-        alert("Please enter a number between 1 and 365");
-        return;
-    }
-    if (days > 365) days = 365;
-    currentWindowDays = days;
-    updateWindowLabels(days);
-    refreshDisplay();
-}
-window.applyCustomDays = applyCustomDays;
-
-function updateWindowLabels(days) {
-    var label;
-    if (days === 0) {
-        label = "All (max 1Y)";
-        document.getElementById("windowInfo").textContent = "Using all available data (max 365 days)";
-    } else {
-        label = "Last " + days + " days";
-        document.getElementById("windowInfo").textContent = "Averaging last " + days + " days of data";
-    }
-    document.getElementById("windowLabel").textContent = label;
-}
-
-/* ====== REFRESH DISPLAY (after window or plan change) ====== */
-function refreshDisplay() {
-    if (currentScheme && currentDailyData) {
-        var filteredData = filterDataByWindow(currentDailyData);
-        updateKPICards(filteredData);
-        updateChart(filteredData, currentScheme.scheme_name);
-        updateTable(filteredData);
-    }
-}
-
-/* ====== FILTER DATA BY WINDOW ====== */
-function filterDataByWindow(data) {
-    if (!data || data.length === 0) return data;
-
-    if (currentWindowDays === 0) {
-        /* All data, max 365 days — take from the end */
-        if (data.length > 365) {
-            return data.slice(data.length - 365);
-        }
-        return data;
-    }
-
-    /* Last N days from the most recent date in data */
-    var lastDate = new Date(data[data.length - 1].date);
-    var cutoffDate = new Date(lastDate);
-    cutoffDate.setDate(cutoffDate.getDate() - currentWindowDays);
-
-    return data.filter(function(d) {
-        return new Date(d.date) > cutoffDate;
-    });
-}
-
-/* ====== PLAN TOGGLE ====== */
-function switchPlan(plan) {
-    currentPlan = plan;
-
-    document.getElementById("btnDirect").classList.remove("active");
-    document.getElementById("btnRegular").classList.remove("active");
-    if (plan === "direct") {
-        document.getElementById("btnDirect").classList.add("active");
-    } else {
-        document.getElementById("btnRegular").classList.add("active");
-    }
-
-    var label = plan === "direct" ? "Direct Plan" : "Regular Plan";
-    document.getElementById("planLabel").textContent = label;
-    document.getElementById("chartPlanLabel").textContent = label;
-    document.getElementById("tablePlanLabel").textContent = label;
-
-    refreshDisplay();
-}
-window.switchPlan = switchPlan;
-
-/* ====== POPULATE SCHEME DROPDOWN ====== */
-function populateSchemes(schemes) {
-    var sel = document.getElementById("schemeFilter");
-    sel.innerHTML = '<option value="">Select a scheme (' + schemes.length + " available)</option>";
-    schemes.forEach(function (s) {
-        var opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = s.scheme_name;
-        sel.appendChild(opt);
-    });
-}
-
-/* ====== AUTOCOMPLETE SEARCH ====== */
-function setupAutocomplete() {
-    var input = document.getElementById("searchInput");
-    var dropdown = document.getElementById("autocompleteDropdown");
-
-    input.addEventListener("input", function () {
-        var query = this.value.toLowerCase().trim();
-        var cat = document.getElementById("categoryFilter").value;
-
-        filterAndPopulate(cat, query);
-
-        if (query.length < 2) {
-            dropdown.classList.remove("show");
-            dropdown.innerHTML = "";
-            return;
-        }
-
-        var filtered = summaryData.schemes;
-        if (cat) {
-            filtered = filtered.filter(function (s) { return s.category === cat; });
-        }
-        filtered = filtered.filter(function (s) {
-            return s.scheme_name.toLowerCase().indexOf(query) !== -1;
-        });
-
-        if (filtered.length === 0) {
-            dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';
-            dropdown.classList.add("show");
-            return;
-        }
-
-        var results = filtered.slice(0, 15);
-        dropdown.innerHTML = "";
-
-        results.forEach(function (s) {
-            var item = document.createElement("div");
-            item.className = "autocomplete-item";
-
-            var name = s.scheme_name;
-            var lowerName = name.toLowerCase();
-            var idx = lowerName.indexOf(query);
-            var highlighted = name;
-            if (idx !== -1) {
-                highlighted =
-                    name.substring(0, idx) +
-                    '<span class="highlight">' +
-                    name.substring(idx, idx + query.length) +
-                    '</span>' +
-                    name.substring(idx + query.length);
-            }
-
-            item.innerHTML =
-                '<div>' + highlighted + '</div>' +
-                '<div class="scheme-cat">' + s.category + '</div>';
-
-            item.addEventListener("click", function () {
-                input.value = s.scheme_name;
-                dropdown.classList.remove("show");
-                var schemeSel = document.getElementById("schemeFilter");
-                schemeSel.value = s.id;
-                selectScheme(s);
-            });
-
-            dropdown.appendChild(item);
-        });
-
-        if (filtered.length > 15) {
-            var more = document.createElement("div");
-            more.className = "autocomplete-no-results";
-            more.textContent = "... and " + (filtered.length - 15) + " more. Keep typing to narrow down.";
-            dropdown.appendChild(more);
-        }
-
-        dropdown.classList.add("show");
-    });
-
-    document.addEventListener("click", function (e) {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.remove("show");
-        }
-    });
-
-    input.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") { dropdown.classList.remove("show"); }
-    });
-}
-
-/* ====== FILTER BY CATEGORY ====== */
-document.getElementById("categoryFilter").addEventListener("change", function () {
-    var cat = this.value;
-    var query = document.getElementById("searchInput").value.toLowerCase();
-    filterAndPopulate(cat, query);
-});
-
-function filterAndPopulate(cat, query) {
-    var filtered = summaryData.schemes;
-    if (cat) filtered = filtered.filter(function (s) { return s.category === cat; });
-    if (query) filtered = filtered.filter(function (s) {
-        return s.scheme_name.toLowerCase().indexOf(query) !== -1;
-    });
-    populateSchemes(filtered);
-}
-
-/* ====== SCHEME SELECTED (from dropdown) ====== */
-document.getElementById("schemeFilter").addEventListener("change", function () {
-    var id = this.value;
-    if (!id) return;
-    var scheme = summaryData.schemes.find(function (s) { return s.id === id; });
-    if (scheme) {
-        document.getElementById("searchInput").value = scheme.scheme_name;
-        document.getElementById("autocompleteDropdown").classList.remove("show");
-        selectScheme(scheme);
-    }
-});
-
-/* ====== SELECT SCHEME ====== */
-async function selectScheme(scheme) {
-    currentScheme = scheme;
-
-    document.getElementById("schemeName").textContent = scheme.scheme_name;
-    document.getElementById("schemeType").textContent = scheme.scheme_type || "-";
-    document.getElementById("schemeCategory").textContent = scheme.category;
-    document.getElementById("dateRange").textContent = scheme.date_from + " \u2192 " + scheme.date_to;
-    document.getElementById("dataPoints").textContent = scheme.data_points + " days";
-
-    try {
-        var res = await fetch("data/daily/" + scheme.id + ".json");
-        if (!res.ok) throw new Error("Daily data not found");
-        currentDailyData = await res.json();
-        refreshDisplay();
-    } catch (e) {
-        console.error("Error loading daily data:", e);
-        currentDailyData = null;
-    }
-}
-
-/* ====== CALCULATE AVERAGE FROM DATA ====== */
-function calcAvg(data, key) {
-    if (!data || data.length === 0) return 0;
-    var sum = 0;
-    var count = 0;
-    data.forEach(function(d) {
-        var val = d[key] || 0;
-        sum += val;
-        count++;
-    });
-    return count > 0 ? sum / count : 0;
-}
-
-/* ====== UPDATE KPI CARDS (calculated from daily data) ====== */
-function updateKPICards(data) {
-    var p = currentPlan === "direct" ? "d" : "r";
-    var days = data ? data.length : 0;
-    var daysText = "based on " + days + " days";
-
-    document.getElementById("avgBer").textContent = calcAvg(data, p + "_ber").toFixed(4) + "%";
-    document.getElementById("avgBrk").textContent = calcAvg(data, p + "_brokerage").toFixed(4) + "%";
-    document.getElementById("avgTxn").textContent = calcAvg(data, p + "_transaction").toFixed(4) + "%";
-    document.getElementById("avgStat").textContent = calcAvg(data, p + "_statutory").toFixed(4) + "%";
-    document.getElementById("avgTotal").textContent = calcAvg(data, p + "_total_ter").toFixed(4) + "%";
-
-    document.getElementById("avgBerDays").textContent = daysText;
-    document.getElementById("avgBrkDays").textContent = daysText;
-    document.getElementById("avgTxnDays").textContent = daysText;
-    document.getElementById("avgStatDays").textContent = daysText;
-    document.getElementById("avgTotalDays").textContent = daysText;
-}
-
-/* ====== CHART ====== */
-function updateChart(data, name) {
-    var ctx = document.getElementById("terChart").getContext("2d");
-    if (chart) chart.destroy();
-
-    var p = currentPlan === "direct" ? "d" : "r";
-    var planLabel = currentPlan === "direct" ? "Direct" : "Regular";
-    var windowText = currentWindowDays === 0 ? "All Data" : "Last " + currentWindowDays + "D";
-
-    chart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: data.map(function (d) { return d.date; }),
-            datasets: [
-                {
-                    label: "BER",
-                    data: data.map(function (d) { return d[p + "_ber"] || 0; }),
-                    borderColor: "#4CAF50", backgroundColor: "rgba(76,175,80,0.08)",
-                    fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2
-                },
-                {
-                    label: "Brokerage",
-                    data: data.map(function (d) { return d[p + "_brokerage"] || 0; }),
-                    borderColor: "#FF9800", backgroundColor: "rgba(255,152,0,0.08)",
-                    fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2
-                },
-                {
-                    label: "Transaction",
-                    data: data.map(function (d) { return d[p + "_transaction"] || 0; }),
-                    borderColor: "#2196F3", backgroundColor: "rgba(33,150,243,0.08)",
-                    fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2
-                },
-                {
-                    label: "Statutory",
-                    data: data.map(function (d) { return d[p + "_statutory"] || 0; }),
-                    borderColor: "#9C27B0", backgroundColor: "rgba(156,39,176,0.08)",
-                    fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2
-                },
-                {
-                    label: "Total TER",
-                    data: data.map(function (d) { return d[p + "_total_ter"] || 0; }),
-                    borderColor: "#F44336", borderDash: [6, 3],
-                    fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2.5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: { display: true, text: planLabel + " Plan TER \u2014 " + name + " (" + windowText + ")", font: { size: 14 } },
-                tooltip: { mode: "index", intersect: false }
-            },
-            scales: {
-                y: { title: { display: true, text: "Expense Ratio (%)" }, beginAtZero: true },
-                x: { title: { display: true, text: "Date" }, ticks: { maxTicksLimit: 15 } }
-            },
-            interaction: { mode: "nearest", axis: "x", intersect: false }
-        }
-    });
-}
-
-/* ====== TABLE ====== */
-function updateTable(data) {
-    var tbody = document.getElementById("dailyTableBody");
-    tbody.innerHTML = "";
-
-    var p = currentPlan === "direct" ? "d" : "r";
-    var reversed = data.slice().reverse();
-
-    reversed.forEach(function (d) {
-        var tr = document.createElement("tr");
-        tr.innerHTML =
-            "<td>" + d.date + "</td>" +
-            "<td>" + (d[p + "_ber"] || 0).toFixed(4) + "</td>" +
-            "<td>" + (d[p + "_brokerage"] || 0).toFixed(4) + "</td>" +
-            "<td>" + (d[p + "_transaction"] || 0).toFixed(4) + "</td>" +
-            "<td>" + (d[p + "_statutory"] || 0).toFixed(4) + "</td>" +
-            "<td><strong>" + (d[p + "_total_ter"] || 0).toFixed(4) + "</strong></td>";
-        tbody.appendChild(tr);
-    });
-}
-
-/* ====== ENTER KEY ON CUSTOM INPUT ====== */
-document.addEventListener("DOMContentLoaded", function() {
-    var customInput = document.getElementById("customDaysInput");
-    if (customInput) {
-        customInput.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") { applyCustomDays(); }
-        });
-    }
-});
-
-/* ====== START ====== */
-init();
-</script>
-
-</body>
-</html>
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+  <title>MF TER Tracker | Daily Expense Ratio Breakdown</title>  
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">  
+  
+  <style>  
+    :root {  
+      --bg: #f6f7fb;  
+      --panel: rgba(255,255,255,0.82);  
+      --panel-solid: #ffffff;  
+      --panel-2: #f9fafc;  
+      --border: rgba(20, 24, 40, 0.08);  
+      --border-strong: rgba(20, 24, 40, 0.12);  
+      --text: #111827;  
+      --muted: #6b7280;  
+      --muted-2: #94a3b8;  
+  
+      --primary: #111827;  
+      --primary-soft: #eef2ff;  
+      --accent: #4f46e5;  
+  
+      --green: #16a34a;  
+      --orange: #f59e0b;  
+      --blue: #2563eb;  
+      --purple: #7c3aed;  
+      --red: #dc2626;  
+  
+      --radius-xl: 24px;  
+      --radius-lg: 18px;  
+      --radius-md: 14px;  
+      --radius-sm: 10px;  
+  
+      --shadow-sm: 0 4px 12px rgba(17, 24, 39, 0.05);  
+      --shadow-md: 0 12px 32px rgba(17, 24, 39, 0.08);  
+      --shadow-lg: 0 20px 50px rgba(17, 24, 39, 0.10);  
+  
+      --container: 1280px;  
+    }  
+  
+    * {  
+      margin: 0;  
+      padding: 0;  
+      box-sizing: border-box;  
+    }  
+  
+    html {  
+      scroll-behavior: smooth;  
+    }  
+  
+    body {  
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;  
+      background:  
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.07), transparent 30%),  
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 25%),  
+        var(--bg);  
+      color: var(--text);  
+      line-height: 1.5;  
+      -webkit-font-smoothing: antialiased;  
+      text-rendering: optimizeLegibility;  
+    }  
+  
+    a {  
+      color: var(--accent);  
+      text-decoration: none;  
+    }  
+  
+    a:hover {  
+      text-decoration: underline;  
+    }  
+  
+    .container {  
+      max-width: var(--container);  
+      margin: 0 auto;  
+      padding: 24px;  
+    }  
+  
+    .panel {  
+      background: var(--panel);  
+      backdrop-filter: blur(14px);  
+      -webkit-backdrop-filter: blur(14px);  
+      border: 1px solid var(--border);  
+      border-radius: var(--radius-lg);  
+      box-shadow: var(--shadow-sm);  
+    }  
+  
+    /* Header */  
+    .hero {  
+      padding: 32px 24px 18px;  
+    }  
+  
+    .hero-inner {  
+      max-width: var(--container);  
+      margin: 0 auto;  
+      padding: 34px 28px;  
+      border-radius: 28px;  
+      background:  
+        linear-gradient(135deg, rgba(17,24,39,0.96), rgba(31,41,55,0.93)),  
+        linear-gradient(135deg, #111827, #1f2937);  
+      color: white;  
+      box-shadow: var(--shadow-lg);  
+      position: relative;  
+      overflow: hidden;  
+    }  
+  
+    .hero-inner::before {  
+      content: "";  
+      position: absolute;  
+      inset: auto -10% -40% auto;  
+      width: 380px;  
+      height: 380px;  
+      background: radial-gradient(circle, rgba(99,102,241,0.28), transparent 65%);  
+      pointer-events: none;  
+    }  
+  
+    .hero-top {  
+      display: flex;  
+      justify-content: space-between;  
+      align-items: flex-start;  
+      gap: 20px;  
+      flex-wrap: wrap;  
+      position: relative;  
+      z-index: 1;  
+    }  
+  
+    .hero-copy h1 {  
+      font-size: clamp(1.7rem, 2vw, 2.4rem);  
+      font-weight: 800;  
+      letter-spacing: -0.04em;  
+      margin-bottom: 8px;  
+    }  
+  
+    .hero-copy p {  
+      color: rgba(255,255,255,0.75);  
+      font-size: 0.98rem;  
+      max-width: 720px;  
+    }  
+  
+    .hero-badge {  
+      padding: 10px 14px;  
+      background: rgba(255,255,255,0.08);  
+      border: 1px solid rgba(255,255,255,0.12);  
+      border-radius: 999px;  
+      font-size: 0.82rem;  
+      color: rgba(255,255,255,0.9);  
+      white-space: nowrap;  
+    }  
+  
+    .hero-meta {  
+      margin-top: 24px;  
+      display: grid;  
+      grid-template-columns: repeat(3, minmax(160px, 1fr));  
+      gap: 12px;  
+      position: relative;  
+      z-index: 1;  
+    }  
+  
+    .meta-card {  
+      background: rgba(255,255,255,0.08);  
+      border: 1px solid rgba(255,255,255,0.10);  
+      border-radius: 18px;  
+      padding: 14px 16px;  
+    }  
+  
+    .meta-label {  
+      display: block;  
+      font-size: 0.74rem;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+      color: rgba(255,255,255,0.6);  
+      margin-bottom: 6px;  
+    }  
+  
+    .meta-value {  
+      font-size: 1rem;  
+      font-weight: 700;  
+      color: #fff;  
+    }  
+  
+    /* Toolbar */  
+    .toolbar {  
+      margin-top: 22px;  
+      display: grid;  
+      gap: 16px;  
+    }  
+  
+    .toolbar-row {  
+      display: flex;  
+      gap: 16px;  
+      flex-wrap: wrap;  
+      align-items: center;  
+    }  
+  
+    .toolbar-card {  
+      padding: 16px;  
+    }  
+  
+    .section-label {  
+      display: block;  
+      font-size: 0.74rem;  
+      font-weight: 700;  
+      color: var(--muted);  
+      text-transform: uppercase;  
+      letter-spacing: 0.08em;  
+      margin-bottom: 10px;  
+    }  
+  
+    /* Segmented controls */  
+    .segmented {  
+      display: inline-flex;  
+      gap: 8px;  
+      padding: 6px;  
+      border-radius: 14px;  
+      background: #f3f4f6;  
+      border: 1px solid var(--border);  
+      flex-wrap: wrap;  
+    }  
+  
+    .segmented button {  
+      border: 0;  
+      background: transparent;  
+      color: var(--muted);  
+      padding: 10px 14px;  
+      border-radius: 10px;  
+      font-family: inherit;  
+      font-size: 0.9rem;  
+      font-weight: 600;  
+      cursor: pointer;  
+      transition: all 0.18s ease;  
+    }  
+  
+    .segmented button:hover {  
+      color: var(--text);  
+      background: rgba(255,255,255,0.7);  
+    }  
+  
+    .segmented button.active {  
+      background: #ffffff;  
+      color: var(--text);  
+      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.08);  
+    }  
+  
+    /* Window buttons */  
+    .window-wrap {  
+      display: flex;  
+      align-items: center;  
+      gap: 14px;  
+      flex-wrap: wrap;  
+    }  
+  
+    .window-buttons {  
+      display: flex;  
+      flex-wrap: wrap;  
+      gap: 8px;  
+    }  
+  
+    .window-btn {  
+      border: 1px solid var(--border);  
+      background: #fff;  
+      color: var(--muted);  
+      padding: 10px 12px;  
+      border-radius: 10px;  
+      font-family: inherit;  
+      font-size: 0.82rem;  
+      font-weight: 600;  
+      cursor: pointer;  
+      transition: all 0.18s ease;  
+    }  
+  
+    .window-btn:hover {  
+      border-color: rgba(79,70,229,0.25);  
+      color: var(--accent);  
+      background: #f8faff;  
+    }  
+  
+    .window-btn.active {  
+      background: var(--text);  
+      color: #fff;  
+      border-color: var(--text);  
+      box-shadow: 0 8px 20px rgba(17,24,39,0.14);  
+    }  
+  
+    .custom-days-wrapper {  
+      display: none;  
+      align-items: center;  
+      gap: 8px;  
+      flex-wrap: wrap;  
+    }  
+  
+    .custom-days-wrapper.show {  
+      display: flex;  
+    }  
+  
+    .custom-days-input,  
+    .filter-group select,  
+    .filter-group input {  
+      width: 100%;  
+      min-height: 46px;  
+      border: 1px solid var(--border);  
+      background: #fff;  
+      color: var(--text);  
+      border-radius: 12px;  
+      padding: 0 14px;  
+      font-size: 0.92rem;  
+      font-family: inherit;  
+      outline: none;  
+      transition: all 0.2s ease;  
+    }  
+  
+    .custom-days-input {  
+      width: 90px;  
+      text-align: center;  
+    }  
+  
+    .custom-days-input:focus,  
+    .filter-group select:focus,  
+    .filter-group input:focus {  
+      border-color: rgba(79,70,229,0.45);  
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.08);  
+    }  
+  
+    .window-info {  
+      font-size: 0.82rem;  
+      color: var(--muted);  
+    }  
+  
+    .apply-btn {  
+      border: 0;  
+      background: var(--accent);  
+      color: white;  
+      min-height: 42px;  
+      padding: 0 14px;  
+      border-radius: 10px;  
+      font-size: 0.85rem;  
+      font-weight: 700;  
+      cursor: pointer;  
+      transition: 0.18s ease;  
+    }  
+  
+    .apply-btn:hover {  
+      filter: brightness(1.03);  
+      transform: translateY(-1px);  
+    }  
+  
+    /* Filters */  
+    .filters {  
+      display: grid;  
+      grid-template-columns: 1fr 1.4fr 1fr;  
+      gap: 16px;  
+    }  
+  
+    .filter-group label {  
+      display: block;  
+      font-size: 0.74rem;  
+      font-weight: 700;  
+      color: var(--muted);  
+      text-transform: uppercase;  
+      letter-spacing: 0.08em;  
+      margin-bottom: 8px;  
+    }  
+  
+    .autocomplete-wrapper {  
+      position: relative;  
+    }  
+  
+    .autocomplete-dropdown {  
+      display: none;  
+      position: absolute;  
+      left: 0;  
+      right: 0;  
+      top: calc(100% + 8px);  
+      background: #fff;  
+      border: 1px solid var(--border-strong);  
+      border-radius: 14px;  
+      box-shadow: var(--shadow-md);  
+      max-height: 320px;  
+      overflow-y: auto;  
+      z-index: 100;  
+      padding: 8px;  
+    }  
+  
+    .autocomplete-dropdown.show {  
+      display: block;  
+    }  
+  
+    .autocomplete-item {  
+      padding: 12px 12px;  
+      border-radius: 10px;  
+      cursor: pointer;  
+      transition: background 0.15s ease;  
+    }  
+  
+    .autocomplete-item:hover {  
+      background: #f8fafc;  
+    }  
+  
+    .autocomplete-item .scheme-cat {  
+      margin-top: 3px;  
+      font-size: 0.76rem;  
+      color: var(--muted);  
+    }  
+  
+    .autocomplete-item .highlight {  
+      background: #ede9fe;  
+      color: #5b21b6;  
+      border-radius: 6px;  
+      padding: 0 3px;  
+    }  
+  
+    .autocomplete-no-results {  
+      padding: 10px 12px;  
+      font-size: 0.82rem;  
+      color: var(--muted);  
+    }  
+  
+    /* Scheme Info */  
+    .scheme-info {  
+      margin-top: 18px;  
+      display: grid;  
+      grid-template-columns: repeat(7, minmax(120px, 1fr));  
+      gap: 12px;  
+    }  
+  
+    .info-item {  
+      padding: 16px;  
+      background: var(--panel-solid);  
+      border: 1px solid var(--border);  
+      border-radius: 16px;  
+      box-shadow: var(--shadow-sm);  
+      min-height: 88px;  
+    }  
+  
+    .info-label {  
+      display: block;  
+      font-size: 0.72rem;  
+      font-weight: 700;  
+      letter-spacing: 0.08em;  
+      text-transform: uppercase;  
+      color: var(--muted);  
+      margin-bottom: 8px;  
+    }  
+  
+    .info-value {  
+      font-size: 0.95rem;  
+      font-weight: 700;  
+      color: var(--text);  
+      line-height: 1.35;  
+      word-break: break-word;  
+    }  
+  
+    /* KPI Cards */  
+    .kpi-cards {  
+      margin-top: 18px;  
+      display: grid;  
+      grid-template-columns: repeat(5, minmax(180px, 1fr));  
+      gap: 16px;  
+    }  
+  
+    .card {  
+      background: linear-gradient(180deg, #ffffff, #fbfcff);  
+      border: 1px solid var(--border);  
+      border-radius: 20px;  
+      padding: 18px;  
+      box-shadow: var(--shadow-sm);  
+      transition: transform 0.18s ease, box-shadow 0.18s ease;  
+      position: relative;  
+      overflow: hidden;  
+    }  
+  
+    .card:hover {  
+      transform: translateY(-2px);  
+      box-shadow: var(--shadow-md);  
+    }  
+  
+    .card::after {  
+      content: "";  
+      position: absolute;  
+      top: -28px;  
+      right: -28px;  
+      width: 90px;  
+      height: 90px;  
+      border-radius: 50%;  
+      opacity: 0.08;  
+    }  
+  
+    .card.ber::after   { background: var(--green); }  
+    .card.brk::after   { background: var(--orange); }  
+    .card.txn::after   { background: var(--blue); }  
+    .card.stat::after  { background: var(--purple); }  
+    .card.total::after { background: var(--red); }  
+  
+    .card-head {  
+      display: flex;  
+      align-items: center;  
+      gap: 10px;  
+      margin-bottom: 12px;  
+    }  
+  
+    .card-icon {  
+      width: 38px;  
+      height: 38px;  
+      display: grid;  
+      place-items: center;  
+      border-radius: 12px;  
+      font-size: 1rem;  
+      background: #f8fafc;  
+      border: 1px solid var(--border);  
+    }  
+  
+    .card-label {  
+      font-size: 0.76rem;  
+      text-transform: uppercase;  
+      letter-spacing: 0.08em;  
+      color: var(--muted);  
+      font-weight: 700;  
+    }  
+  
+    .card-value {  
+      font-size: 1.7rem;  
+      font-weight: 800;  
+      letter-spacing: -0.03em;  
+      margin-bottom: 5px;  
+    }  
+  
+    .card-sublabel {  
+      font-size: 0.8rem;  
+      color: var(--muted);  
+    }  
+  
+    .card.ber .card-value   { color: var(--green); }  
+    .card.brk .card-value   { color: var(--orange); }  
+    .card.txn .card-value   { color: var(--blue); }  
+    .card.stat .card-value  { color: var(--purple); }  
+    .card.total .card-value { color: var(--red); }  
+  
+    /* Main content grid */  
+    .content-grid {  
+      margin-top: 20px;  
+      display: grid;  
+      grid-template-columns: 1.5fr 1fr;  
+      gap: 18px;  
+      align-items: start;  
+    }  
+  
+    .chart-container,  
+    .table-section {  
+      background: var(--panel-solid);  
+      border: 1px solid var(--border);  
+      border-radius: 22px;  
+      box-shadow: var(--shadow-sm);  
+      overflow: hidden;  
+    }  
+  
+    .section-head {  
+      display: flex;  
+      justify-content: space-between;  
+      align-items: center;  
+      gap: 12px;  
+      padding: 18px 20px 0;  
+      flex-wrap: wrap;  
+    }  
+  
+    .section-title {  
+      font-size: 1rem;  
+      font-weight: 800;  
+      letter-spacing: -0.02em;  
+      color: var(--text);  
+    }  
+  
+    .section-subtle {  
+      color: var(--muted);  
+      font-size: 0.84rem;  
+      font-weight: 600;  
+    }  
+  
+    .chart-body {  
+      padding: 14px 20px 20px;  
+      min-height: 420px;  
+    }  
+  
+    /* Table */  
+    .table-wrap {  
+      max-height: 520px;  
+      overflow: auto;  
+      margin-top: 14px;  
+      border-top: 1px solid var(--border);  
+    }  
+  
+    table {  
+      width: 100%;  
+      border-collapse: collapse;  
+    }  
+  
+    thead th {  
+      position: sticky;  
+      top: 0;  
+      z-index: 1;  
+      background: #fbfcfe;  
+      border-bottom: 1px solid var(--border);  
+      padding: 14px 14px;  
+      text-align: center;  
+      font-size: 0.74rem;  
+      font-weight: 800;  
+      text-transform: uppercase;  
+      letter-spacing: 0.07em;  
+      color: var(--muted);  
+      white-space: nowrap;  
+    }  
+  
+    tbody td {  
+      padding: 13px 14px;  
+      border-bottom: 1px solid #f1f5f9;  
+      text-align: center;  
+      font-size: 0.9rem;  
+      font-variant-numeric: tabular-nums;  
+      white-space: nowrap;  
+    }  
+  
+    tbody tr:hover {  
+      background: #fafbff;  
+    }  
+  
+    .empty-msg {  
+      color: var(--muted);  
+      font-style: italic;  
+      padding: 34px !important;  
+    }  
+  
+    /* Footer */  
+    footer {  
+      max-width: var(--container);  
+      margin: 26px auto 40px;  
+      padding: 0 24px;  
+    }  
+  
+    .footer-inner {  
+      background: rgba(255,255,255,0.7);  
+      border: 1px solid var(--border);  
+      border-radius: 18px;  
+      padding: 16px 18px;  
+      color: var(--muted);  
+      font-size: 0.86rem;  
+      text-align: center;  
+      box-shadow: var(--shadow-sm);  
+    }  
+  
+    .footer-inner p + p {  
+      margin-top: 6px;  
+    }  
+  
+    /* Responsive */  
+    @media (max-width: 1200px) {  
+      .scheme-info {  
+        grid-template-columns: repeat(4, minmax(120px, 1fr));  
+      }  
+  
+      .kpi-cards {  
+        grid-template-columns: repeat(3, minmax(180px, 1fr));  
+      }  
+  
+      .content-grid {  
+        grid-template-columns: 1fr;  
+      }  
+    }  
+  
+    @media (max-width: 840px) {  
+      .container {  
+        padding: 18px;  
+      }  
+  
+      .hero {  
+        padding: 18px 18px 10px;  
+      }  
+  
+      .hero-inner {  
+        padding: 22px 18px;  
+        border-radius: 22px;  
+      }  
+  
+      .hero-meta {  
+        grid-template-columns: 1fr;  
+      }  
+  
+      .filters {  
+        grid-template-columns: 1fr;  
+      }  
+  
+      .scheme-info {  
+        grid-template-columns: repeat(2, minmax(120px, 1fr));  
+      }  
+  
+      .kpi-cards {  
+        grid-template-columns: repeat(2, minmax(150px, 1fr));  
+      }  
+  
+      .chart-body {  
+        min-height: 320px;  
+      }  
+  
+      .section-head {  
+        padding: 16px 16px 0;  
+      }  
+  
+      .chart-body {  
+        padding: 12px 16px 16px;  
+      }  
+    }  
+  
+    @media (max-width: 560px) {  
+      .hero-copy h1 {  
+        font-size: 1.45rem;  
+      }  
+  
+      .hero-copy p {  
+        font-size: 0.9rem;  
+      }  
+  
+      .segmented {  
+        width: 100%;  
+      }  
+  
+      .segmented button {  
+        flex: 1;  
+      }  
+  
+      .window-buttons {  
+        width: 100%;  
+      }  
+  
+      .window-btn {  
+        flex: 1 1 calc(50% - 8px);  
+        text-align: center;  
+      }  
+  
+      .scheme-info,  
+      .kpi-cards {  
+        grid-template-columns: 1fr;  
+      }  
+  
+      .info-item,  
+      .card {  
+        padding: 16px;  
+      }  
+  
+      tbody td,  
+      thead th {  
+        font-size: 0.82rem;  
+      }  
+    }  
+  </style>  
+</head>  
+<body>  
+  
+  <header class="hero">  
+    <div class="hero-inner">  
+      <div class="hero-top">  
+        <div class="hero-copy">  
+          <h1>📊 Mutual Fund TER Tracker</h1>  
+          <p>Track daily expense ratio components across Indian mutual fund schemes with a cleaner, smarter, investor-friendly dashboard.</p>  
+        </div>  
+        <div class="hero-badge">Premium TER Analytics</div>  
+      </div>  
+  
+      <div class="hero-meta">  
+        <div class="meta-card">  
+          <span class="meta-label">Last updated</span>  
+          <span class="meta-value" id="lastUpdated">Loading...</span>  
+        </div>  
+        <div class="meta-card">  
+          <span class="meta-label">Schemes</span>  
+          <span class="meta-value" id="totalSchemes">-</span>  
+        </div>  
+        <div class="meta-card">  
+          <span class="meta-label">Data period</span>  
+          <span class="meta-value" id="dataPeriod">-</span>  
+        </div>  
+      </div>  
+    </div>  
+  </header>  
+  
+  <main class="container">  
+  
+    <!-- Plan toggle -->  
+    <div class="toolbar">  
+      <div class="panel toolbar-card">  
+        <span class="section-label">Plan Type</span>  
+        <div class="segmented">  
+          <button id="btnDirect" class="active" onclick="switchPlan('direct')">Direct Plan</button>  
+          <button id="btnRegular" onclick="switchPlan('regular')">Regular Plan</button>  
+        </div>  
+      </div>  
+  
+      <!-- Average window -->  
+      <div class="panel toolbar-card">  
+        <span class="section-label">Average Window</span>  
+        <div class="window-wrap">  
+          <div class="window-buttons">  
+            <button class="window-btn active" onclick="setWindow(0)">All</button>  
+            <button class="window-btn" onclick="setWindow(7)">7D</button>  
+            <button class="window-btn" onclick="setWindow(15)">15D</button>  
+            <button class="window-btn" onclick="setWindow(30)">30D</button>  
+            <button class="window-btn" onclick="setWindow(60)">60D</button>  
+            <button class="window-btn" onclick="setWindow(90)">90D</button>  
+            <button class="window-btn" onclick="setWindow(180)">180D</button>  
+            <button class="window-btn" onclick="setWindow(-1)">Custom</button>  
+          </div>  
+  
+          <div class="custom-days-wrapper" id="customDaysWrapper">  
+            <input type="number" class="custom-days-input" id="customDaysInput" min="1" max="365" placeholder="45">  
+            <span class="window-info">days</span>  
+            <button class="apply-btn" onclick="applyCustomDays()">Apply</button>  
+          </div>  
+  
+          <span class="window-info" id="windowInfo">Using all available data (max 365 days)</span>  
+        </div>  
+      </div>  
+  
+      <!-- Filters -->  
+      <div class="panel toolbar-card">  
+        <div class="filters">  
+          <div class="filter-group">  
+            <label for="categoryFilter">Category</label>  
+            <select id="categoryFilter">  
+              <option value="">All Categories</option>  
+            </select>  
+          </div>  
+  
+          <div class="filter-group">  
+            <label for="searchInput">Search Scheme</label>  
+            <div class="autocomplete-wrapper">  
+              <input type="text" id="searchInput" placeholder="Start typing scheme name..." autocomplete="off">  
+              <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
+            </div>  
+          </div>  
+  
+          <div class="filter-group">  
+            <label for="schemeFilter">Scheme</label>  
+            <select id="schemeFilter">  
+              <option value="">Select a scheme...</option>  
+            </select>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+  
+    <!-- Scheme info -->  
+    <div class="scheme-info" id="schemeInfo">  
+      <div class="info-item">  
+        <span class="info-label">Scheme</span>  
+        <span class="info-value" id="schemeName">Select a scheme above</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Type</span>  
+        <span class="info-value" id="schemeType">-</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Category</span>  
+        <span class="info-value" id="schemeCategory">-</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Data Period</span>  
+        <span class="info-value" id="dateRange">-</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Data Points</span>  
+        <span class="info-value" id="dataPoints">-</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Avg Window</span>  
+        <span class="info-value" id="windowLabel">All (max 1Y)</span>  
+      </div>  
+      <div class="info-item">  
+        <span class="info-label">Viewing</span>  
+        <span class="info-value" id="planLabel">Direct Plan</span>  
+      </div>  
+    </div>  
+  
+    <!-- KPI cards -->  
+    <div class="kpi-cards">  
+      <div class="card ber">  
+        <div class="card-head">  
+          <div class="card-icon">📗</div>  
+          <div class="card-label">Avg Base ER</div>  
+        </div>  
+        <div class="card-value" id="avgBer">-</div>  
+        <div class="card-sublabel" id="avgBerDays"></div>  
+      </div>  
+  
+      <div class="card brk">  
+        <div class="card-head">  
+          <div class="card-icon">📙</div>  
+          <div class="card-label">Avg Brokerage</div>  
+        </div>  
+        <div class="card-value" id="avgBrk">-</div>  
+        <div class="card-sublabel" id="avgBrkDays"></div>  
+      </div>  
+  
+      <div class="card txn">  
+        <div class="card-head">  
+          <div class="card-icon">📘</div>  
+          <div class="card-label">Avg Transaction</div>  
+        </div>  
+        <div class="card-value" id="avgTxn">-</div>  
+        <div class="card-sublabel" id="avgTxnDays"></div>  
+      </div>  
+  
+      <div class="card stat">  
+        <div class="card-head">  
+          <div class="card-icon">📕</div>  
+          <div class="card-label">Avg Statutory</div>  
+        </div>  
+        <div class="card-value" id="avgStat">-</div>  
+        <div class="card-sublabel" id="avgStatDays"></div>  
+      </div>  
+  
+      <div class="card total">  
+        <div class="card-head">  
+          <div class="card-icon">🔴</div>  
+          <div class="card-label">Avg Total TER</div>  
+        </div>  
+        <div class="card-value" id="avgTotal">-</div>  
+        <div class="card-sublabel" id="avgTotalDays"></div>  
+      </div>  
+    </div>  
+  
+    <!-- Content -->  
+    <div class="content-grid">  
+      <section class="chart-container">  
+        <div class="section-head">  
+          <div>  
+            <div class="section-title">Daily TER Breakdown</div>  
+            <div class="section-subtle">Interactive visual for <span id="chartPlanLabel">Direct Plan</span></div>  
+          </div>  
+        </div>  
+        <div class="chart-body">  
+          <canvas id="terChart"></canvas>  
+        </div>  
+      </section>  
+  
+      <section class="table-section">  
+        <div class="section-head">  
+          <div>  
+            <div class="section-title">Daily Data</div>  
+            <div class="section-subtle">Raw component values for <span id="tablePlanLabel">Direct Plan</span></div>  
+          </div>  
+        </div>  
+  
+        <div class="table-wrap">  
+          <table>  
+            <thead>  
+              <tr>  
+                <th>Date</th>  
+                <th>BER (%)</th>  
+                <th>Brokerage (%)</th>  
+                <th>Transaction (%)</th>  
+                <th>Statutory (%)</th>  
+                <th>Total TER (%)</th>  
+              </tr>  
+            </thead>  
+            <tbody id="dailyTableBody">  
+              <tr>  
+                <td colspan="6" class="empty-msg">Select a scheme to view daily data</td>  
+              </tr>  
+            </tbody>  
+          </table>  
+        </div>  
+      </section>  
+    </div>  
+  </main>  
+  
+  <footer>  
+    <div class="footer-inner">  
+      <p>Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank">AMFI India</a> | Auto-updated daily via GitHub Actions</p>  
+      <p>Built by Pavan | Rolling averages with customizable window</p>  
+    </div>  
+  </footer>  
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  
+  <script>  
+    var summaryData = null;  
+    var chart = null;  
+    var currentPlan = "direct";  
+    var currentScheme = null;  
+    var currentDailyData = null;  
+    var currentWindowDays = 0;  
+  
+    async function init() {  
+      try {  
+        var res = await fetch("data/summary.json");  
+        if (!res.ok) throw new Error("summary.json not found.");  
+        summaryData = await res.json();  
+  
+        document.getElementById("lastUpdated").textContent = summaryData.last_updated;  
+        document.getElementById("totalSchemes").textContent = summaryData.total_schemes.toLocaleString();  
+        document.getElementById("dataPeriod").textContent = summaryData.data_from + " to " + summaryData.data_to;  
+  
+        var catSel = document.getElementById("categoryFilter");  
+        summaryData.categories.forEach(function (cat) {  
+          var opt = document.createElement("option");  
+          opt.value = cat;  
+          opt.textContent = cat;  
+          catSel.appendChild(opt);  
+        });  
+  
+        populateSchemes(summaryData.schemes);  
+        setupAutocomplete();  
+      } catch (e) {  
+        document.getElementById("lastUpdated").textContent = "Error loading data";  
+        console.error(e);  
+      }  
+    }  
+  
+    function setWindow(days) {  
+      var buttons = document.querySelectorAll(".window-btn");  
+      var customWrapper = document.getElementById("customDaysWrapper");  
+  
+      if (days === -1) {  
+        customWrapper.classList.add("show");  
+        buttons.forEach(function(b) { b.classList.remove("active"); });  
+        buttons[buttons.length - 1].classList.add("active");  
+        return;  
+      }  
+  
+      customWrapper.classList.remove("show");  
+      buttons.forEach(function(b) { b.classList.remove("active"); });  
+  
+      var dayMap = [0, 7, 15, 30, 60, 90, 180, -1];  
+      var idx = dayMap.indexOf(days);  
+      if (idx >= 0 && idx < buttons.length) buttons[idx].classList.add("active");  
+  
+      currentWindowDays = days;  
+      updateWindowLabels(days);  
+      refreshDisplay();  
+    }  
+    window.setWindow = setWindow;  
+  
+    function applyCustomDays() {  
+      var input = document.getElementById("customDaysInput");  
+      var days = parseInt(input.value);  
+      if (!days || days < 1) {  
+        alert("Please enter a number between 1 and 365");  
+        return;  
+      }  
+      if (days > 365) days = 365;  
+      currentWindowDays = days;  
+      updateWindowLabels(days);  
+      refreshDisplay();  
+    }  
+    window.applyCustomDays = applyCustomDays;  
+  
+    function updateWindowLabels(days) {  
+      var label;  
+      if (days === 0) {  
+        label = "All (max 1Y)";  
+        document.getElementById("windowInfo").textContent = "Using all available data (max 365 days)";  
+      } else {  
+        label = "Last " + days + " days";  
+        document.getElementById("windowInfo").textContent = "Averaging last " + days + " days of data";  
+      }  
+      document.getElementById("windowLabel").textContent = label;  
+    }  
+  
+    function refreshDisplay() {  
+      if (currentScheme && currentDailyData) {  
+        var filteredData = filterDataByWindow(currentDailyData);  
+        updateKPICards(filteredData);  
+        updateChart(filteredData, currentScheme.scheme_name);  
+        updateTable(filteredData);  
+      }  
+    }  
+  
+    function filterDataByWindow(data) {  
+      if (!data || data.length === 0) return data;  
+  
+      if (currentWindowDays === 0) {  
+        if (data.length > 365) return data.slice(data.length - 365);  
+        return data;  
+      }  
+  
+      var lastDate = new Date(data[data.length - 1].date);  
+      var cutoffDate = new Date(lastDate);  
+      cutoffDate.setDate(cutoffDate.getDate() - currentWindowDays);  
+  
+      return data.filter(function(d) {  
+        return new Date(d.date) > cutoffDate;  
+      });  
+    }  
+  
+    function switchPlan(plan) {  
+      currentPlan = plan;  
+  
+      document.getElementById("btnDirect").classList.remove("active");  
+      document.getElementById("btnRegular").classList.remove("active");  
+  
+      if (plan === "direct") {  
+        document.getElementById("btnDirect").classList.add("active");  
+      } else {  
+        document.getElementById("btnRegular").classList.add("active");  
+      }  
+  
+      var label = plan === "direct" ? "Direct Plan" : "Regular Plan";  
+      document.getElementById("planLabel").textContent = label;  
+      document.getElementById("chartPlanLabel").textContent = label;  
+      document.getElementById("tablePlanLabel").textContent = label;  
+  
+      refreshDisplay();  
+    }  
+    window.switchPlan = switchPlan;  
+  
+    function populateSchemes(schemes) {  
+      var sel = document.getElementById("schemeFilter");  
+      sel.innerHTML = '<option value="">Select a scheme (' + schemes.length + ' available)</option>';  
+      schemes.forEach(function (s) {  
+        var opt = document.createElement("option");  
+        opt.value = s.id;  
+        opt.textContent = s.scheme_name;  
+        sel.appendChild(opt);  
+      });  
+    }  
+  
+    function setupAutocomplete() {  
+      var input = document.getElementById("searchInput");  
+      var dropdown = document.getElementById("autocompleteDropdown");  
+  
+      input.addEventListener("input", function () {  
+        var query = this.value.toLowerCase().trim();  
+        var cat = document.getElementById("categoryFilter").value;  
+  
+        filterAndPopulate(cat, query);  
+  
+        if (query.length < 2) {  
+          dropdown.classList.remove("show");  
+          dropdown.innerHTML = "";  
+          return;  
+        }  
+  
+        var filtered = summaryData.schemes;  
+        if (cat) {  
+          filtered = filtered.filter(function (s) { return s.category === cat; });  
+        }  
+        filtered = filtered.filter(function (s) {  
+          return s.scheme_name.toLowerCase().indexOf(query) !== -1;  
+        });  
+  
+        if (filtered.length === 0) {  
+          dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
+          dropdown.classList.add("show");  
+          return;  
+        }  
+  
+        var results = filtered.slice(0, 15);  
+        dropdown.innerHTML = "";  
+  
+        results.forEach(function (s) {  
+          var item = document.createElement("div");  
+          item.className = "autocomplete-item";  
+  
+          var name = s.scheme_name;  
+          var lowerName = name.toLowerCase();  
+          var idx = lowerName.indexOf(query);  
+          var highlighted = name;  
+  
+          if (idx !== -1) {  
+            highlighted =  
+              name.substring(0, idx) +  
+              '<span class="highlight">' +  
+              name.substring(idx, idx + query.length) +  
+              '</span>' +  
+              name.substring(idx + query.length);  
+          }  
+  
+          item.innerHTML =  
+            '<div>' + highlighted + '</div>' +  
+            '<div class="scheme-cat">' + s.category + '</div>';  
+  
+          item.addEventListener("click", function () {  
+            input.value = s.scheme_name;  
+            dropdown.classList.remove("show");  
+            var schemeSel = document.getElementById("schemeFilter");  
+            schemeSel.value = s.id;  
+            selectScheme(s);  
+          });  
+  
+          dropdown.appendChild(item);  
+        });  
+  
+        if (filtered.length > 15) {  
+          var more = document.createElement("div");  
+          more.className = "autocomplete-no-results";  
+          more.textContent = "... and " + (filtered.length - 15) + " more. Keep typing to narrow down.";  
+          dropdown.appendChild(more);  
+        }  
+  
+        dropdown.classList.add("show");  
+      });  
+  
+      document.addEventListener("click", function (e) {  
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {  
+          dropdown.classList.remove("show");  
+        }  
+      });  
+  
+      input.addEventListener("keydown", function (e) {  
+        if (e.key === "Escape") dropdown.classList.remove("show");  
+      });  
+    }  
+  
+    document.getElementById("categoryFilter").addEventListener("change", function () {  
+      var cat = this.value;  
+      var query = document.getElementById("searchInput").value.toLowerCase();  
+      filterAndPopulate(cat, query);  
+    });  
+  
+    function filterAndPopulate(cat, query) {  
+      var filtered = summaryData.schemes;  
+      if (cat) filtered = filtered.filter(function (s) { return s.category === cat; });  
+      if (query) {  
+        filtered = filtered.filter(function (s) {  
+          return s.scheme_name.toLowerCase().indexOf(query) !== -1;  
+        });  
+      }  
+      populateSchemes(filtered);  
+    }  
+  
+    document.getElementById("schemeFilter").addEventListener("change", function () {  
+      var id = this.value;  
+      if (!id) return;  
+      var scheme = summaryData.schemes.find(function (s) { return s.id === id; });  
+      if (scheme) {  
+        document.getElementById("searchInput").value = scheme.scheme_name;  
+        document.getElementById("autocompleteDropdown").classList.remove("show");  
+        selectScheme(scheme);  
+      }  
+    });  
+  
+    async function selectScheme(scheme) {  
+      currentScheme = scheme;  
+  
+      document.getElementById("schemeName").textContent = scheme.scheme_name;  
+      document.getElementById("schemeType").textContent = scheme.scheme_type || "-";  
+      document.getElementById("schemeCategory").textContent = scheme.category;  
+      document.getElementById("dateRange").textContent = scheme.date_from + " → " + scheme.date_to;  
+      document.getElementById("dataPoints").textContent = scheme.data_points + " days";  
+  
+      try {  
+        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        if (!res.ok) throw new Error("Daily data not found");  
+        currentDailyData = await res.json();  
+        refreshDisplay();  
+      } catch (e) {  
+        console.error("Error loading daily data:", e);  
+        currentDailyData = null;  
+      }  
+    }  
+  
+    function calcAvg(data, key) {  
+      if (!data || data.length === 0) return 0;  
+      var sum = 0;  
+      var count = 0;  
+      data.forEach(function(d) {  
+        var val = d[key] || 0;  
+        sum += val;  
+        count++;  
+      });  
+      return count > 0 ? sum / count : 0;  
+    }  
+  
+    function updateKPICards(data) {  
+      var p = currentPlan === "direct" ? "d" : "r";  
+      var days = data ? data.length : 0;  
+      var daysText = "based on " + days + " days";  
+  
+      document.getElementById("avgBer").textContent = calcAvg(data, p + "_ber").toFixed(4) + "%";  
+      document.getElementById("avgBrk").textContent = calcAvg(data, p + "_brokerage").toFixed(4) + "%";  
+      document.getElementById("avgTxn").textContent = calcAvg(data, p + "_transaction").toFixed(4) + "%";  
+      document.getElementById("avgStat").textContent = calcAvg(data, p + "_statutory").toFixed(4) + "%";  
+      document.getElementById("avgTotal").textContent = calcAvg(data, p + "_total_ter").toFixed(4) + "%";  
+  
+      document.getElementById("avgBerDays").textContent = daysText;  
+      document.getElementById("avgBrkDays").textContent = daysText;  
+      document.getElementById("avgTxnDays").textContent = daysText;  
+      document.getElementById("avgStatDays").textContent = daysText;  
+      document.getElementById("avgTotalDays").textContent = daysText;  
+    }  
+  
+    function updateChart(data, name) {  
+      var ctx = document.getElementById("terChart").getContext("2d");  
+      if (chart) chart.destroy();  
+  
+      var p = currentPlan === "direct" ? "d" : "r";  
+      var planLabel = currentPlan === "direct" ? "Direct" : "Regular";  
+      var windowText = currentWindowDays === 0 ? "All Data" : "Last " + currentWindowDays + "D";  
+  
+      chart = new Chart(ctx, {  
+        type: "line",  
+        data: {  
+          labels: data.map(function (d) { return d.date; }),  
+          datasets: [  
+            {  
+              label: "BER",  
+              data: data.map(function (d) { return d[p + "_ber"] || 0; }),  
+              borderColor: "#16a34a",  
+              backgroundColor: "rgba(22,163,74,0.08)",  
+              fill: true,  
+              tension: 0.35,  
+              pointRadius: 0,  
+              borderWidth: 2.2  
+            },  
+            {  
+              label: "Brokerage",  
+              data: data.map(function (d) { return d[p + "_brokerage"] || 0; }),  
+              borderColor: "#f59e0b",  
+              backgroundColor: "rgba(245,158,11,0.08)",  
+              fill: true,  
+              tension: 0.35,  
+              pointRadius: 0,  
+              borderWidth: 2.2  
+            },  
+            {  
+              label: "Transaction",  
+              data: data.map(function (d) { return d[p + "_transaction"] || 0; }),  
+              borderColor: "#2563eb",  
+              backgroundColor: "rgba(37,99,235,0.08)",  
+              fill: true,  
+              tension: 0.35,  
+              pointRadius: 0,  
+              borderWidth: 2.2  
+            },  
+            {  
+              label: "Statutory",  
+              data: data.map(function (d) { return d[p + "_statutory"] || 0; }),  
+              borderColor: "#7c3aed",  
+              backgroundColor: "rgba(124,58,237,0.08)",  
+              fill: true,  
+              tension: 0.35,  
+              pointRadius: 0,  
+              borderWidth: 2.2  
+            },  
+            {  
+              label: "Total TER",  
+              data: data.map(function (d) { return d[p + "_total_ter"] || 0; }),  
+              borderColor: "#dc2626",  
+              borderDash: [6, 4],  
+              fill: false,  
+              tension: 0.35,  
+              pointRadius: 0,  
+              borderWidth: 2.6  
+            }  
+          ]  
+        },  
+        options: {  
+          responsive: true,  
+          maintainAspectRatio: false,  
+          plugins: {  
+            title: {  
+              display: true,  
+              text: planLabel + " Plan TER — " + name + " (" + windowText + ")",  
+              font: { size: 14, weight: '700' },  
+              color: "#111827",  
+              padding: { bottom: 14 }  
+            },  
+            legend: {  
+              position: "top",  
+              labels: {  
+                usePointStyle: true,  
+                boxWidth: 8,  
+                color: "#475569",  
+                font: { weight: "600" }  
+              }  
+            },  
+            tooltip: {  
+              mode: "index",  
+              intersect: false,  
+              backgroundColor: "rgba(15,23,42,0.92)",  
+              titleColor: "#fff",  
+              bodyColor: "#e5e7eb",  
+              borderColor: "rgba(255,255,255,0.08)",  
+              borderWidth: 1,  
+              padding: 12  
+            }  
+          },  
+          scales: {  
+            y: {  
+              title: { display: true, text: "Expense Ratio (%)", color: "#64748b", font: { weight: "600" } },  
+              beginAtZero: true,  
+              grid: { color: "rgba(148,163,184,0.18)" },  
+              ticks: { color: "#64748b" }  
+            },  
+            x: {  
+              title: { display: true, text: "Date", color: "#64748b", font: { weight: "600" } },  
+              grid: { display: false },  
+              ticks: { color: "#64748b", maxTicksLimit: 10 }  
+            }  
+          },  
+          interaction: {  
+            mode: "nearest",  
+            axis: "x",  
+            intersect: false  
+          }  
+        }  
+      });  
+    }  
+  
+    function updateTable(data) {  
+      var tbody = document.getElementById("dailyTableBody");  
+      tbody.innerHTML = "";  
+  
+      if (!data || !data.length) {  
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No data available for this selection</td></tr>';  
+        return;  
+      }  
+  
+      var p = currentPlan === "direct" ? "d" : "r";  
+      var reversed = data.slice().reverse();  
+  
+      reversed.forEach(function (d) {  
+        var tr = document.createElement("tr");  
+        tr.innerHTML =  
+          "<td>" + d.date + "</td>" +  
+          "<td>" + (d[p + "_ber"] || 0).toFixed(4) + "</td>" +  
+          "<td>" + (d[p + "_brokerage"] || 0).toFixed(4) + "</td>" +  
+          "<td>" + (d[p + "_transaction"] || 0).toFixed(4) + "</td>" +  
+          "<td>" + (d[p + "_statutory"] || 0).toFixed(4) + "</td>" +  
+          "<td><strong>" + (d[p + "_total_ter"] || 0).toFixed(4) + "</strong></td>";  
+        tbody.appendChild(tr);  
+      });  
+    }  
+  
+    document.addEventListener("DOMContentLoaded", function() {  
+      var customInput = document.getElementById("customDaysInput");  
+      if (customInput) {  
+        customInput.addEventListener("keydown", function(e) {  
+          if (e.key === "Enter") applyCustomDays();  
+        });  
+      }  
+    });  
+  
+    init();  
+  </script>  
+</body>  
+</html> 
