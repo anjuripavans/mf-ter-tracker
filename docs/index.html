@@ -10,795 +10,658 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">  
   
   <style>  
-    :root {  
-      --bg: #f6f7fb;  
-      --panel: rgba(255,255,255,0.82);  
-      --panel-solid: #ffffff;  
-      --panel-2: #f9fafc;  
-      --border: rgba(20, 24, 40, 0.08);  
-      --border-strong: rgba(20, 24, 40, 0.12);  
-      --text: #111827;  
-      --muted: #6b7280;  
-      --muted-2: #94a3b8;  
-  
-      --primary: #111827;  
-      --primary-soft: #eef2ff;  
-      --accent: #4f46e5;  
-  
-      --green: #16a34a;  
-      --orange: #f59e0b;  
-      --blue: #2563eb;  
-      --purple: #7c3aed;  
-      --red: #dc2626;  
-  
-      --radius-xl: 24px;  
-      --radius-lg: 18px;  
-      --radius-md: 14px;  
-      --radius-sm: 10px;  
-  
-      --shadow-sm: 0 4px 12px rgba(17, 24, 39, 0.05);  
-      --shadow-md: 0 12px 32px rgba(17, 24, 39, 0.08);  
-      --shadow-lg: 0 20px 50px rgba(17, 24, 39, 0.10);  
-  
-      --container: 1280px;  
-    }  
-  
-    * {  
-      margin: 0;  
-      padding: 0;  
-      box-sizing: border-box;  
-    }  
-  
-    html {  
-      scroll-behavior: smooth;  
-    }  
-  
-    body {  
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;  
-      background:  
-        radial-gradient(circle at top left, rgba(79, 70, 229, 0.07), transparent 30%),  
-        radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 25%),  
-        var(--bg);  
-      color: var(--text);  
-      line-height: 1.5;  
-      -webkit-font-smoothing: antialiased;  
-      text-rendering: optimizeLegibility;  
-    }  
-  
-    a {  
-      color: var(--accent);  
-      text-decoration: none;  
-    }  
-  
-    a:hover {  
-      text-decoration: underline;  
-    }  
-  
-    .container {  
-      max-width: var(--container);  
-      margin: 0 auto;  
-      padding: 24px;  
-    }  
-  
-    .panel {  
-      background: var(--panel);  
-      backdrop-filter: blur(14px);  
-      -webkit-backdrop-filter: blur(14px);  
-      border: 1px solid var(--border);  
-      border-radius: var(--radius-lg);  
-      box-shadow: var(--shadow-sm);  
-    }  
-  
-    /* Header */  
-    .hero {  
-      padding: 32px 24px 18px;  
-    }  
-  
-    .hero-inner {  
-      max-width: var(--container);  
-      margin: 0 auto;  
-      padding: 34px 28px;  
-      border-radius: 28px;  
-      background:  
-        linear-gradient(135deg, rgba(17,24,39,0.96), rgba(31,41,55,0.93)),  
-        linear-gradient(135deg, #111827, #1f2937);  
-      color: white;  
-      box-shadow: var(--shadow-lg);  
-      position: relative;  
-      overflow: hidden;  
-    }  
-  
-    .hero-inner::before {  
-      content: "";  
-      position: absolute;  
-      inset: auto -10% -40% auto;  
-      width: 380px;  
-      height: 380px;  
-      background: radial-gradient(circle, rgba(99,102,241,0.28), transparent 65%);  
-      pointer-events: none;  
-    }  
-  
-    .hero-top {  
-      display: flex;  
-      justify-content: space-between;  
-      align-items: flex-start;  
-      gap: 20px;  
-      flex-wrap: wrap;  
-      position: relative;  
-      z-index: 1;  
-    }  
-  
-    .hero-copy h1 {  
-      font-size: clamp(1.7rem, 2vw, 2.4rem);  
-      font-weight: 800;  
-      letter-spacing: -0.04em;  
-      margin-bottom: 8px;  
-    }  
-  
-    .hero-copy p {  
-      color: rgba(255,255,255,0.75);  
-      font-size: 0.98rem;  
-      max-width: 720px;  
-    }  
-  
-    .hero-badge {  
-      padding: 10px 14px;  
-      background: rgba(255,255,255,0.08);  
-      border: 1px solid rgba(255,255,255,0.12);  
-      border-radius: 999px;  
-      font-size: 0.82rem;  
-      color: rgba(255,255,255,0.9);  
-      white-space: nowrap;  
-    }  
-  
-    .hero-meta {  
-      margin-top: 24px;  
-      display: grid;  
-      grid-template-columns: repeat(3, minmax(160px, 1fr));  
-      gap: 12px;  
-      position: relative;  
-      z-index: 1;  
-    }  
-  
-    .meta-card {  
-      background: rgba(255,255,255,0.08);  
-      border: 1px solid rgba(255,255,255,0.10);  
-      border-radius: 18px;  
-      padding: 14px 16px;  
-    }  
-  
-    .meta-label {  
-      display: block;  
-      font-size: 0.74rem;  
-      letter-spacing: 0.06em;  
-      text-transform: uppercase;  
-      color: rgba(255,255,255,0.6);  
-      margin-bottom: 6px;  
-    }  
-  
-    .meta-value {  
-      font-size: 1rem;  
-      font-weight: 700;  
-      color: #fff;  
-    }  
-  
-    /* Toolbar */  
-    .toolbar {  
-      margin-top: 22px;  
-      display: grid;  
-      gap: 16px;  
-    }  
-  
-    .toolbar-row {  
-      display: flex;  
-      gap: 16px;  
-      flex-wrap: wrap;  
-      align-items: center;  
-    }  
-  
-    .toolbar-card {  
-      padding: 16px;  
-    }  
-  
-    .section-label {  
-      display: block;  
-      font-size: 0.74rem;  
-      font-weight: 700;  
-      color: var(--muted);  
-      text-transform: uppercase;  
-      letter-spacing: 0.08em;  
-      margin-bottom: 10px;  
-    }  
-  
-    /* Segmented controls */  
-    .segmented {  
-      display: inline-flex;  
-      gap: 8px;  
-      padding: 6px;  
-      border-radius: 14px;  
-      background: #f3f4f6;  
-      border: 1px solid var(--border);  
-      flex-wrap: wrap;  
-    }  
-  
-    .segmented button {  
-      border: 0;  
-      background: transparent;  
-      color: var(--muted);  
-      padding: 10px 14px;  
-      border-radius: 10px;  
-      font-family: inherit;  
-      font-size: 0.9rem;  
-      font-weight: 600;  
-      cursor: pointer;  
-      transition: all 0.18s ease;  
-    }  
-  
-    .segmented button:hover {  
-      color: var(--text);  
-      background: rgba(255,255,255,0.7);  
-    }  
-  
-    .segmented button.active {  
-      background: #ffffff;  
-      color: var(--text);  
-      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.08);  
-    }  
-  
-    /* Window buttons */  
-    .window-wrap {  
-      display: flex;  
-      align-items: center;  
-      gap: 14px;  
-      flex-wrap: wrap;  
-    }  
-  
-    .window-buttons {  
-      display: flex;  
-      flex-wrap: wrap;  
-      gap: 8px;  
-    }  
-  
-    .window-btn {  
-      border: 1px solid var(--border);  
-      background: #fff;  
-      color: var(--muted);  
-      padding: 10px 12px;  
-      border-radius: 10px;  
-      font-family: inherit;  
-      font-size: 0.82rem;  
-      font-weight: 600;  
-      cursor: pointer;  
-      transition: all 0.18s ease;  
-    }  
-  
-    .window-btn:hover {  
-      border-color: rgba(79,70,229,0.25);  
-      color: var(--accent);  
-      background: #f8faff;  
-    }  
-  
-    .window-btn.active {  
-      background: var(--text);  
-      color: #fff;  
-      border-color: var(--text);  
-      box-shadow: 0 8px 20px rgba(17,24,39,0.14);  
-    }  
-  
-    .custom-days-wrapper {  
-      display: none;  
-      align-items: center;  
-      gap: 8px;  
-      flex-wrap: wrap;  
-    }  
-  
-    .custom-days-wrapper.show {  
-      display: flex;  
-    }  
-  
-    .custom-days-input,  
-    .filter-group select,  
-    .filter-group input {  
-      width: 100%;  
-      min-height: 46px;  
-      border: 1px solid var(--border);  
-      background: #fff;  
-      color: var(--text);  
-      border-radius: 12px;  
-      padding: 0 14px;  
-      font-size: 0.92rem;  
-      font-family: inherit;  
-      outline: none;  
-      transition: all 0.2s ease;  
-    }  
-  
-    .custom-days-input {  
-      width: 90px;  
-      text-align: center;  
-    }  
-  
-    .custom-days-input:focus,  
-    .filter-group select:focus,  
-    .filter-group input:focus {  
-      border-color: rgba(79,70,229,0.45);  
-      box-shadow: 0 0 0 4px rgba(79,70,229,0.08);  
-    }  
-  
-    .window-info {  
-      font-size: 0.82rem;  
-      color: var(--muted);  
-    }  
-  
-    .apply-btn {  
-      border: 0;  
-      background: var(--accent);  
-      color: white;  
-      min-height: 42px;  
-      padding: 0 14px;  
-      border-radius: 10px;  
-      font-size: 0.85rem;  
-      font-weight: 700;  
-      cursor: pointer;  
-      transition: 0.18s ease;  
-    }  
-  
-    .apply-btn:hover {  
-      filter: brightness(1.03);  
-      transform: translateY(-1px);  
-    }  
-  
-    /* Filters */  
-    .filters {  
-      display: grid;  
-      grid-template-columns: 1fr 1.4fr 1fr;  
-      gap: 16px;  
-    }  
-  
-    .filter-group label {  
-      display: block;  
-      font-size: 0.74rem;  
-      font-weight: 700;  
-      color: var(--muted);  
-      text-transform: uppercase;  
-      letter-spacing: 0.08em;  
-      margin-bottom: 8px;  
-    }  
-  
-    .autocomplete-wrapper {  
-      position: relative;  
-    }  
-  
-    .autocomplete-dropdown {  
-      display: none;  
-      position: absolute;  
-      left: 0;  
-      right: 0;  
-      top: calc(100% + 8px);  
-      background: #fff;  
-      border: 1px solid var(--border-strong);  
-      border-radius: 14px;  
-      box-shadow: var(--shadow-md);  
-      max-height: 320px;  
-      overflow-y: auto;  
-      z-index: 100;  
-      padding: 8px;  
-    }  
-  
-    .autocomplete-dropdown.show {  
-      display: block;  
-    }  
-  
-    .autocomplete-item {  
-      padding: 12px 12px;  
-      border-radius: 10px;  
-      cursor: pointer;  
-      transition: background 0.15s ease;  
-    }  
-  
-    .autocomplete-item:hover {  
-      background: #f8fafc;  
-    }  
-  
-    .autocomplete-item .scheme-cat {  
-      margin-top: 3px;  
-      font-size: 0.76rem;  
-      color: var(--muted);  
-    }  
-  
-    .autocomplete-item .highlight {  
-      background: #ede9fe;  
-      color: #5b21b6;  
-      border-radius: 6px;  
-      padding: 0 3px;  
-    }  
-  
-    .autocomplete-no-results {  
-      padding: 10px 12px;  
-      font-size: 0.82rem;  
-      color: var(--muted);  
-    }  
-  
-    /* Scheme Info */  
-    .scheme-info {  
-      margin-top: 18px;  
-      display: grid;  
-      grid-template-columns: repeat(7, minmax(120px, 1fr));  
-      gap: 12px;  
-    }  
-  
-    .info-item {  
-      padding: 16px;  
-      background: var(--panel-solid);  
-      border: 1px solid var(--border);  
-      border-radius: 16px;  
-      box-shadow: var(--shadow-sm);  
-      min-height: 88px;  
-    }  
-  
-    .info-label {  
-      display: block;  
-      font-size: 0.72rem;  
-      font-weight: 700;  
-      letter-spacing: 0.08em;  
-      text-transform: uppercase;  
-      color: var(--muted);  
-      margin-bottom: 8px;  
-    }  
-  
-    .info-value {  
-      font-size: 0.95rem;  
-      font-weight: 700;  
-      color: var(--text);  
-      line-height: 1.35;  
-      word-break: break-word;  
-    }  
-  
-    /* KPI Cards */  
-    .kpi-cards {  
-      margin-top: 18px;  
-      display: grid;  
-      grid-template-columns: repeat(5, minmax(180px, 1fr));  
-      gap: 16px;  
-    }  
-  
-    .card {  
-      background: linear-gradient(180deg, #ffffff, #fbfcff);  
-      border: 1px solid var(--border);  
-      border-radius: 20px;  
-      padding: 18px;  
-      box-shadow: var(--shadow-sm);  
-      transition: transform 0.18s ease, box-shadow 0.18s ease;  
-      position: relative;  
-      overflow: hidden;  
-    }  
-  
-    .card:hover {  
-      transform: translateY(-2px);  
-      box-shadow: var(--shadow-md);  
-    }  
-  
-    .card::after {  
-      content: "";  
-      position: absolute;  
-      top: -28px;  
-      right: -28px;  
-      width: 90px;  
-      height: 90px;  
-      border-radius: 50%;  
-      opacity: 0.08;  
-    }  
-  
-    .card.ber::after   { background: var(--green); }  
-    .card.brk::after   { background: var(--orange); }  
-    .card.txn::after   { background: var(--blue); }  
-    .card.stat::after  { background: var(--purple); }  
-    .card.total::after { background: var(--red); }  
-  
-    .card-head {  
-      display: flex;  
-      align-items: center;  
-      gap: 10px;  
-      margin-bottom: 12px;  
-    }  
-  
-    .card-icon {  
-      width: 38px;  
-      height: 38px;  
-      display: grid;  
-      place-items: center;  
-      border-radius: 12px;  
-      font-size: 1rem;  
-      background: #f8fafc;  
-      border: 1px solid var(--border);  
-    }  
-  
-    .card-label {  
-      font-size: 0.76rem;  
-      text-transform: uppercase;  
-      letter-spacing: 0.08em;  
-      color: var(--muted);  
-      font-weight: 700;  
-    }  
-  
-    .card-value {  
-      font-size: 1.7rem;  
-      font-weight: 800;  
-      letter-spacing: -0.03em;  
-      margin-bottom: 5px;  
-    }  
-  
-    .card-sublabel {  
-      font-size: 0.8rem;  
-      color: var(--muted);  
-    }  
-  
-    .card.ber .card-value   { color: var(--green); }  
-    .card.brk .card-value   { color: var(--orange); }  
-    .card.txn .card-value   { color: var(--blue); }  
-    .card.stat .card-value  { color: var(--purple); }  
-    .card.total .card-value { color: var(--red); }  
-  
-    /* Main content grid */  
-    .content-grid {  
-      margin-top: 20px;  
-      display: grid;  
-      grid-template-columns: 1.5fr 1fr;  
-      gap: 18px;  
-      align-items: start;  
-    }  
-  
-    .chart-container,  
-    .table-section {  
-      background: var(--panel-solid);  
-      border: 1px solid var(--border);  
-      border-radius: 22px;  
-      box-shadow: var(--shadow-sm);  
-      overflow: hidden;  
-    }  
-  
-    .section-head {  
-      display: flex;  
-      justify-content: space-between;  
-      align-items: center;  
-      gap: 12px;  
-      padding: 18px 20px 0;  
-      flex-wrap: wrap;  
-    }  
-  
-    .section-title {  
-      font-size: 1rem;  
-      font-weight: 800;  
-      letter-spacing: -0.02em;  
-      color: var(--text);  
-    }  
-  
-    .section-subtle {  
-      color: var(--muted);  
-      font-size: 0.84rem;  
-      font-weight: 600;  
-    }  
-  
-    .chart-body {  
-      padding: 14px 20px 20px;  
-      min-height: 420px;  
+    :root{  
+      --bg:#f5f7fb;  
+      --surface:#ffffff;  
+      --surface-soft:#fafbfc;  
+      --border:#e7ebf2;  
+      --border-strong:#d9dfeb;  
+      --text:#0f172a;  
+      --muted:#64748b;  
+      --muted-2:#94a3b8;  
+      --primary:#111827;  
+      --accent:#2563eb;  
+  
+      --green:#16a34a;  
+      --amber:#d97706;  
+      --blue:#2563eb;  
+      --purple:#7c3aed;  
+      --red:#dc2626;  
+  
+      --radius:16px;  
+      --radius-sm:12px;  
+      --shadow:0 6px 20px rgba(15,23,42,0.05);  
+      --shadow-sm:0 2px 8px rgba(15,23,42,0.04);  
+  
+      --container:1180px;  
+    }  
+  
+    *{margin:0;padding:0;box-sizing:border-box}  
+    html{scroll-behavior:smooth}  
+    body{  
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;  
+      background:var(--bg);  
+      color:var(--text);  
+      line-height:1.45;  
+      -webkit-font-smoothing:antialiased;  
+    }  
+    a{color:var(--accent);text-decoration:none}  
+    a:hover{text-decoration:underline}  
+  
+    .page{  
+      max-width:var(--container);  
+      margin:0 auto;  
+      padding:24px;  
+    }  
+  
+    /* Top bar */  
+    .topbar{  
+      display:flex;  
+      justify-content:space-between;  
+      align-items:flex-start;  
+      gap:16px;  
+      margin-bottom:20px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .title-wrap h1{  
+      font-size:1.6rem;  
+      font-weight:800;  
+      letter-spacing:-0.03em;  
+      margin-bottom:6px;  
+    }  
+  
+    .title-wrap p{  
+      color:var(--muted);  
+      font-size:0.95rem;  
+      max-width:720px;  
+    }  
+  
+    .meta-chips{  
+      display:flex;  
+      gap:10px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .chip{  
+      background:var(--surface);  
+      border:1px solid var(--border);  
+      border-radius:999px;  
+      padding:10px 14px;  
+      box-shadow:var(--shadow-sm);  
+      font-size:0.84rem;  
+      color:var(--muted);  
+      white-space:nowrap;  
+    }  
+  
+    .chip strong{  
+      color:var(--text);  
+      font-weight:700;  
+    }  
+  
+    /* Card shells */  
+    .card-shell{  
+      background:var(--surface);  
+      border:1px solid var(--border);  
+      border-radius:var(--radius);  
+      box-shadow:var(--shadow-sm);  
+    }  
+  
+    /* Controls */  
+    .controls{  
+      padding:18px;  
+      margin-bottom:18px;  
+    }  
+  
+    .controls-grid{  
+      display:grid;  
+      grid-template-columns: 220px 1fr 1fr;  
+      gap:14px;  
+      align-items:end;  
+    }  
+  
+    .field label{  
+      display:block;  
+      margin-bottom:8px;  
+      font-size:0.74rem;  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+      font-weight:700;  
+      color:var(--muted);  
+    }  
+  
+    .field input,  
+    .field select{  
+      width:100%;  
+      height:46px;  
+      border:1px solid var(--border);  
+      border-radius:12px;  
+      padding:0 14px;  
+      font:inherit;  
+      font-size:0.92rem;  
+      background:#fff;  
+      color:var(--text);  
+      outline:none;  
+      transition:.18s ease;  
+    }  
+  
+    .field input:focus,  
+    .field select:focus{  
+      border-color:#bfd2ff;  
+      box-shadow:0 0 0 4px rgba(37,99,235,.08);  
+    }  
+  
+    .segmented{  
+      display:inline-flex;  
+      width:100%;  
+      padding:4px;  
+      background:var(--surface-soft);  
+      border:1px solid var(--border);  
+      border-radius:12px;  
+      gap:4px;  
+    }  
+  
+    .segmented button{  
+      flex:1;  
+      height:38px;  
+      border:0;  
+      background:transparent;  
+      border-radius:10px;  
+      font:inherit;  
+      font-size:0.9rem;  
+      font-weight:700;  
+      color:var(--muted);  
+      cursor:pointer;  
+      transition:.18s ease;  
+    }  
+  
+    .segmented button.active{  
+      background:#fff;  
+      color:var(--text);  
+      box-shadow:var(--shadow-sm);  
+    }  
+  
+    .controls-bottom{  
+      display:flex;  
+      justify-content:space-between;  
+      align-items:center;  
+      gap:14px;  
+      margin-top:14px;  
+      flex-wrap:wrap;  
+      padding-top:14px;  
+      border-top:1px solid var(--border);  
+    }  
+  
+    .window-group{  
+      display:flex;  
+      align-items:center;  
+      gap:10px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .mini-label{  
+      font-size:0.78rem;  
+      font-weight:700;  
+      color:var(--muted);  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+    }  
+  
+    .window-buttons{  
+      display:flex;  
+      gap:8px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .window-btn{  
+      border:1px solid var(--border);  
+      background:#fff;  
+      color:var(--muted);  
+      height:36px;  
+      padding:0 12px;  
+      border-radius:10px;  
+      font:inherit;  
+      font-size:0.83rem;  
+      font-weight:700;  
+      cursor:pointer;  
+      transition:.18s ease;  
+    }  
+  
+    .window-btn:hover{  
+      border-color:var(--border-strong);  
+      color:var(--text);  
+    }  
+  
+    .window-btn.active{  
+      background:var(--primary);  
+      color:#fff;  
+      border-color:var(--primary);  
+    }  
+  
+    .custom-days-wrapper{  
+      display:none;  
+      align-items:center;  
+      gap:8px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .custom-days-wrapper.show{display:flex}  
+  
+    .custom-days-input{  
+      width:80px;  
+      height:36px;  
+      border:1px solid var(--border);  
+      border-radius:10px;  
+      padding:0 10px;  
+      text-align:center;  
+      font:inherit;  
+    }  
+  
+    .apply-btn{  
+      height:36px;  
+      border:0;  
+      background:var(--accent);  
+      color:#fff;  
+      padding:0 12px;  
+      border-radius:10px;  
+      font:inherit;  
+      font-size:0.82rem;  
+      font-weight:700;  
+      cursor:pointer;  
+    }  
+  
+    .window-note{  
+      color:var(--muted);  
+      font-size:0.84rem;  
+    }  
+  
+    /* autocomplete */  
+    .autocomplete-wrapper{position:relative}  
+    .autocomplete-dropdown{  
+      display:none;  
+      position:absolute;  
+      top:calc(100% + 8px);  
+      left:0;  
+      right:0;  
+      background:#fff;  
+      border:1px solid var(--border-strong);  
+      border-radius:14px;  
+      box-shadow:var(--shadow);  
+      max-height:280px;  
+      overflow:auto;  
+      z-index:10;  
+      padding:6px;  
+    }  
+    .autocomplete-dropdown.show{display:block}  
+    .autocomplete-item{  
+      padding:10px 12px;  
+      border-radius:10px;  
+      cursor:pointer;  
+    }  
+    .autocomplete-item:hover{background:#f8fafc}  
+    .scheme-cat{font-size:.76rem;color:var(--muted);margin-top:2px}  
+    .highlight{  
+      background:#e8f0ff;  
+      color:#1d4ed8;  
+      border-radius:4px;  
+      padding:0 2px;  
+    }  
+    .autocomplete-no-results{  
+      padding:10px 12px;  
+      color:var(--muted);  
+      font-size:.84rem;  
+    }  
+  
+    /* Scheme summary */  
+    .summary-bar{  
+      display:flex;  
+      justify-content:space-between;  
+      align-items:flex-start;  
+      gap:18px;  
+      padding:18px;  
+      margin-bottom:18px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .summary-main{  
+      min-width:280px;  
+      flex:1.3;  
+    }  
+  
+    .summary-kicker{  
+      font-size:0.74rem;  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+      color:var(--muted);  
+      font-weight:700;  
+      margin-bottom:8px;  
+    }  
+  
+    .summary-name{  
+      font-size:1.15rem;  
+      font-weight:800;  
+      letter-spacing:-0.02em;  
+      margin-bottom:8px;  
+    }  
+  
+    .summary-sub{  
+      color:var(--muted);  
+      font-size:0.92rem;  
+    }  
+  
+    .summary-meta{  
+      display:grid;  
+      grid-template-columns:repeat(3,minmax(140px,1fr));  
+      gap:12px;  
+      flex:1;  
+      min-width:320px;  
+    }  
+  
+    .meta-box{  
+      background:var(--surface-soft);  
+      border:1px solid var(--border);  
+      border-radius:12px;  
+      padding:12px 14px;  
+    }  
+  
+    .meta-box-label{  
+      display:block;  
+      font-size:.72rem;  
+      color:var(--muted);  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+      font-weight:700;  
+      margin-bottom:5px;  
+    }  
+  
+    .meta-box-value{  
+      font-size:.92rem;  
+      font-weight:700;  
+      color:var(--text);  
+      line-height:1.35;  
+      word-break:break-word;  
+    }  
+  
+    /* KPI cards */  
+    .kpis{  
+      display:grid;  
+      grid-template-columns:repeat(5,1fr);  
+      gap:14px;  
+      margin-bottom:18px;  
+    }  
+  
+    .kpi{  
+      padding:16px;  
+      background:var(--surface);  
+      border:1px solid var(--border);  
+      border-radius:16px;  
+      box-shadow:var(--shadow-sm);  
+    }  
+  
+    .kpi-label{  
+      font-size:.75rem;  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+      color:var(--muted);  
+      font-weight:700;  
+      margin-bottom:10px;  
+    }  
+  
+    .kpi-value{  
+      font-size:1.55rem;  
+      font-weight:800;  
+      letter-spacing:-0.03em;  
+      margin-bottom:6px;  
+    }  
+  
+    .kpi-sub{  
+      font-size:.82rem;  
+      color:var(--muted);  
+    }  
+  
+    .kpi.ber .kpi-value{color:var(--green)}  
+    .kpi.brk .kpi-value{color:var(--amber)}  
+    .kpi.txn .kpi-value{color:var(--blue)}  
+    .kpi.stat .kpi-value{color:var(--purple)}  
+    .kpi.total .kpi-value{color:var(--red)}  
+  
+    /* Chart section */  
+    .section{  
+      background:var(--surface);  
+      border:1px solid var(--border);  
+      border-radius:var(--radius);  
+      box-shadow:var(--shadow-sm);  
+      overflow:hidden;  
+      margin-bottom:18px;  
+    }  
+  
+    .section-head{  
+      padding:18px 20px 0;  
+      display:flex;  
+      justify-content:space-between;  
+      align-items:flex-start;  
+      gap:12px;  
+      flex-wrap:wrap;  
+    }  
+  
+    .section-title{  
+      font-size:1.02rem;  
+      font-weight:800;  
+      letter-spacing:-0.02em;  
+    }  
+  
+    .section-desc{  
+      margin-top:4px;  
+      color:var(--muted);  
+      font-size:.88rem;  
+    }  
+  
+    .section-tag{  
+      font-size:.8rem;  
+      color:var(--muted);  
+      background:var(--surface-soft);  
+      border:1px solid var(--border);  
+      border-radius:999px;  
+      padding:8px 12px;  
+    }  
+  
+    .chart-wrap{  
+      height:420px;  
+      padding:12px 20px 20px;  
     }  
   
     /* Table */  
-    .table-wrap {  
-      max-height: 520px;  
-      overflow: auto;  
-      margin-top: 14px;  
-      border-top: 1px solid var(--border);  
+    .table-wrap{  
+      overflow:auto;  
+      margin-top:14px;  
+      border-top:1px solid var(--border);  
     }  
   
-    table {  
-      width: 100%;  
-      border-collapse: collapse;  
+    table{  
+      width:100%;  
+      border-collapse:collapse;  
+      min-width:780px;  
     }  
   
-    thead th {  
-      position: sticky;  
-      top: 0;  
-      z-index: 1;  
-      background: #fbfcfe;  
-      border-bottom: 1px solid var(--border);  
-      padding: 14px 14px;  
-      text-align: center;  
-      font-size: 0.74rem;  
-      font-weight: 800;  
-      text-transform: uppercase;  
-      letter-spacing: 0.07em;  
-      color: var(--muted);  
-      white-space: nowrap;  
+    thead th{  
+      position:sticky;  
+      top:0;  
+      background:#fbfcfe;  
+      z-index:1;  
+      padding:14px 12px;  
+      border-bottom:1px solid var(--border);  
+      text-align:center;  
+      font-size:.74rem;  
+      font-weight:800;  
+      text-transform:uppercase;  
+      letter-spacing:.08em;  
+      color:var(--muted);  
     }  
   
-    tbody td {  
-      padding: 13px 14px;  
-      border-bottom: 1px solid #f1f5f9;  
-      text-align: center;  
-      font-size: 0.9rem;  
-      font-variant-numeric: tabular-nums;  
-      white-space: nowrap;  
+    tbody td{  
+      padding:13px 12px;  
+      text-align:center;  
+      border-bottom:1px solid #eef2f7;  
+      font-size:.9rem;  
+      font-variant-numeric:tabular-nums;  
+      white-space:nowrap;  
     }  
   
-    tbody tr:hover {  
-      background: #fafbff;  
+    tbody tr:hover{  
+      background:#fafcff;  
     }  
   
-    .empty-msg {  
-      color: var(--muted);  
-      font-style: italic;  
-      padding: 34px !important;  
+    .empty-msg{  
+      padding:30px !important;  
+      color:var(--muted);  
+      font-style:italic;  
     }  
   
-    /* Footer */  
-    footer {  
-      max-width: var(--container);  
-      margin: 26px auto 40px;  
-      padding: 0 24px;  
+    footer{  
+      padding:6px 2px 30px;  
+      color:var(--muted);  
+      font-size:.84rem;  
+      text-align:center;  
     }  
-  
-    .footer-inner {  
-      background: rgba(255,255,255,0.7);  
-      border: 1px solid var(--border);  
-      border-radius: 18px;  
-      padding: 16px 18px;  
-      color: var(--muted);  
-      font-size: 0.86rem;  
-      text-align: center;  
-      box-shadow: var(--shadow-sm);  
-    }  
-  
-    .footer-inner p + p {  
-      margin-top: 6px;  
-    }  
+    footer p + p{margin-top:6px}  
   
     /* Responsive */  
-    @media (max-width: 1200px) {  
-      .scheme-info {  
-        grid-template-columns: repeat(4, minmax(120px, 1fr));  
+    @media (max-width: 1100px){  
+      .controls-grid{  
+        grid-template-columns:1fr 1fr;  
       }  
-  
-      .kpi-cards {  
-        grid-template-columns: repeat(3, minmax(180px, 1fr));  
+      .controls-grid .field:first-child{  
+        grid-column:1 / -1;  
       }  
-  
-      .content-grid {  
-        grid-template-columns: 1fr;  
+      .kpis{  
+        grid-template-columns:repeat(3,1fr);  
       }  
-    }  
-  
-    @media (max-width: 840px) {  
-      .container {  
-        padding: 18px;  
-      }  
-  
-      .hero {  
-        padding: 18px 18px 10px;  
-      }  
-  
-      .hero-inner {  
-        padding: 22px 18px;  
-        border-radius: 22px;  
-      }  
-  
-      .hero-meta {  
-        grid-template-columns: 1fr;  
-      }  
-  
-      .filters {  
-        grid-template-columns: 1fr;  
-      }  
-  
-      .scheme-info {  
-        grid-template-columns: repeat(2, minmax(120px, 1fr));  
-      }  
-  
-      .kpi-cards {  
-        grid-template-columns: repeat(2, minmax(150px, 1fr));  
-      }  
-  
-      .chart-body {  
-        min-height: 320px;  
-      }  
-  
-      .section-head {  
-        padding: 16px 16px 0;  
-      }  
-  
-      .chart-body {  
-        padding: 12px 16px 16px;  
+      .summary-meta{  
+        grid-template-columns:repeat(2,1fr);  
       }  
     }  
   
-    @media (max-width: 560px) {  
-      .hero-copy h1 {  
-        font-size: 1.45rem;  
+    @media (max-width: 760px){  
+      .page{padding:16px}  
+      .topbar{margin-bottom:16px}  
+      .title-wrap h1{font-size:1.35rem}  
+      .title-wrap p{font-size:.9rem}  
+  
+      .controls{padding:14px}  
+      .controls-grid{  
+        grid-template-columns:1fr;  
       }  
   
-      .hero-copy p {  
-        font-size: 0.9rem;  
+      .controls-bottom{  
+        align-items:flex-start;  
       }  
   
-      .segmented {  
-        width: 100%;  
+      .summary-bar{  
+        padding:14px;  
       }  
   
-      .segmented button {  
-        flex: 1;  
+      .summary-meta{  
+        grid-template-columns:1fr 1fr;  
+        width:100%;  
+        min-width:0;  
       }  
   
-      .window-buttons {  
-        width: 100%;  
+      .kpis{  
+        grid-template-columns:1fr 1fr;  
       }  
   
-      .window-btn {  
-        flex: 1 1 calc(50% - 8px);  
-        text-align: center;  
+      .section-head{  
+        padding:16px 16px 0;  
       }  
   
-      .scheme-info,  
-      .kpi-cards {  
-        grid-template-columns: 1fr;  
+      .chart-wrap{  
+        height:320px;  
+        padding:10px 16px 16px;  
+      }  
+    }  
+  
+    @media (max-width: 520px){  
+      .meta-chips{width:100%}  
+      .chip{width:100%}  
+  
+      .window-buttons{  
+        width:100%;  
       }  
   
-      .info-item,  
-      .card {  
-        padding: 16px;  
+      .window-btn{  
+        flex:1 1 calc(33.33% - 8px);  
       }  
   
-      tbody td,  
-      thead th {  
-        font-size: 0.82rem;  
+      .summary-meta{  
+        grid-template-columns:1fr;  
+      }  
+  
+      .kpis{  
+        grid-template-columns:1fr;  
+      }  
+  
+      .segmented button{  
+        font-size:.86rem;  
+      }  
+  
+      .window-note{  
+        width:100%;  
       }  
     }  
   </style>  
 </head>  
 <body>  
+  <main class="page">  
   
-  <header class="hero">  
-    <div class="hero-inner">  
-      <div class="hero-top">  
-        <div class="hero-copy">  
-          <h1>📊 Mutual Fund TER Tracker</h1>  
-          <p>Track daily expense ratio components across Indian mutual fund schemes with a cleaner, smarter, investor-friendly dashboard.</p>  
-        </div>  
-        <div class="hero-badge">Premium TER Analytics</div>  
+    <div class="topbar">  
+      <div class="title-wrap">  
+        <h1>Mutual Fund TER Tracker</h1>  
+        <p>Track daily expense ratio components across Indian mutual funds with cleaner comparisons, better filtering, and a more readable analysis view.</p>  
       </div>  
   
-      <div class="hero-meta">  
-        <div class="meta-card">  
-          <span class="meta-label">Last updated</span>  
-          <span class="meta-value" id="lastUpdated">Loading...</span>  
-        </div>  
-        <div class="meta-card">  
-          <span class="meta-label">Schemes</span>  
-          <span class="meta-value" id="totalSchemes">-</span>  
-        </div>  
-        <div class="meta-card">  
-          <span class="meta-label">Data period</span>  
-          <span class="meta-value" id="dataPeriod">-</span>  
-        </div>  
+      <div class="meta-chips">  
+        <div class="chip">Updated: <strong id="lastUpdated">Loading...</strong></div>  
+        <div class="chip">Schemes: <strong id="totalSchemes">-</strong></div>  
+        <div class="chip">Period: <strong id="dataPeriod">-</strong></div>  
       </div>  
     </div>  
-  </header>  
   
-  <main class="container">  
+    <section class="card-shell controls">  
+      <div class="controls-grid">  
+        <div class="field">  
+          <label>Plan Type</label>  
+          <div class="segmented">  
+            <button id="btnDirect" class="active" onclick="switchPlan('direct')">Direct</button>  
+            <button id="btnRegular" onclick="switchPlan('regular')">Regular</button>  
+          </div>  
+        </div>  
   
-    <!-- Plan toggle -->  
-    <div class="toolbar">  
-      <div class="panel toolbar-card">  
-        <span class="section-label">Plan Type</span>  
-        <div class="segmented">  
-          <button id="btnDirect" class="active" onclick="switchPlan('direct')">Direct Plan</button>  
-          <button id="btnRegular" onclick="switchPlan('regular')">Regular Plan</button>  
+        <div class="field">  
+          <label for="categoryFilter">Category</label>  
+          <select id="categoryFilter">  
+            <option value="">All Categories</option>  
+          </select>  
+        </div>  
+  
+        <div class="field">  
+          <label for="schemeFilter">Scheme</label>  
+          <select id="schemeFilter">  
+            <option value="">Select a scheme...</option>  
+          </select>  
+        </div>  
+  
+        <div class="field" style="grid-column:1 / -1;">  
+          <label for="searchInput">Search Scheme</label>  
+          <div class="autocomplete-wrapper">  
+            <input type="text" id="searchInput" placeholder="Type at least 2 letters to search..." autocomplete="off">  
+            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
+          </div>  
         </div>  
       </div>  
   
-      <!-- Average window -->  
-      <div class="panel toolbar-card">  
-        <span class="section-label">Average Window</span>  
-        <div class="window-wrap">  
+      <div class="controls-bottom">  
+        <div class="window-group">  
+          <span class="mini-label">Average Window</span>  
           <div class="window-buttons">  
             <button class="window-btn active" onclick="setWindow(0)">All</button>  
             <button class="window-btn" onclick="setWindow(7)">7D</button>  
@@ -812,173 +675,118 @@
   
           <div class="custom-days-wrapper" id="customDaysWrapper">  
             <input type="number" class="custom-days-input" id="customDaysInput" min="1" max="365" placeholder="45">  
-            <span class="window-info">days</span>  
             <button class="apply-btn" onclick="applyCustomDays()">Apply</button>  
           </div>  
+        </div>  
   
-          <span class="window-info" id="windowInfo">Using all available data (max 365 days)</span>  
+        <div class="window-note" id="windowInfo">Using all available data (max 365 days)</div>  
+      </div>  
+    </section>  
+  
+    <section class="card-shell summary-bar" id="schemeInfo">  
+      <div class="summary-main">  
+        <div class="summary-kicker">Selected Scheme</div>  
+        <div class="summary-name" id="schemeName">Select a scheme to begin</div>  
+        <div class="summary-sub">  
+          <span id="schemeType">-</span> •  
+          <span id="schemeCategory">-</span> •  
+          <span id="planLabel">Direct Plan</span>  
         </div>  
       </div>  
   
-      <!-- Filters -->  
-      <div class="panel toolbar-card">  
-        <div class="filters">  
-          <div class="filter-group">  
-            <label for="categoryFilter">Category</label>  
-            <select id="categoryFilter">  
-              <option value="">All Categories</option>  
-            </select>  
-          </div>  
-  
-          <div class="filter-group">  
-            <label for="searchInput">Search Scheme</label>  
-            <div class="autocomplete-wrapper">  
-              <input type="text" id="searchInput" placeholder="Start typing scheme name..." autocomplete="off">  
-              <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
-            </div>  
-          </div>  
-  
-          <div class="filter-group">  
-            <label for="schemeFilter">Scheme</label>  
-            <select id="schemeFilter">  
-              <option value="">Select a scheme...</option>  
-            </select>  
-          </div>  
+      <div class="summary-meta">  
+        <div class="meta-box">  
+          <span class="meta-box-label">Data Period</span>  
+          <span class="meta-box-value" id="dateRange">-</span>  
+        </div>  
+        <div class="meta-box">  
+          <span class="meta-box-label">Data Points</span>  
+          <span class="meta-box-value" id="dataPoints">-</span>  
+        </div>  
+        <div class="meta-box">  
+          <span class="meta-box-label">Average Window</span>  
+          <span class="meta-box-value" id="windowLabel">All (max 1Y)</span>  
         </div>  
       </div>  
-    </div>  
+    </section>  
   
-    <!-- Scheme info -->  
-    <div class="scheme-info" id="schemeInfo">  
-      <div class="info-item">  
-        <span class="info-label">Scheme</span>  
-        <span class="info-value" id="schemeName">Select a scheme above</span>  
+    <section class="kpis">  
+      <div class="kpi ber">  
+        <div class="kpi-label">Avg Base ER</div>  
+        <div class="kpi-value" id="avgBer">-</div>  
+        <div class="kpi-sub" id="avgBerDays"></div>  
       </div>  
-      <div class="info-item">  
-        <span class="info-label">Type</span>  
-        <span class="info-value" id="schemeType">-</span>  
-      </div>  
-      <div class="info-item">  
-        <span class="info-label">Category</span>  
-        <span class="info-value" id="schemeCategory">-</span>  
-      </div>  
-      <div class="info-item">  
-        <span class="info-label">Data Period</span>  
-        <span class="info-value" id="dateRange">-</span>  
-      </div>  
-      <div class="info-item">  
-        <span class="info-label">Data Points</span>  
-        <span class="info-value" id="dataPoints">-</span>  
-      </div>  
-      <div class="info-item">  
-        <span class="info-label">Avg Window</span>  
-        <span class="info-value" id="windowLabel">All (max 1Y)</span>  
-      </div>  
-      <div class="info-item">  
-        <span class="info-label">Viewing</span>  
-        <span class="info-value" id="planLabel">Direct Plan</span>  
-      </div>  
-    </div>  
   
-    <!-- KPI cards -->  
-    <div class="kpi-cards">  
-      <div class="card ber">  
-        <div class="card-head">  
-          <div class="card-icon">📗</div>  
-          <div class="card-label">Avg Base ER</div>  
+      <div class="kpi brk">  
+        <div class="kpi-label">Avg Brokerage</div>  
+        <div class="kpi-value" id="avgBrk">-</div>  
+        <div class="kpi-sub" id="avgBrkDays"></div>  
+      </div>  
+  
+      <div class="kpi txn">  
+        <div class="kpi-label">Avg Transaction</div>  
+        <div class="kpi-value" id="avgTxn">-</div>  
+        <div class="kpi-sub" id="avgTxnDays"></div>  
+      </div>  
+  
+      <div class="kpi stat">  
+        <div class="kpi-label">Avg Statutory</div>  
+        <div class="kpi-value" id="avgStat">-</div>  
+        <div class="kpi-sub" id="avgStatDays"></div>  
+      </div>  
+  
+      <div class="kpi total">  
+        <div class="kpi-label">Avg Total TER</div>  
+        <div class="kpi-value" id="avgTotal">-</div>  
+        <div class="kpi-sub" id="avgTotalDays"></div>  
+      </div>  
+    </section>  
+  
+    <section class="section">  
+      <div class="section-head">  
+        <div>  
+          <div class="section-title">Daily TER Breakdown</div>  
+          <div class="section-desc">Expense ratio components over time for <span id="chartPlanLabel">Direct Plan</span></div>  
         </div>  
-        <div class="card-value" id="avgBer">-</div>  
-        <div class="card-sublabel" id="avgBerDays"></div>  
+        <div class="section-tag">Interactive chart</div>  
+      </div>  
+      <div class="chart-wrap">  
+        <canvas id="terChart"></canvas>  
+      </div>  
+    </section>  
+  
+    <section class="section">  
+      <div class="section-head">  
+        <div>  
+          <div class="section-title">Daily Data</div>  
+          <div class="section-desc">Full day-wise TER component values for <span id="tablePlanLabel">Direct Plan</span></div>  
+        </div>  
       </div>  
   
-      <div class="card brk">  
-        <div class="card-head">  
-          <div class="card-icon">📙</div>  
-          <div class="card-label">Avg Brokerage</div>  
-        </div>  
-        <div class="card-value" id="avgBrk">-</div>  
-        <div class="card-sublabel" id="avgBrkDays"></div>  
+      <div class="table-wrap">  
+        <table>  
+          <thead>  
+            <tr>  
+              <th>Date</th>  
+              <th>BER (%)</th>  
+              <th>Brokerage (%)</th>  
+              <th>Transaction (%)</th>  
+              <th>Statutory (%)</th>  
+              <th>Total TER (%)</th>  
+            </tr>  
+          </thead>  
+          <tbody id="dailyTableBody">  
+            <tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>  
+          </tbody>  
+        </table>  
       </div>  
+    </section>  
   
-      <div class="card txn">  
-        <div class="card-head">  
-          <div class="card-icon">📘</div>  
-          <div class="card-label">Avg Transaction</div>  
-        </div>  
-        <div class="card-value" id="avgTxn">-</div>  
-        <div class="card-sublabel" id="avgTxnDays"></div>  
-      </div>  
-  
-      <div class="card stat">  
-        <div class="card-head">  
-          <div class="card-icon">📕</div>  
-          <div class="card-label">Avg Statutory</div>  
-        </div>  
-        <div class="card-value" id="avgStat">-</div>  
-        <div class="card-sublabel" id="avgStatDays"></div>  
-      </div>  
-  
-      <div class="card total">  
-        <div class="card-head">  
-          <div class="card-icon">🔴</div>  
-          <div class="card-label">Avg Total TER</div>  
-        </div>  
-        <div class="card-value" id="avgTotal">-</div>  
-        <div class="card-sublabel" id="avgTotalDays"></div>  
-      </div>  
-    </div>  
-  
-    <!-- Content -->  
-    <div class="content-grid">  
-      <section class="chart-container">  
-        <div class="section-head">  
-          <div>  
-            <div class="section-title">Daily TER Breakdown</div>  
-            <div class="section-subtle">Interactive visual for <span id="chartPlanLabel">Direct Plan</span></div>  
-          </div>  
-        </div>  
-        <div class="chart-body">  
-          <canvas id="terChart"></canvas>  
-        </div>  
-      </section>  
-  
-      <section class="table-section">  
-        <div class="section-head">  
-          <div>  
-            <div class="section-title">Daily Data</div>  
-            <div class="section-subtle">Raw component values for <span id="tablePlanLabel">Direct Plan</span></div>  
-          </div>  
-        </div>  
-  
-        <div class="table-wrap">  
-          <table>  
-            <thead>  
-              <tr>  
-                <th>Date</th>  
-                <th>BER (%)</th>  
-                <th>Brokerage (%)</th>  
-                <th>Transaction (%)</th>  
-                <th>Statutory (%)</th>  
-                <th>Total TER (%)</th>  
-              </tr>  
-            </thead>  
-            <tbody id="dailyTableBody">  
-              <tr>  
-                <td colspan="6" class="empty-msg">Select a scheme to view daily data</td>  
-              </tr>  
-            </tbody>  
-          </table>  
-        </div>  
-      </section>  
-    </div>  
-  </main>  
-  
-  <footer>  
-    <div class="footer-inner">  
+    <footer>  
       <p>Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank">AMFI India</a> | Auto-updated daily via GitHub Actions</p>  
       <p>Built by Pavan | Rolling averages with customizable window</p>  
-    </div>  
-  </footer>  
+    </footer>  
+  </main>  
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
   
@@ -993,12 +801,13 @@
     async function init() {  
       try {  
         var res = await fetch("data/summary.json");  
-        if (!res.ok) throw new Error("summary.json not found.");  
+        if (!res.ok) throw new Error("summary.json not found. Run the workflow first!");  
         summaryData = await res.json();  
   
         document.getElementById("lastUpdated").textContent = summaryData.last_updated;  
         document.getElementById("totalSchemes").textContent = summaryData.total_schemes.toLocaleString();  
-        document.getElementById("dataPeriod").textContent = summaryData.data_from + " to " + summaryData.data_to;  
+        document.getElementById("dataPeriod").textContent =  
+          summaryData.data_from + " to " + summaryData.data_to;  
   
         var catSel = document.getElementById("categoryFilter");  
         summaryData.categories.forEach(function (cat) {  
@@ -1220,11 +1029,9 @@
     function filterAndPopulate(cat, query) {  
       var filtered = summaryData.schemes;  
       if (cat) filtered = filtered.filter(function (s) { return s.category === cat; });  
-      if (query) {  
-        filtered = filtered.filter(function (s) {  
-          return s.scheme_name.toLowerCase().indexOf(query) !== -1;  
-        });  
-      }  
+      if (query) filtered = filtered.filter(function (s) {  
+        return s.scheme_name.toLowerCase().indexOf(query) !== -1;  
+      });  
       populateSchemes(filtered);  
     }  
   
@@ -1274,7 +1081,7 @@
     function updateKPICards(data) {  
       var p = currentPlan === "direct" ? "d" : "r";  
       var days = data ? data.length : 0;  
-      var daysText = "based on " + days + " days";  
+      var daysText = "Based on " + days + " days";  
   
       document.getElementById("avgBer").textContent = calcAvg(data, p + "_ber").toFixed(4) + "%";  
       document.getElementById("avgBrk").textContent = calcAvg(data, p + "_brokerage").toFixed(4) + "%";  
@@ -1308,19 +1115,19 @@
               borderColor: "#16a34a",  
               backgroundColor: "rgba(22,163,74,0.08)",  
               fill: true,  
-              tension: 0.35,  
+              tension: 0.3,  
               pointRadius: 0,  
-              borderWidth: 2.2  
+              borderWidth: 2  
             },  
             {  
               label: "Brokerage",  
               data: data.map(function (d) { return d[p + "_brokerage"] || 0; }),  
-              borderColor: "#f59e0b",  
-              backgroundColor: "rgba(245,158,11,0.08)",  
+              borderColor: "#d97706",  
+              backgroundColor: "rgba(217,119,6,0.08)",  
               fill: true,  
-              tension: 0.35,  
+              tension: 0.3,  
               pointRadius: 0,  
-              borderWidth: 2.2  
+              borderWidth: 2  
             },  
             {  
               label: "Transaction",  
@@ -1328,9 +1135,9 @@
               borderColor: "#2563eb",  
               backgroundColor: "rgba(37,99,235,0.08)",  
               fill: true,  
-              tension: 0.35,  
+              tension: 0.3,  
               pointRadius: 0,  
-              borderWidth: 2.2  
+              borderWidth: 2  
             },  
             {  
               label: "Statutory",  
@@ -1338,9 +1145,9 @@
               borderColor: "#7c3aed",  
               backgroundColor: "rgba(124,58,237,0.08)",  
               fill: true,  
-              tension: 0.35,  
+              tension: 0.3,  
               pointRadius: 0,  
-              borderWidth: 2.2  
+              borderWidth: 2  
             },  
             {  
               label: "Total TER",  
@@ -1348,9 +1155,9 @@
               borderColor: "#dc2626",  
               borderDash: [6, 4],  
               fill: false,  
-              tension: 0.35,  
+              tension: 0.3,  
               pointRadius: 0,  
-              borderWidth: 2.6  
+              borderWidth: 2.5  
             }  
           ]  
         },  
@@ -1362,7 +1169,7 @@
               display: true,  
               text: planLabel + " Plan TER — " + name + " (" + windowText + ")",  
               font: { size: 14, weight: '700' },  
-              color: "#111827",  
+              color: "#0f172a",  
               padding: { bottom: 14 }  
             },  
             legend: {  
@@ -1376,24 +1183,18 @@
             },  
             tooltip: {  
               mode: "index",  
-              intersect: false,  
-              backgroundColor: "rgba(15,23,42,0.92)",  
-              titleColor: "#fff",  
-              bodyColor: "#e5e7eb",  
-              borderColor: "rgba(255,255,255,0.08)",  
-              borderWidth: 1,  
-              padding: 12  
+              intersect: false  
             }  
           },  
           scales: {  
             y: {  
-              title: { display: true, text: "Expense Ratio (%)", color: "#64748b", font: { weight: "600" } },  
+              title: { display: true, text: "Expense Ratio (%)" },  
               beginAtZero: true,  
               grid: { color: "rgba(148,163,184,0.18)" },  
               ticks: { color: "#64748b" }  
             },  
             x: {  
-              title: { display: true, text: "Date", color: "#64748b", font: { weight: "600" } },  
+              title: { display: true, text: "Date" },  
               grid: { display: false },  
               ticks: { color: "#64748b", maxTicksLimit: 10 }  
             }  
@@ -1444,4 +1245,4 @@
     init();  
   </script>  
 </body>  
-</html> 
+</html>  
