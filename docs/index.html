@@ -51,7 +51,7 @@
             z-index: 50;
             display: flex;
             align-items: center;
-            gap: 28px;
+            justify-content: center;
             min-height: 64px;
             padding: 0 40px;
             border-bottom: 1px solid var(--border);
@@ -60,6 +60,8 @@
             backdrop-filter: blur(16px);
         }
         .brand {
+            position: absolute;
+            left: 40px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -662,13 +664,6 @@
     </header>
 
     <main id="dashboard">
-        <div class="page-head">
-            <div>
-                <h2>Scheme TER Explorer</h2>
-                <p>Search and filter <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
-            </div>
-        </div>
-
         <div class="workspace">
             <aside class="filter-sidebar" aria-label="Filters">
                 <div class="filter-header">
@@ -676,7 +671,7 @@
                     <button type="button" onclick="clearFilters()">Clear all</button>
                 </div>
 
-                <details class="filter-section">
+                <details class="filter-section" open>
                     <summary class="filter-section-title">
                         <h4>Category</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
@@ -702,7 +697,7 @@
                     <p class="filter-note"><span id="filterCount">-</span> schemes match current filters.</p>
                 </details>
 
-                <details class="filter-section">
+                <details class="filter-section" open>
                     <summary class="filter-section-title">
                         <h4>Scheme Category</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
@@ -710,7 +705,7 @@
                     <select id="schemeCategoryFilter"><option value="">All Scheme Categories</option></select>
                 </details>
 
-                <details class="filter-section">
+                <details class="filter-section" open>
                     <summary class="filter-section-title">
                         <h4>Plan Type</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
@@ -733,8 +728,8 @@
             <section class="card" id="explorer">
                 <div class="panel-head">
                     <div>
-                        <h3 id="viewTitle">Overall Market TER Overview</h3>
-                        <p id="viewSubtitle">Search for a scheme to inspect fund-specific TER movement.</p>
+                        <h3 id="viewTitle">Overall Market Overview - Scheme TER Explorer</h3>
+                        <p id="viewSubtitle">Search and filter <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
                     </div>
                 </div>
                 <div class="panel-body">
@@ -744,7 +739,7 @@
                             <span class="summary-value" id="schemeName">Select a scheme</span>
                         </div>
                         <div class="summary-cell">
-                            <span class="summary-label">Category</span>
+                            <span class="summary-label">Scheme Category</span>
                             <span class="summary-value" id="schemeCategory">-</span>
                         </div>
                         <div class="summary-cell">
@@ -936,11 +931,20 @@
             return Number(value || 0).toFixed(4) + "%";
         }
 
+        function formatChartDate(value) {
+            if (!value) return "-";
+            var parts = value.split("-");
+            if (parts.length === 3) {
+                return parts[2] + "-" + parts[1] + "-" + parts[0].substring(2);
+            }
+            return value;
+        }
+
         function formatDisplayDate(value) {
             if (!value) return "-";
             var date = new Date(value + "T00:00:00");
             if (Number.isNaN(date.getTime())) return value;
-            return date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+            return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
         }
 
         function planPrefix() {
@@ -1043,7 +1047,7 @@
                     }
                     item.innerHTML = '<div class="autocomplete-name">' + highlighted + '</div><div class="autocomplete-meta">' + (s.scheme_code || "") + " | " + (s.category || "") + '</div>';
                     item.addEventListener("click", function () {
-                        input.value = s.scheme_name;
+                        input.value = "";
                         dropdown.classList.remove("show");
                         selectScheme(s);
                     });
@@ -1120,6 +1124,15 @@
 
         async function selectScheme(scheme) {
             currentScheme = scheme;
+
+            var assetCat = getAssetCategory(scheme.category);
+            document.querySelectorAll(".asset-checkbox").forEach(function(cb) {
+                cb.checked = (cb.value === assetCat);
+            });
+            populateSchemeCategoryFilter();
+            document.getElementById("schemeCategoryFilter").value = scheme.category || "";
+            updateFilterCount();
+
             document.getElementById("schemeInfo").style.display = "";
             document.getElementById("schemeCards").style.display = "";
             document.getElementById("marketCards").style.display = "none";
@@ -1174,8 +1187,8 @@
             document.getElementById("schemeInfo").style.display = "none";
             document.getElementById("schemeCards").style.display = "none";
             document.getElementById("marketCards").style.display = "";
-            document.getElementById("viewTitle").textContent = "Overall Market TER Overview";
-            document.getElementById("viewSubtitle").textContent = "Search for a scheme to inspect fund-specific TER movement.";
+            document.getElementById("viewTitle").textContent = "Overall Market Overview - Scheme TER Explorer";
+            document.getElementById("viewSubtitle").innerHTML = 'Search and filter <span id="totalSchemesText">' + Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() + '</span> mutual fund schemes. Last updated <span id="lastUpdated">' + (summaryData ? summaryData.last_updated : "-") + '</span>.';
             document.getElementById("marketDirectTer").textContent = fmt(direct);
             document.getElementById("marketRegularTer").textContent = fmt(regular);
             document.getElementById("marketSpread").textContent = fmt(Math.max(0, regular - direct));
@@ -1241,7 +1254,7 @@
             chart = new Chart(ctx, {
                 type: "line",
                 data: {
-                    labels: data.map(function (d) { return d.date; }),
+                    labels: data.map(function (d) { return formatChartDate(d.date); }),
                     datasets: [
                         { label: "BER", data: data.map(function (d) { return d[p + "_ber"] || 0; }), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Brokerage", data: data.map(function (d) { return d[p + "_brokerage"] || 0; }), borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
