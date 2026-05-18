@@ -8,9 +8,9 @@ Runs daily via GitHub Actions.
 
 import os
 import json
+import re
 import pandas as pd
 from datetime import datetime, timedelta
-from amfipy import AMFIClient
 
 # Paths
 DATA_DIR = "data"
@@ -45,8 +45,38 @@ def find_column(columns, *keywords):
     return None
 
 
+def clean_text(value):
+    """Normalize AMFI text fields that sometimes contain hidden/non-breaking spaces."""
+    if pd.isna(value):
+        return ""
+    text = str(value).replace("\u00a0", " ").strip()
+    return re.sub(r"\s+", " ", text)
+
+
+def normalize_scheme_code(value):
+    """Normalize NSDL scheme codes so values like '0 013' and '0013' group together."""
+    text = clean_text(value)
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[^A-Za-z0-9/]", "", text)
+    parts = [part.strip() for part in text.split("/") if part.strip()]
+
+    if len(parts) >= 2:
+        last = parts[-1]
+        if last.isdigit():
+            parts[-1] = last.zfill(4)
+
+    return "/".join(parts)
+
+
+def make_scheme_id(code):
+    """Create a filesystem-safe id from a normalized scheme code."""
+    return re.sub(r"[^A-Za-z0-9]+", "_", str(code)).strip("_")
+
+
 def download_excels():
     """Download TER Excels from AMFI"""
+    from amfipy import AMFIClient
+
     client = AMFIClient()
     current_month = datetime.now().strftime("%m-%Y")
     months = get_months_list()
@@ -75,6 +105,10 @@ def download_excels():
 
 def process_data():
     """Read all Excels, compute averages for BOTH plans, generate JSONs"""
+
+    for file in os.listdir(DAILY_DIR):
+        if file.endswith(".json"):
+            os.remove(os.path.join(DAILY_DIR, file))
 
     # --- Read all Excel files ---
     all_dfs = []
@@ -161,7 +195,12 @@ def process_data():
 
     # --- Parse dates ---
     combined["date"] = pd.to_datetime(combined["date"], dayfirst=True, errors="coerce")
+    combined["scheme_code"] = combined["scheme_code"].apply(normalize_scheme_code)
+    for col in ["scheme_name", "scheme_type", "category"]:
+        if col in combined.columns:
+            combined[col] = combined[col].apply(clean_text)
     combined = combined.dropna(subset=["date", "scheme_code"])
+    combined = combined[combined["scheme_code"] != ""]
 
     # Convert numeric columns
     all_numeric = [
@@ -193,7 +232,7 @@ def process_data():
     scheme_count = 0
 
     for code, group in recent.groupby("scheme_code"):
-        scheme_id = str(code).replace("/", "_").replace(" ", "_")
+        scheme_id = make_scheme_id(code)
 
         entry = {
             "id": scheme_id,
