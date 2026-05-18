@@ -510,8 +510,14 @@
             font-weight: 800;
             font-variant-numeric: tabular-nums;
         }
-        .component .sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+        .component .sub { display: none; }
         .chart-shell { height: 380px; }
+        .chart-range {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
         .daily-section {
             margin-top: 22px;
         }
@@ -524,6 +530,30 @@
         .table-wrap {
             max-height: 460px;
             overflow: auto;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pagination button {
+            min-height: 32px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-weight: 800;
+        }
+        .pagination button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
         table {
             width: 100%;
@@ -697,21 +727,6 @@
                     </div>
                 </details>
 
-                <section class="filter-section">
-                    <div class="filter-section-title">
-                        <h4>Averaging Window</h4>
-                    </div>
-                    <select id="avgWindowSelect">
-                        <option value="0">All available data</option>
-                        <option value="7">Last 7 days</option>
-                        <option value="15">Last 15 days</option>
-                        <option value="30" selected>Last 30 days</option>
-                        <option value="60">Last 60 days</option>
-                        <option value="90">Last 90 days</option>
-                        <option value="180">Last 180 days</option>
-                    </select>
-                    <p class="filter-note" id="windowInfo">Using last 30 days</p>
-                </section>
             </aside>
 
         <div class="layout">
@@ -748,7 +763,7 @@
                             <p class="value" id="marketRegularTer">-</p>
                             <p class="sub">Across filtered schemes</p>
                         </article>
-                        <article class="card component ber">
+                        <article class="card component ber" title="Average Base Expense Ratio">
                             <p class="kpi-label">Avg Direct TER</p>
                             <p class="value" id="marketDirectTer">-</p>
                             <p class="sub">Across filtered schemes</p>
@@ -771,22 +786,22 @@
                             <p class="value" id="avgBer">-</p>
                             <p class="sub" id="avgBerDays">Average Base Expense Ratio</p>
                         </article>
-                        <article class="card component brk">
+                        <article class="card component brk" title="Average brokerage cost">
                             <p class="kpi-label">Brokerage</p>
                             <p class="value" id="avgBrk">-</p>
                             <p class="sub" id="avgBrkDays">Average brokerage cost</p>
                         </article>
-                        <article class="card component txn">
+                        <article class="card component txn" title="Average transaction cost">
                             <p class="kpi-label">Transaction</p>
                             <p class="value" id="avgTxn">-</p>
                             <p class="sub" id="avgTxnDays">Average transaction cost</p>
                         </article>
-                        <article class="card component stat">
+                        <article class="card component stat" title="Average statutory levies">
                             <p class="kpi-label">Statutory</p>
                             <p class="value" id="avgStat">-</p>
                             <p class="sub" id="avgStatDays">Average statutory levies</p>
                         </article>
-                        <article class="card component total">
+                        <article class="card component total" title="Average total expense ratio">
                             <p class="kpi-label">Total TER</p>
                             <p class="value" id="avgTotal">-</p>
                             <p class="sub" id="avgTotalDays">Average total expense ratio</p>
@@ -796,6 +811,36 @@
                     <div class="chart-shell">
                         <canvas id="terChart"></canvas>
                     </div>
+                    <div class="chart-range" aria-label="Chart range">
+                        <button class="chip range-btn active" type="button" onclick="setWindow(30)">1M</button>
+                        <button class="chip range-btn" type="button" onclick="setWindow(90)">3M</button>
+                        <button class="chip range-btn" type="button" onclick="setWindow(180)">6M</button>
+                        <button class="chip range-btn" type="button" onclick="setWindow(365)">1Y</button>
+                        <button class="chip range-btn" type="button" onclick="setWindow(0)">All</button>
+                    </div>
+
+                    <section class="card daily-section" id="lowestTer">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Top 5 Lowest TER Funds</h3>
+                                <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fund</th>
+                                        <th>Category</th>
+                                        <th class="num">TER</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowestTerBody">
+                                    <tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
 
                     <section class="card daily-section">
                         <div class="panel-head">
@@ -821,30 +866,12 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="pagination" id="dailyPagination" style="display:none">
+                            <button type="button" id="prevPageBtn" onclick="changeDailyPage(-1)">Previous</button>
+                            <span id="dailyPageLabel">Page 1 of 1</span>
+                            <button type="button" id="nextPageBtn" onclick="changeDailyPage(1)">Next</button>
+                        </div>
                     </section>
-                </div>
-            </section>
-
-            <section class="card" id="lowestTer">
-                <div class="panel-head">
-                    <div>
-                        <h3>Lowest TER Funds</h3>
-                        <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
-                    </div>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fund</th>
-                                <th>Category</th>
-                                <th class="num">TER</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lowestTerBody">
-                            <tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </section>
         </div>
@@ -864,6 +891,9 @@
         var currentScheme = null;
         var currentDailyData = null;
         var currentWindowDays = 30;
+        var currentTableData = [];
+        var currentDailyPage = 1;
+        var dailyPageSize = 15;
 
         async function init() {
             try {
@@ -906,6 +936,13 @@
             return Number(value || 0).toFixed(4) + "%";
         }
 
+        function formatDisplayDate(value) {
+            if (!value) return "-";
+            var date = new Date(value + "T00:00:00");
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+        }
+
         function planPrefix() {
             return currentPlan === "direct" ? "d" : "r";
         }
@@ -944,9 +981,6 @@
                 input.addEventListener("change", function () {
                     if (input.checked) switchPlan(input.value);
                 });
-            });
-            document.getElementById("avgWindowSelect").addEventListener("change", function () {
-                setWindow(Number(this.value || 0));
             });
         }
 
@@ -1050,14 +1084,17 @@
         function setWindow(days) {
             currentWindowDays = days;
             updateWindowLabels();
+            document.querySelectorAll(".range-btn").forEach(function (button) {
+                var label = days === 30 ? "1M" : days === 90 ? "3M" : days === 180 ? "6M" : days === 365 ? "1Y" : "All";
+                button.classList.toggle("active", button.textContent === label);
+            });
             if (currentScheme) refreshDisplay();
             else showMarketDashboard();
         }
         window.setWindow = setWindow;
 
         function updateWindowLabels() {
-            var label = currentWindowDays === 0 ? "All" : "Last " + currentWindowDays + " days";
-            document.getElementById("windowInfo").textContent = currentWindowDays === 0 ? "Using all available data" : "Using " + label.toLowerCase();
+            return currentWindowDays === 0 ? "All available data" : "Last " + currentWindowDays + " days";
         }
 
         function filterDataByWindow(data) {
@@ -1091,7 +1128,7 @@
             document.getElementById("schemeName").textContent = scheme.scheme_name || "-";
             document.getElementById("schemeCategory").textContent = scheme.category || "-";
             document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";
-            document.getElementById("dateRange").textContent = (scheme.date_from || "-") + " to " + (scheme.date_to || "-");
+            document.getElementById("dateRange").textContent = formatDisplayDate(scheme.date_from) + " to " + formatDisplayDate(scheme.date_to);
 
             try {
                 var res = await fetch("data/daily/" + scheme.id + ".json");
@@ -1188,11 +1225,6 @@
             document.getElementById("avgTxn").textContent = fmt(calcAvg(data, p + "_transaction"));
             document.getElementById("avgStat").textContent = fmt(calcAvg(data, p + "_statutory"));
             document.getElementById("avgTotal").textContent = fmt(calcAvg(data, p + "_total_ter"));
-            document.getElementById("avgBerDays").textContent = "Average Base Expense Ratio";
-            document.getElementById("avgBrkDays").textContent = "Average brokerage cost";
-            document.getElementById("avgTxnDays").textContent = "Average transaction cost";
-            document.getElementById("avgStatDays").textContent = "Average statutory levies";
-            document.getElementById("avgTotalDays").textContent = "Average total expense ratio";
         }
 
         function updateChart(data, name) {
@@ -1239,14 +1271,41 @@
         function updateTable(data) {
             var tbody = document.getElementById("dailyTableBody");
             var p = planPrefix();
+            currentTableData = data || [];
+            var pagination = document.getElementById("dailyPagination");
             if (!data || !data.length) {
                 tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>';
+                pagination.style.display = "none";
                 return;
             }
-            tbody.innerHTML = data.slice().reverse().slice(0, 120).map(function (d) {
-                return "<tr><td>" + d.date + "</td><td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_brokerage"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_transaction"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_statutory"]).replace("%", "") + "</td><td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";
-            }).join("");
+            currentDailyPage = 1;
+            renderDailyPage();
         }
+
+        function renderDailyPage() {
+            var tbody = document.getElementById("dailyTableBody");
+            var p = planPrefix();
+            var reversed = currentTableData.slice().reverse();
+            var totalPages = Math.max(1, Math.ceil(reversed.length / dailyPageSize));
+            currentDailyPage = Math.min(Math.max(1, currentDailyPage), totalPages);
+            var start = (currentDailyPage - 1) * dailyPageSize;
+            var pageRows = reversed.slice(start, start + dailyPageSize);
+
+            tbody.innerHTML = pageRows.map(function (d) {
+                return "<tr><td>" + formatDisplayDate(d.date) + "</td><td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_brokerage"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_transaction"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_statutory"]).replace("%", "") + "</td><td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";
+            }).join("");
+
+            document.getElementById("dailyPagination").style.display = reversed.length > dailyPageSize ? "flex" : "none";
+            document.getElementById("dailyPageLabel").textContent = "Page " + currentDailyPage + " of " + totalPages;
+            document.getElementById("prevPageBtn").disabled = currentDailyPage <= 1;
+            document.getElementById("nextPageBtn").disabled = currentDailyPage >= totalPages;
+        }
+
+        function changeDailyPage(delta) {
+            currentDailyPage += delta;
+            renderDailyPage();
+        }
+        window.changeDailyPage = changeDailyPage;
 
         function updateLowestTer() {
             if (!summaryData) return;
@@ -1256,7 +1315,7 @@
             var rows = (summaryData.schemes || []).filter(function (s) {
                 var ter = Number(s[p] || 0);
                 return (!cat || s.category === cat) && ter > 0;
-            }).sort(function (a, b) { return Number(a[p] || 0) - Number(b[p] || 0); }).slice(0, 12);
+            }).sort(function (a, b) { return Number(a[p] || 0) - Number(b[p] || 0); }).slice(0, 5);
             var tbody = document.getElementById("lowestTerBody");
             if (!rows.length) {
                 tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';
