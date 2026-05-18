@@ -782,22 +782,22 @@
                             <p class="sub" id="avgBerDays">Average Base Expense Ratio</p>
                         </article>
                         <article class="card component brk" title="Average brokerage cost">
-                            <p class="kpi-label">Brokerage</p>
+                            <p class="kpi-label">Avg Brokerage</p>
                             <p class="value" id="avgBrk">-</p>
                             <p class="sub" id="avgBrkDays">Average brokerage cost</p>
                         </article>
                         <article class="card component txn" title="Average transaction cost">
-                            <p class="kpi-label">Transaction</p>
+                            <p class="kpi-label">Avg Transaction</p>
                             <p class="value" id="avgTxn">-</p>
                             <p class="sub" id="avgTxnDays">Average transaction cost</p>
                         </article>
                         <article class="card component stat" title="Average statutory levies">
-                            <p class="kpi-label">Statutory</p>
+                            <p class="kpi-label">Avg Statutory</p>
                             <p class="value" id="avgStat">-</p>
                             <p class="sub" id="avgStatDays">Average statutory levies</p>
                         </article>
                         <article class="card component total" title="Average total expense ratio">
-                            <p class="kpi-label">Total TER</p>
+                            <p class="kpi-label">Avg Total TER</p>
                             <p class="value" id="avgTotal">-</p>
                             <p class="sub" id="avgTotalDays">Average total expense ratio</p>
                         </article>
@@ -1125,6 +1125,11 @@
         async function selectScheme(scheme) {
             currentScheme = scheme;
 
+            currentPlan = "direct";
+            document.getElementById("btnDirect").checked = true;
+            document.getElementById("btnRegular").checked = false;
+            document.getElementById("tablePlanLabel").textContent = "Direct Plan";
+
             var assetCat = getAssetCategory(scheme.category);
             document.querySelectorAll(".asset-checkbox").forEach(function(cb) {
                 cb.checked = (cb.value === assetCat);
@@ -1140,7 +1145,7 @@
             document.getElementById("schemeName").textContent = scheme.scheme_name || "-";
             document.getElementById("schemeCategory").textContent = scheme.category || "-";
             document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";
-            document.getElementById("dateRange").textContent = formatDisplayDate(scheme.date_from) + " to " + formatDisplayDate(scheme.date_to);
+            document.getElementById("dateRange").innerHTML = formatDisplayDate(scheme.date_from) + " &nbsp;to&nbsp; " + formatDisplayDate(scheme.date_to);
 
             try {
                 var res = await fetch("data/daily/" + scheme.id + ".json");
@@ -1256,10 +1261,10 @@
                 data: {
                     labels: data.map(function (d) { return formatChartDate(d.date); }),
                     datasets: [
-                        { label: "BER", data: data.map(function (d) { return d[p + "_ber"] || 0; }), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
-                        { label: "Brokerage", data: data.map(function (d) { return d[p + "_brokerage"] || 0; }), borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
-                        { label: "Transaction", data: data.map(function (d) { return d[p + "_transaction"] || 0; }), borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
-                        { label: "Statutory", data: data.map(function (d) { return d[p + "_statutory"] || 0; }), borderColor: "#7c3aed", backgroundColor: "rgba(124,58,237,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
+                        { label: "BER", hidden: true, data: data.map(function (d) { return d[p + "_ber"] || 0; }), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
+                        { label: "Brokerage", hidden: true, data: data.map(function (d) { return d[p + "_brokerage"] || 0; }), borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
+                        { label: "Transaction", hidden: true, data: data.map(function (d) { return d[p + "_transaction"] || 0; }), borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
+                        { label: "Statutory", hidden: true, data: data.map(function (d) { return d[p + "_statutory"] || 0; }), borderColor: "#7c3aed", backgroundColor: "rgba(124,58,237,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Total TER", data: totalTer, borderColor: "#dc2626", borderDash: [6, 4], fill: false, tension: 0.32, pointRadius: 0, borderWidth: 2.5 },
                         { label: "Rolling Avg TER", data: movingAvgTer, borderColor: "#94a3b8", borderDash: [3, 3], fill: false, tension: 0.28, pointRadius: 0, borderWidth: 2 }
                     ]
