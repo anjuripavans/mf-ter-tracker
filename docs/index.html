@@ -141,31 +141,6 @@
         .highlight { color: var(--primary); background: rgba(16, 185, 129, 0.12); border-radius: 4px; }
         .autocomplete-no-results { padding: 14px; color: var(--muted); }
 
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .nav a.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 4px;
-        }
-        .profile {
-            display: grid;
-            place-items: center;
-            width: 34px;
-            height: 34px;
-            border: 0;
-            border-radius: 999px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 800;
-        }
-
         main {
             width: min(1440px, 100%);
             margin: 0 auto;
@@ -247,6 +222,12 @@
         .kpi-note.good { color: var(--accent); }
         .kpi-note.warn { color: var(--warning); }
 
+        .workspace {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
         .layout {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 390px;
@@ -274,6 +255,127 @@
             grid-template-columns: 1fr 1fr;
             gap: 14px;
             margin-bottom: 16px;
+        }
+        .filter-sidebar {
+            position: sticky;
+            top: 86px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .filter-header,
+        .filter-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .filter-header h3 {
+            color: #112120;
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .filter-header button {
+            border: 0;
+            background: transparent;
+            color: #15aca2;
+            font-weight: 800;
+            font-size: 13px;
+        }
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .filter-section:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+        .filter-section-title h4 {
+            color: #112120;
+            font-size: 14px;
+            font-weight: 800;
+        }
+        .filter-section-title .material-symbols-outlined {
+            color: #94a3b8;
+            font-size: 20px;
+        }
+        .check-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #112120;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .filter-option input {
+            width: 16px;
+            height: 16px;
+            accent-color: #15aca2;
+        }
+        .range-control {
+            padding: 0 4px;
+        }
+        .range-control input {
+            width: 100%;
+            accent-color: #15aca2;
+        }
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .amc-search {
+            position: relative;
+        }
+        .amc-search .material-symbols-outlined {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            color: #94a3b8;
+            font-size: 18px;
+            transform: translateY(-50%);
+        }
+        .amc-search input,
+        .filter-section select {
+            width: 100%;
+            min-height: 40px;
+            border: 0;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: var(--text);
+            outline: none;
+        }
+        .amc-search input {
+            padding: 0 12px 0 38px;
+        }
+        .filter-section select {
+            padding: 0 10px;
+            border: 1px solid var(--border);
+        }
+        .amc-search input:focus,
+        .filter-section select:focus {
+            box-shadow: 0 0 0 2px rgba(21, 172, 162, 0.18);
+        }
+        .filter-note {
+            color: var(--muted);
+            font-size: 12px;
         }
         .field label {
             display: block;
@@ -455,6 +557,8 @@
             .topbar { padding: 0 24px; }
             main { padding: 24px; }
             .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .workspace { grid-template-columns: 1fr; }
+            .filter-sidebar { position: static; }
             .layout { grid-template-columns: 1fr; }
             .component-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -467,7 +571,6 @@
                 padding: 16px;
             }
             .global-search { width: 100%; }
-            .nav { display: none; }
             main { padding: 18px 14px 30px; }
             .page-head { align-items: flex-start; flex-direction: column; }
             .kpi-grid,
@@ -498,47 +601,103 @@
             </label>
         </div>
 
-        <nav class="nav" aria-label="Primary">
-            <a class="active" href="#dashboard">Dashboard</a>
-            <a href="#explorer">Explorer</a>
-            <a href="#lowestTer">Lowest TER</a>
-        </nav>
-        <button class="profile" type="button" aria-label="Profile">MF</button>
     </header>
 
     <main id="dashboard">
         <div class="page-head">
             <div>
-                <h2>Market Overview</h2>
-                <p>Aggregate daily TER data across <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
+                <h2>Scheme TER Explorer</h2>
+                <p>Search and filter <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
             </div>
             <button class="ghost-button" type="button" onclick="downloadCurrentData()">
                 Download selected data <span class="material-symbols-outlined" aria-hidden="true">download</span>
             </button>
         </div>
 
-        <section class="grid kpi-grid" aria-label="Market TER summary">
-            <article class="card kpi warning">
-                <p class="kpi-label">Avg Regular TER</p>
-                <p class="kpi-value" id="marketRegularTer">-</p>
-                <p class="kpi-note"><span class="material-symbols-outlined">query_stats</span><span id="regularSchemesNote">Across available schemes</span></p>
-            </article>
-            <article class="card kpi">
-                <p class="kpi-label">Avg Direct TER</p>
-                <p class="kpi-value" id="marketDirectTer">-</p>
-                <p class="kpi-note good"><span class="material-symbols-outlined">trending_down</span><span>Direct plans usually cost less</span></p>
-            </article>
-            <article class="card kpi dark">
-                <p class="kpi-label">Avg Spread</p>
-                <p class="kpi-value" id="marketSpread">-</p>
-                <p class="kpi-note warn"><span class="material-symbols-outlined">swap_vert</span><span>Regular minus direct</span></p>
-            </article>
-            <article class="card kpi accent">
-                <p class="kpi-label">Categories</p>
-                <p class="kpi-value" id="categoryCount">-</p>
-                <p class="kpi-note"><span class="material-symbols-outlined">category</span><span id="dataPeriod">Period loading...</span></p>
-            </article>
-        </section>
+        <div class="workspace">
+            <aside class="filter-sidebar" aria-label="Filters">
+                <div class="filter-header">
+                    <h3>Filters</h3>
+                    <button type="button" onclick="clearFilters()">Clear all</button>
+                </div>
+
+                <section class="filter-section">
+                    <div class="filter-section-title">
+                        <h4>Category</h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
+                    </div>
+                    <div class="check-list">
+                        <label class="filter-option">
+                            <input class="asset-checkbox" type="checkbox" value="Equity" checked>
+                            <span>Equity</span>
+                        </label>
+                        <label class="filter-option">
+                            <input class="asset-checkbox" type="checkbox" value="Debt" checked>
+                            <span>Debt</span>
+                        </label>
+                        <label class="filter-option">
+                            <input class="asset-checkbox" type="checkbox" value="Hybrid" checked>
+                            <span>Hybrid</span>
+                        </label>
+                        <label class="filter-option">
+                            <input class="asset-checkbox" type="checkbox" value="Others" checked>
+                            <span>Others</span>
+                        </label>
+                    </div>
+                    <p class="filter-note"><span id="filterCount">-</span> schemes match current filters.</p>
+                </section>
+
+                <section class="filter-section">
+                    <div class="filter-section-title">
+                        <h4>Scheme Category</h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
+                    </div>
+                    <select id="schemeCategoryFilter"><option value="">All Scheme Categories</option></select>
+                </section>
+
+                <section class="filter-section">
+                    <div class="filter-section-title">
+                        <h4>Plan Type</h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
+                    </div>
+                    <div class="check-list">
+                        <label class="filter-option">
+                            <input id="btnDirect" name="planType" type="radio" value="direct" checked>
+                            <span>Direct</span>
+                        </label>
+                        <label class="filter-option">
+                            <input id="btnRegular" name="planType" type="radio" value="regular">
+                            <span>Regular</span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="filter-section">
+                    <div class="filter-section-title">
+                        <h4>Total Expense Ratio</h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
+                    </div>
+                    <div class="range-control">
+                        <input id="terRangeFilter" type="range" min="0" max="3" step="0.05" value="3">
+                        <div class="range-labels">
+                            <span>0.0%</span>
+                            <span>Max <strong id="terRangeValue">3.0%</strong></span>
+                            <span>3.0%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="filter-section">
+                    <div class="filter-section-title">
+                        <h4>AMC</h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </div>
+                    <div class="amc-search">
+                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                        <input id="amcFilter" type="text" placeholder="Search AMC">
+                    </div>
+                </section>
+            </aside>
 
         <div class="layout">
             <section class="card" id="explorer">
@@ -547,23 +706,8 @@
                         <h3>Scheme TER Explorer</h3>
                         <p>Select a fund and inspect daily BER, brokerage, transaction, statutory, and total TER.</p>
                     </div>
-                    <div class="segmented" aria-label="Plan type">
-                        <button id="btnDirect" class="chip active" type="button" onclick="switchPlan('direct')">Direct</button>
-                        <button id="btnRegular" class="chip" type="button" onclick="switchPlan('regular')">Regular</button>
-                    </div>
                 </div>
                 <div class="panel-body">
-                    <div class="controls">
-                        <div class="field">
-                            <label for="categoryFilter">Category</label>
-                            <select id="categoryFilter"><option value="">All Categories</option></select>
-                        </div>
-                        <div class="field">
-                            <label for="schemeFilter">Scheme</label>
-                            <select id="schemeFilter"><option value="">Select a scheme...</option></select>
-                        </div>
-                    </div>
-
                     <div class="segmented" aria-label="Average window">
                         <button class="chip window-btn active" type="button" onclick="setWindow(0)">All</button>
                         <button class="chip window-btn" type="button" onclick="setWindow(7)">7D</button>
@@ -594,26 +738,8 @@
                             <span class="summary-value" id="dateRange">-</span>
                         </div>
                         <div class="summary-cell">
-                            <span class="summary-label">Viewing</span>
-                            <span class="summary-value"><span id="planLabel">Direct Plan</span> | <span id="windowLabel">All</span></span>
-                        </div>
-                    </div>
-                    <div class="scheme-summary">
-                        <div class="summary-cell">
-                            <span class="summary-label">Type</span>
-                            <span class="summary-value" id="schemeType">-</span>
-                        </div>
-                        <div class="summary-cell">
-                            <span class="summary-label">Data Points</span>
-                            <span class="summary-value" id="dataPoints">-</span>
-                        </div>
-                        <div class="summary-cell">
                             <span class="summary-label">NSDL Code</span>
                             <span class="summary-value" id="schemeCode">-</span>
-                        </div>
-                        <div class="summary-cell">
-                            <span class="summary-label">Chart Plan</span>
-                            <span class="summary-value" id="chartPlanLabel">Direct Plan</span>
                         </div>
                     </div>
 
@@ -621,27 +747,27 @@
                         <article class="card component ber">
                             <p class="kpi-label">Avg BER</p>
                             <p class="value" id="avgBer">-</p>
-                            <p class="sub" id="avgBerDays"></p>
+                            <p class="sub" id="avgBerDays">Average Base Expense Ratio</p>
                         </article>
                         <article class="card component brk">
                             <p class="kpi-label">Brokerage</p>
                             <p class="value" id="avgBrk">-</p>
-                            <p class="sub" id="avgBrkDays"></p>
+                            <p class="sub" id="avgBrkDays">Average brokerage cost</p>
                         </article>
                         <article class="card component txn">
                             <p class="kpi-label">Transaction</p>
                             <p class="value" id="avgTxn">-</p>
-                            <p class="sub" id="avgTxnDays"></p>
+                            <p class="sub" id="avgTxnDays">Average transaction cost</p>
                         </article>
                         <article class="card component stat">
                             <p class="kpi-label">Statutory</p>
                             <p class="value" id="avgStat">-</p>
-                            <p class="sub" id="avgStatDays"></p>
+                            <p class="sub" id="avgStatDays">Average statutory levies</p>
                         </article>
                         <article class="card component total">
                             <p class="kpi-label">Total TER</p>
                             <p class="value" id="avgTotal">-</p>
-                            <p class="sub" id="avgTotalDays"></p>
+                            <p class="sub" id="avgTotalDays">Average total expense ratio</p>
                         </article>
                     </div>
 
@@ -656,7 +782,7 @@
                     <div class="panel-head">
                         <div>
                             <h3>Lowest TER Funds</h3>
-                            <p>Sorted by selected plan total TER average.</p>
+                            <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
                         </div>
                     </div>
                     <div class="table-wrap">
@@ -698,6 +824,7 @@
                 </section>
             </aside>
         </div>
+        </div>
 
         <p class="footer">
             Data source: <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank" rel="noreferrer">AMFI India</a>.
@@ -713,6 +840,7 @@
         var currentScheme = null;
         var currentDailyData = null;
         var currentWindowDays = 0;
+        var currentMaxTer = 3;
 
         async function init() {
             try {
@@ -722,18 +850,15 @@
 
                 document.getElementById("lastUpdated").textContent = summaryData.last_updated || "-";
                 document.getElementById("totalSchemesText").textContent = Number(summaryData.total_schemes || 0).toLocaleString();
-                document.getElementById("dataPeriod").textContent = (summaryData.data_from || "-") + " to " + (summaryData.data_to || "-");
-                document.getElementById("categoryCount").textContent = (summaryData.categories || []).length.toLocaleString();
 
-                populateCategoryFilter();
-                populateSchemes(summaryData.schemes || []);
+                populateSchemeCategoryFilter();
+                setupFilters();
                 setupAutocomplete();
-                updateMarketOverview();
+                updateFilterCount();
                 updateLowestTer();
 
                 if (summaryData.schemes && summaryData.schemes.length) {
                     selectScheme(summaryData.schemes[0]);
-                    document.getElementById("schemeFilter").value = summaryData.schemes[0].id;
                     document.getElementById("searchInput").value = summaryData.schemes[0].scheme_name;
                 }
             } catch (e) {
@@ -743,31 +868,19 @@
             }
         }
 
-        function populateCategoryFilter() {
-            var sel = document.getElementById("categoryFilter");
-            (summaryData.categories || []).forEach(function (cat) {
+        function populateSchemeCategoryFilter() {
+            var sel = document.getElementById("schemeCategoryFilter");
+            var selected = sel.value;
+            sel.innerHTML = '<option value="">All Scheme Categories</option>';
+            getSchemeCategoriesForAsset().forEach(function (cat) {
                 var opt = document.createElement("option");
                 opt.value = cat;
                 opt.textContent = cat;
                 sel.appendChild(opt);
             });
-        }
-
-        function avg(list, key) {
-            var vals = list.map(function (x) { return Number(x[key] || 0); }).filter(function (v) { return v > 0; });
-            if (!vals.length) return 0;
-            return vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
-        }
-
-        function updateMarketOverview() {
-            var schemes = summaryData.schemes || [];
-            var d = avg(schemes, "avg_d_total_ter");
-            var r = avg(schemes, "avg_r_total_ter");
-            var spread = Math.max(0, r - d);
-            document.getElementById("marketDirectTer").textContent = fmt(d);
-            document.getElementById("marketRegularTer").textContent = fmt(r);
-            document.getElementById("marketSpread").textContent = fmt(spread);
-            document.getElementById("regularSchemesNote").textContent = schemes.length.toLocaleString() + " schemes with TER history";
+            if ([].slice.call(sel.options).some(function (opt) { return opt.value === selected; })) {
+                sel.value = selected;
+            }
         }
 
         function fmt(value) {
@@ -778,22 +891,72 @@
             return currentPlan === "direct" ? "d" : "r";
         }
 
-        function populateSchemes(schemes) {
-            var sel = document.getElementById("schemeFilter");
-            sel.innerHTML = '<option value="">Select a scheme (' + schemes.length.toLocaleString() + ' available)</option>';
-            schemes.forEach(function (s) {
-                var opt = document.createElement("option");
-                opt.value = s.id;
-                opt.textContent = s.scheme_name;
-                sel.appendChild(opt);
+        function getAssetCategory(schemeCategory) {
+            var cat = schemeCategory || "";
+            if (cat.indexOf("Equity Scheme") === 0 || cat === "ELSS") return "Equity";
+            if (cat.indexOf("Debt Scheme") === 0 || cat === "Income") return "Debt";
+            if (cat.indexOf("Hybrid Scheme") === 0) return "Hybrid";
+            return "Others";
+        }
+
+        function getSchemeCategoriesForAsset() {
+            var categories = summaryData.categories || [];
+            var selectedAssets = getSelectedAssets();
+            if (selectedAssets.length === 4) return categories;
+            return categories.filter(function (cat) { return selectedAssets.indexOf(getAssetCategory(cat)) !== -1; });
+        }
+
+        function getSelectedAssets() {
+            return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {
+                return input.value;
             });
         }
 
+        function setupFilters() {
+            document.querySelectorAll(".asset-checkbox").forEach(function (input) {
+                input.addEventListener("change", function () {
+                    populateSchemeCategoryFilter();
+                    updateFilterCount();
+                    updateLowestTer();
+                });
+            });
+            document.querySelectorAll("input[name='planType']").forEach(function (input) {
+                input.addEventListener("change", function () {
+                    if (input.checked) switchPlan(input.value);
+                });
+            });
+            document.getElementById("terRangeFilter").addEventListener("input", function () {
+                currentMaxTer = Number(this.value || 3);
+                document.getElementById("terRangeValue").textContent = currentMaxTer.toFixed(1) + "%";
+                updateFilterCount();
+                updateLowestTer();
+            });
+            document.getElementById("amcFilter").addEventListener("input", function () {
+                updateFilterCount();
+                updateLowestTer();
+            });
+        }
+
+        function updateFilterCount() {
+            document.getElementById("filterCount").textContent = filteredSchemes().length.toLocaleString();
+        }
+
         function filteredSchemes() {
-            var cat = document.getElementById("categoryFilter").value;
+            var cat = document.getElementById("schemeCategoryFilter").value;
             var query = document.getElementById("searchInput").value.toLowerCase().trim();
+            var amcQuery = document.getElementById("amcFilter").value.toLowerCase().trim();
+            var terKey = currentPlan === "direct" ? "avg_d_total_ter" : "avg_r_total_ter";
+            var selectedAssets = getSelectedAssets();
             var schemes = summaryData.schemes || [];
+            schemes = schemes.filter(function (s) { return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1; });
             if (cat) schemes = schemes.filter(function (s) { return s.category === cat; });
+            schemes = schemes.filter(function (s) {
+                var ter = Number(s[terKey] || 0);
+                return ter > 0 && ter <= currentMaxTer;
+            });
+            if (amcQuery) {
+                schemes = schemes.filter(function (s) { return (s.scheme_name || "").toLowerCase().indexOf(amcQuery) !== -1; });
+            }
             if (query) {
                 schemes = schemes.filter(function (s) {
                     return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||
@@ -808,7 +971,7 @@
             var dropdown = document.getElementById("autocompleteDropdown");
             input.addEventListener("input", function () {
                 var query = input.value.toLowerCase().trim();
-                populateSchemes(filteredSchemes());
+                updateFilterCount();
                 if (query.length < 2) {
                     dropdown.classList.remove("show");
                     dropdown.innerHTML = "";
@@ -835,7 +998,6 @@
                     item.addEventListener("click", function () {
                         input.value = s.scheme_name;
                         dropdown.classList.remove("show");
-                        document.getElementById("schemeFilter").value = s.id;
                         selectScheme(s);
                     });
                     dropdown.appendChild(item);
@@ -850,19 +1012,24 @@
             });
         }
 
-        document.getElementById("categoryFilter").addEventListener("change", function () {
-            populateSchemes(filteredSchemes());
+        document.getElementById("schemeCategoryFilter").addEventListener("change", function () {
+            updateFilterCount();
             updateLowestTer();
         });
 
-        document.getElementById("schemeFilter").addEventListener("change", function () {
-            var id = this.value;
-            var scheme = (summaryData.schemes || []).find(function (s) { return s.id === id; });
-            if (scheme) {
-                document.getElementById("searchInput").value = scheme.scheme_name;
-                selectScheme(scheme);
-            }
-        });
+        function clearFilters() {
+            document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = true; });
+            currentMaxTer = 3;
+            document.getElementById("terRangeFilter").value = "3";
+            document.getElementById("terRangeValue").textContent = "3.0%";
+            document.getElementById("amcFilter").value = "";
+            document.getElementById("searchInput").value = "";
+            populateSchemeCategoryFilter();
+            document.getElementById("schemeCategoryFilter").value = "";
+            updateFilterCount();
+            updateLowestTer();
+        }
+        window.clearFilters = clearFilters;
 
         function setWindow(days) {
             var buttons = document.querySelectorAll(".window-btn");
@@ -896,8 +1063,7 @@
 
         function updateWindowLabels() {
             var label = currentWindowDays === 0 ? "All" : "Last " + currentWindowDays + " days";
-            document.getElementById("windowLabel").textContent = label;
-            document.getElementById("windowInfo").textContent = currentWindowDays === 0 ? "Using all available data" : "Using last " + currentWindowDays + " days";
+            document.getElementById("windowInfo").textContent = currentWindowDays === 0 ? "Using all available data" : "Using " + label.toLowerCase();
         }
 
         function filterDataByWindow(data) {
@@ -910,12 +1076,11 @@
 
         function switchPlan(plan) {
             currentPlan = plan;
-            document.getElementById("btnDirect").classList.toggle("active", plan === "direct");
-            document.getElementById("btnRegular").classList.toggle("active", plan === "regular");
+            document.getElementById("btnDirect").checked = plan === "direct";
+            document.getElementById("btnRegular").checked = plan === "regular";
             var label = plan === "direct" ? "Direct Plan" : "Regular Plan";
-            document.getElementById("planLabel").textContent = label;
-            document.getElementById("chartPlanLabel").textContent = label;
             document.getElementById("tablePlanLabel").textContent = label;
+            updateFilterCount();
             updateLowestTer();
             refreshDisplay();
         }
@@ -925,15 +1090,14 @@
             currentScheme = scheme;
             document.getElementById("schemeName").textContent = scheme.scheme_name || "-";
             document.getElementById("schemeCategory").textContent = scheme.category || "-";
-            document.getElementById("schemeType").textContent = scheme.scheme_type || "-";
             document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";
             document.getElementById("dateRange").textContent = (scheme.date_from || "-") + " to " + (scheme.date_to || "-");
-            document.getElementById("dataPoints").textContent = (scheme.data_points || 0).toLocaleString() + " days";
 
             try {
                 var res = await fetch("data/daily/" + scheme.id + ".json");
                 if (!res.ok) throw new Error("Daily data not found");
                 currentDailyData = await res.json();
+                updateLowestTer();
                 refreshDisplay();
             } catch (e) {
                 console.error(e);
@@ -959,21 +1123,23 @@
 
         function updateKPICards(data) {
             var p = planPrefix();
-            var daysText = (data ? data.length : 0).toLocaleString() + " days";
             document.getElementById("avgBer").textContent = fmt(calcAvg(data, p + "_ber"));
             document.getElementById("avgBrk").textContent = fmt(calcAvg(data, p + "_brokerage"));
             document.getElementById("avgTxn").textContent = fmt(calcAvg(data, p + "_transaction"));
             document.getElementById("avgStat").textContent = fmt(calcAvg(data, p + "_statutory"));
             document.getElementById("avgTotal").textContent = fmt(calcAvg(data, p + "_total_ter"));
-            ["avgBerDays", "avgBrkDays", "avgTxnDays", "avgStatDays", "avgTotalDays"].forEach(function (id) {
-                document.getElementById(id).textContent = daysText;
-            });
+            document.getElementById("avgBerDays").textContent = "Average Base Expense Ratio";
+            document.getElementById("avgBrkDays").textContent = "Average brokerage cost";
+            document.getElementById("avgTxnDays").textContent = "Average transaction cost";
+            document.getElementById("avgStatDays").textContent = "Average statutory levies";
+            document.getElementById("avgTotalDays").textContent = "Average total expense ratio";
         }
 
         function updateChart(data, name) {
             var ctx = document.getElementById("terChart").getContext("2d");
             if (chart) chart.destroy();
             var p = planPrefix();
+            var avgTotalTer = calcAvg(data, p + "_total_ter");
             chart = new Chart(ctx, {
                 type: "line",
                 data: {
@@ -983,7 +1149,8 @@
                         { label: "Brokerage", data: data.map(function (d) { return d[p + "_brokerage"] || 0; }), borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Transaction", data: data.map(function (d) { return d[p + "_transaction"] || 0; }), borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Statutory", data: data.map(function (d) { return d[p + "_statutory"] || 0; }), borderColor: "#7c3aed", backgroundColor: "rgba(124,58,237,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
-                        { label: "Total TER", data: data.map(function (d) { return d[p + "_total_ter"] || 0; }), borderColor: "#dc2626", borderDash: [6, 4], fill: false, tension: 0.32, pointRadius: 0, borderWidth: 2.5 }
+                        { label: "Total TER", data: data.map(function (d) { return d[p + "_total_ter"] || 0; }), borderColor: "#dc2626", borderDash: [6, 4], fill: false, tension: 0.32, pointRadius: 0, borderWidth: 2.5 },
+                        { label: "Avg TER", data: data.map(function () { return avgTotalTer; }), borderColor: "#94a3b8", borderDash: [3, 3], fill: false, tension: 0, pointRadius: 0, borderWidth: 2 }
                     ]
                 },
                 options: {
@@ -1018,9 +1185,11 @@
         function updateLowestTer() {
             if (!summaryData) return;
             var p = currentPlan === "direct" ? "avg_d_total_ter" : "avg_r_total_ter";
-            var cat = document.getElementById("categoryFilter").value;
+            var cat = currentScheme ? currentScheme.category : document.getElementById("schemeCategoryFilter").value;
+            document.getElementById("lowestTerCategory").textContent = cat || "the selected scheme category";
             var rows = (summaryData.schemes || []).filter(function (s) {
-                return (!cat || s.category === cat) && Number(s[p] || 0) > 0;
+                var ter = Number(s[p] || 0);
+                return (!cat || s.category === cat) && ter > 0 && ter <= currentMaxTer;
             }).sort(function (a, b) { return Number(a[p] || 0) - Number(b[p] || 0); }).slice(0, 12);
             var tbody = document.getElementById("lowestTerBody");
             if (!rows.length) {
