@@ -229,10 +229,10 @@
             align-items: start;
         }
         .layout {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 390px;
+            display: flex;
+            flex-direction: column;
             gap: 22px;
-            align-items: start;
+            min-width: 0;
         }
         .panel-head {
             display: flex;
@@ -293,6 +293,22 @@
             gap: 12px;
             padding-bottom: 20px;
             border-bottom: 1px solid #f1f5f9;
+        }
+        details.filter-section > summary {
+            list-style: none;
+        }
+        details.filter-section > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.filter-section:not([open]) {
+            gap: 0;
+        }
+        details.filter-section:not([open]) .check-list,
+        details.filter-section:not([open]) select {
+            display: none;
+        }
+        details.filter-section[open] .filter-section-title .material-symbols-outlined {
+            transform: rotate(180deg);
         }
         .filter-section:last-child {
             padding-bottom: 0;
@@ -475,6 +491,10 @@
             grid-template-columns: repeat(5, minmax(0, 1fr));
             margin-bottom: 20px;
         }
+        .market-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 20px;
+        }
         .component {
             padding: 15px;
             border-left: 4px solid var(--primary);
@@ -492,6 +512,12 @@
         }
         .component .sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
         .chart-shell { height: 380px; }
+        .daily-section {
+            margin-top: 22px;
+        }
+        .daily-section .table-wrap {
+            max-height: 560px;
+        }
         canvas { width: 100%; height: 100%; }
 
         .side-stack { display: grid; gap: 22px; }
@@ -560,7 +586,8 @@
             .workspace { grid-template-columns: 1fr; }
             .filter-sidebar { position: static; }
             .layout { grid-template-columns: 1fr; }
-            .component-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .component-grid,
+            .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 760px) {
             .topbar {
@@ -576,7 +603,8 @@
             .kpi-grid,
             .controls,
             .scheme-summary,
-            .component-grid { grid-template-columns: 1fr; }
+            .component-grid,
+            .market-grid { grid-template-columns: 1fr; }
             .panel-head { align-items: flex-start; flex-direction: column; }
             .chart-shell { height: 310px; }
         }
@@ -609,9 +637,6 @@
                 <h2>Scheme TER Explorer</h2>
                 <p>Search and filter <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
             </div>
-            <button class="ghost-button" type="button" onclick="downloadCurrentData()">
-                Download selected data <span class="material-symbols-outlined" aria-hidden="true">download</span>
-            </button>
         </div>
 
         <div class="workspace">
@@ -621,48 +646,48 @@
                     <button type="button" onclick="clearFilters()">Clear all</button>
                 </div>
 
-                <section class="filter-section">
-                    <div class="filter-section-title">
+                <details class="filter-section">
+                    <summary class="filter-section-title">
                         <h4>Category</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
-                    </div>
+                    </summary>
                     <div class="check-list">
                         <label class="filter-option">
-                            <input class="asset-checkbox" type="checkbox" value="Equity" checked>
+                            <input class="asset-checkbox" type="checkbox" value="Equity">
                             <span>Equity</span>
                         </label>
                         <label class="filter-option">
-                            <input class="asset-checkbox" type="checkbox" value="Debt" checked>
+                            <input class="asset-checkbox" type="checkbox" value="Debt">
                             <span>Debt</span>
                         </label>
                         <label class="filter-option">
-                            <input class="asset-checkbox" type="checkbox" value="Hybrid" checked>
+                            <input class="asset-checkbox" type="checkbox" value="Hybrid">
                             <span>Hybrid</span>
                         </label>
                         <label class="filter-option">
-                            <input class="asset-checkbox" type="checkbox" value="Others" checked>
+                            <input class="asset-checkbox" type="checkbox" value="Others">
                             <span>Others</span>
                         </label>
                     </div>
                     <p class="filter-note"><span id="filterCount">-</span> schemes match current filters.</p>
-                </section>
+                </details>
 
-                <section class="filter-section">
-                    <div class="filter-section-title">
+                <details class="filter-section">
+                    <summary class="filter-section-title">
                         <h4>Scheme Category</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
-                    </div>
+                    </summary>
                     <select id="schemeCategoryFilter"><option value="">All Scheme Categories</option></select>
-                </section>
+                </details>
 
-                <section class="filter-section">
-                    <div class="filter-section-title">
+                <details class="filter-section">
+                    <summary class="filter-section-title">
                         <h4>Plan Type</h4>
                         <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
-                    </div>
+                    </summary>
                     <div class="check-list">
                         <label class="filter-option">
-                            <input id="btnDirect" name="planType" type="radio" value="direct" checked>
+                            <input id="btnDirect" name="planType" type="radio" value="direct">
                             <span>Direct</span>
                         </label>
                         <label class="filter-option">
@@ -670,32 +695,22 @@
                             <span>Regular</span>
                         </label>
                     </div>
-                </section>
+                </details>
 
                 <section class="filter-section">
                     <div class="filter-section-title">
-                        <h4>Total Expense Ratio</h4>
-                        <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>
+                        <h4>Averaging Window</h4>
                     </div>
-                    <div class="range-control">
-                        <input id="terRangeFilter" type="range" min="0" max="3" step="0.05" value="3">
-                        <div class="range-labels">
-                            <span>0.0%</span>
-                            <span>Max <strong id="terRangeValue">3.0%</strong></span>
-                            <span>3.0%</span>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="filter-section">
-                    <div class="filter-section-title">
-                        <h4>AMC</h4>
-                        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
-                    </div>
-                    <div class="amc-search">
-                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
-                        <input id="amcFilter" type="text" placeholder="Search AMC">
-                    </div>
+                    <select id="avgWindowSelect">
+                        <option value="0">All available data</option>
+                        <option value="7">Last 7 days</option>
+                        <option value="15">Last 15 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="60">Last 60 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="180">Last 180 days</option>
+                    </select>
+                    <p class="filter-note" id="windowInfo">Using last 30 days</p>
                 </section>
             </aside>
 
@@ -703,28 +718,12 @@
             <section class="card" id="explorer">
                 <div class="panel-head">
                     <div>
-                        <h3>Scheme TER Explorer</h3>
-                        <p>Select a fund and inspect daily BER, brokerage, transaction, statutory, and total TER.</p>
+                        <h3 id="viewTitle">Overall Market TER Overview</h3>
+                        <p id="viewSubtitle">Search for a scheme to inspect fund-specific TER movement.</p>
                     </div>
                 </div>
                 <div class="panel-body">
-                    <div class="segmented" aria-label="Average window">
-                        <button class="chip window-btn active" type="button" onclick="setWindow(0)">All</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(7)">7D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(15)">15D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(30)">30D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(60)">60D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(90)">90D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(180)">180D</button>
-                        <button class="chip window-btn" type="button" onclick="setWindow(-1)">Custom</button>
-                    </div>
-                    <div class="custom-days-wrapper" id="customDaysWrapper">
-                        <input type="number" class="custom-days-input" id="customDaysInput" min="1" max="365" placeholder="45">
-                        <button class="chip" type="button" onclick="applyCustomDays()">Apply</button>
-                        <span class="muted" id="windowInfo">Using all available data</span>
-                    </div>
-
-                    <div class="scheme-summary" id="schemeInfo">
+                    <div class="scheme-summary" id="schemeInfo" style="display:none">
                         <div class="summary-cell">
                             <span class="summary-label">Scheme</span>
                             <span class="summary-value" id="schemeName">Select a scheme</span>
@@ -743,7 +742,30 @@
                         </div>
                     </div>
 
-                    <div class="grid component-grid" aria-label="Selected scheme averages">
+                    <div class="grid market-grid" id="marketCards" aria-label="Overall TER summary">
+                        <article class="card component brk">
+                            <p class="kpi-label">Avg Regular TER</p>
+                            <p class="value" id="marketRegularTer">-</p>
+                            <p class="sub">Across filtered schemes</p>
+                        </article>
+                        <article class="card component ber">
+                            <p class="kpi-label">Avg Direct TER</p>
+                            <p class="value" id="marketDirectTer">-</p>
+                            <p class="sub">Across filtered schemes</p>
+                        </article>
+                        <article class="card component total">
+                            <p class="kpi-label">Avg Spread</p>
+                            <p class="value" id="marketSpread">-</p>
+                            <p class="sub">Regular minus direct</p>
+                        </article>
+                        <article class="card component stat">
+                            <p class="kpi-label">Categories</p>
+                            <p class="value" id="marketCategoryCount">-</p>
+                            <p class="sub">Matching current filters</p>
+                        </article>
+                    </div>
+
+                    <div class="grid component-grid" id="schemeCards" style="display:none" aria-label="Selected scheme averages">
                         <article class="card component ber">
                             <p class="kpi-label">Avg BER</p>
                             <p class="value" id="avgBer">-</p>
@@ -774,55 +796,57 @@
                     <div class="chart-shell">
                         <canvas id="terChart"></canvas>
                     </div>
+
+                    <section class="card daily-section">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Daily Data</h3>
+                                <p><span id="tablePlanLabel">Direct Plan</span>, latest records first.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="num">BER</th>
+                                        <th class="num">Brokerage</th>
+                                        <th class="num">Transaction</th>
+                                        <th class="num">Statutory</th>
+                                        <th class="num">Total TER</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dailyTableBody">
+                                    <tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
             </section>
 
-            <aside class="side-stack">
-                <section class="card" id="lowestTer">
-                    <div class="panel-head">
-                        <div>
-                            <h3>Lowest TER Funds</h3>
-                            <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
-                        </div>
+            <section class="card" id="lowestTer">
+                <div class="panel-head">
+                    <div>
+                        <h3>Lowest TER Funds</h3>
+                        <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
                     </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fund</th>
-                                    <th class="num">TER</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lowestTerBody">
-                                <tr><td colspan="2" class="empty-msg">Loading funds...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <div class="panel-head">
-                        <div>
-                            <h3>Daily Data</h3>
-                            <p><span id="tablePlanLabel">Direct Plan</span>, latest records first.</p>
-                        </div>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th class="num">BER</th>
-                                    <th class="num">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dailyTableBody">
-                                <tr><td colspan="3" class="empty-msg">Select a scheme to view daily data</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </aside>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fund</th>
+                                <th>Category</th>
+                                <th class="num">TER</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowestTerBody">
+                            <tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
         </div>
 
@@ -839,8 +863,7 @@
         var currentPlan = "direct";
         var currentScheme = null;
         var currentDailyData = null;
-        var currentWindowDays = 0;
-        var currentMaxTer = 3;
+        var currentWindowDays = 30;
 
         async function init() {
             try {
@@ -855,12 +878,8 @@
                 setupFilters();
                 setupAutocomplete();
                 updateFilterCount();
+                showMarketDashboard();
                 updateLowestTer();
-
-                if (summaryData.schemes && summaryData.schemes.length) {
-                    selectScheme(summaryData.schemes[0]);
-                    document.getElementById("searchInput").value = summaryData.schemes[0].scheme_name;
-                }
             } catch (e) {
                 console.error(e);
                 document.getElementById("lastUpdated").textContent = "Unable to load data";
@@ -902,7 +921,7 @@
         function getSchemeCategoriesForAsset() {
             var categories = summaryData.categories || [];
             var selectedAssets = getSelectedAssets();
-            if (selectedAssets.length === 4) return categories;
+            if (!selectedAssets.length || selectedAssets.length === 4) return categories;
             return categories.filter(function (cat) { return selectedAssets.indexOf(getAssetCategory(cat)) !== -1; });
         }
 
@@ -917,6 +936,7 @@
                 input.addEventListener("change", function () {
                     populateSchemeCategoryFilter();
                     updateFilterCount();
+                    if (!currentScheme) showMarketDashboard();
                     updateLowestTer();
                 });
             });
@@ -925,15 +945,8 @@
                     if (input.checked) switchPlan(input.value);
                 });
             });
-            document.getElementById("terRangeFilter").addEventListener("input", function () {
-                currentMaxTer = Number(this.value || 3);
-                document.getElementById("terRangeValue").textContent = currentMaxTer.toFixed(1) + "%";
-                updateFilterCount();
-                updateLowestTer();
-            });
-            document.getElementById("amcFilter").addEventListener("input", function () {
-                updateFilterCount();
-                updateLowestTer();
+            document.getElementById("avgWindowSelect").addEventListener("change", function () {
+                setWindow(Number(this.value || 0));
             });
         }
 
@@ -944,19 +957,12 @@
         function filteredSchemes() {
             var cat = document.getElementById("schemeCategoryFilter").value;
             var query = document.getElementById("searchInput").value.toLowerCase().trim();
-            var amcQuery = document.getElementById("amcFilter").value.toLowerCase().trim();
-            var terKey = currentPlan === "direct" ? "avg_d_total_ter" : "avg_r_total_ter";
             var selectedAssets = getSelectedAssets();
             var schemes = summaryData.schemes || [];
-            schemes = schemes.filter(function (s) { return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1; });
-            if (cat) schemes = schemes.filter(function (s) { return s.category === cat; });
-            schemes = schemes.filter(function (s) {
-                var ter = Number(s[terKey] || 0);
-                return ter > 0 && ter <= currentMaxTer;
-            });
-            if (amcQuery) {
-                schemes = schemes.filter(function (s) { return (s.scheme_name || "").toLowerCase().indexOf(amcQuery) !== -1; });
+            if (selectedAssets.length) {
+                schemes = schemes.filter(function (s) { return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1; });
             }
+            if (cat) schemes = schemes.filter(function (s) { return s.category === cat; });
             if (query) {
                 schemes = schemes.filter(function (s) {
                     return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||
@@ -975,6 +981,13 @@
                 if (query.length < 2) {
                     dropdown.classList.remove("show");
                     dropdown.innerHTML = "";
+                    if (query.length === 0) {
+                        currentScheme = null;
+                        currentDailyData = null;
+                        showMarketDashboard();
+                        updateTable([]);
+                        updateLowestTer();
+                    }
                     return;
                 }
                 var results = filteredSchemes().slice(0, 14);
@@ -1014,52 +1027,33 @@
 
         document.getElementById("schemeCategoryFilter").addEventListener("change", function () {
             updateFilterCount();
+            if (!currentScheme) showMarketDashboard();
             updateLowestTer();
         });
 
         function clearFilters() {
-            document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = true; });
-            currentMaxTer = 3;
-            document.getElementById("terRangeFilter").value = "3";
-            document.getElementById("terRangeValue").textContent = "3.0%";
-            document.getElementById("amcFilter").value = "";
+            document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = false; });
+            document.querySelectorAll("input[name='planType']").forEach(function (input) { input.checked = false; });
+            currentPlan = "direct";
             document.getElementById("searchInput").value = "";
             populateSchemeCategoryFilter();
             document.getElementById("schemeCategoryFilter").value = "";
             updateFilterCount();
+            currentScheme = null;
+            currentDailyData = null;
+            showMarketDashboard();
+            updateTable([]);
             updateLowestTer();
         }
         window.clearFilters = clearFilters;
 
         function setWindow(days) {
-            var buttons = document.querySelectorAll(".window-btn");
-            var customWrapper = document.getElementById("customDaysWrapper");
-            if (days === -1) {
-                customWrapper.classList.add("show");
-                buttons.forEach(function (b) { b.classList.remove("active"); });
-                buttons[buttons.length - 1].classList.add("active");
-                return;
-            }
-            customWrapper.classList.remove("show");
-            buttons.forEach(function (b) { b.classList.remove("active"); });
-            var dayMap = [0, 7, 15, 30, 60, 90, 180, -1];
-            var idx = dayMap.indexOf(days);
-            if (idx >= 0) buttons[idx].classList.add("active");
             currentWindowDays = days;
             updateWindowLabels();
-            refreshDisplay();
+            if (currentScheme) refreshDisplay();
+            else showMarketDashboard();
         }
         window.setWindow = setWindow;
-
-        function applyCustomDays() {
-            var input = document.getElementById("customDaysInput");
-            var days = parseInt(input.value, 10);
-            if (!days || days < 1) return alert("Please enter a number between 1 and 365");
-            currentWindowDays = Math.min(days, 365);
-            updateWindowLabels();
-            refreshDisplay();
-        }
-        window.applyCustomDays = applyCustomDays;
 
         function updateWindowLabels() {
             var label = currentWindowDays === 0 ? "All" : "Last " + currentWindowDays + " days";
@@ -1082,12 +1076,18 @@
             document.getElementById("tablePlanLabel").textContent = label;
             updateFilterCount();
             updateLowestTer();
-            refreshDisplay();
+            if (currentScheme) refreshDisplay();
+            else showMarketDashboard();
         }
         window.switchPlan = switchPlan;
 
         async function selectScheme(scheme) {
             currentScheme = scheme;
+            document.getElementById("schemeInfo").style.display = "";
+            document.getElementById("schemeCards").style.display = "";
+            document.getElementById("marketCards").style.display = "none";
+            document.getElementById("viewTitle").textContent = "Scheme TER Explorer";
+            document.getElementById("viewSubtitle").textContent = "Daily TER movement for the selected fund.";
             document.getElementById("schemeName").textContent = scheme.scheme_name || "-";
             document.getElementById("schemeCategory").textContent = scheme.category || "-";
             document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";
@@ -1121,6 +1121,66 @@
             return sum / data.length;
         }
 
+        function avgSchemes(schemes, key) {
+            var vals = (schemes || []).map(function (s) { return Number(s[key] || 0); }).filter(function (v) { return v > 0; });
+            if (!vals.length) return 0;
+            return vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+        }
+
+        function showMarketDashboard() {
+            var schemes = filteredSchemes();
+            var direct = avgSchemes(schemes, "avg_d_total_ter");
+            var regular = avgSchemes(schemes, "avg_r_total_ter");
+            var categories = {};
+            schemes.forEach(function (s) { if (s.category) categories[s.category] = true; });
+
+            document.getElementById("schemeInfo").style.display = "none";
+            document.getElementById("schemeCards").style.display = "none";
+            document.getElementById("marketCards").style.display = "";
+            document.getElementById("viewTitle").textContent = "Overall Market TER Overview";
+            document.getElementById("viewSubtitle").textContent = "Search for a scheme to inspect fund-specific TER movement.";
+            document.getElementById("marketDirectTer").textContent = fmt(direct);
+            document.getElementById("marketRegularTer").textContent = fmt(regular);
+            document.getElementById("marketSpread").textContent = fmt(Math.max(0, regular - direct));
+            document.getElementById("marketCategoryCount").textContent = Object.keys(categories).length.toLocaleString();
+            updateMarketChart(schemes);
+        }
+
+        function updateMarketChart(schemes) {
+            var ctx = document.getElementById("terChart").getContext("2d");
+            if (chart) chart.destroy();
+            var buckets = {};
+            (schemes || []).forEach(function (s) {
+                var bucket = getAssetCategory(s.category);
+                if (!buckets[bucket]) buckets[bucket] = [];
+                buckets[bucket].push(s);
+            });
+            var labels = ["Equity", "Debt", "Hybrid", "Others"].filter(function (label) { return buckets[label] && buckets[label].length; });
+            chart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: "Direct TER", data: labels.map(function (label) { return avgSchemes(buckets[label], "avg_d_total_ter"); }), backgroundColor: "rgba(15,118,110,0.78)", borderRadius: 6 },
+                        { label: "Regular TER", data: labels.map(function (label) { return avgSchemes(buckets[label], "avg_r_total_ter"); }), backgroundColor: "rgba(245,158,11,0.78)", borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: "Average TER by broad category", color: "#0f172a", font: { size: 14, weight: "700" } },
+                        legend: { labels: { boxWidth: 10, boxHeight: 10, color: "#64748b", usePointStyle: true } },
+                        tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ": " + fmt(ctx.parsed.y); } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: "#e2e8f0" }, ticks: { color: "#64748b" }, title: { display: true, text: "Average TER (%)" } },
+                        x: { grid: { display: false }, ticks: { color: "#64748b" } }
+                    }
+                }
+            });
+        }
+
         function updateKPICards(data) {
             var p = planPrefix();
             document.getElementById("avgBer").textContent = fmt(calcAvg(data, p + "_ber"));
@@ -1139,7 +1199,13 @@
             var ctx = document.getElementById("terChart").getContext("2d");
             if (chart) chart.destroy();
             var p = planPrefix();
-            var avgTotalTer = calcAvg(data, p + "_total_ter");
+            var maWindow = currentWindowDays === 0 ? 20 : currentWindowDays;
+            var totalTer = data.map(function (d) { return d[p + "_total_ter"] || 0; });
+            var movingAvgTer = totalTer.map(function (_, idx) {
+                var start = Math.max(0, idx - maWindow + 1);
+                var slice = totalTer.slice(start, idx + 1);
+                return slice.reduce(function (a, b) { return a + b; }, 0) / slice.length;
+            });
             chart = new Chart(ctx, {
                 type: "line",
                 data: {
@@ -1149,8 +1215,8 @@
                         { label: "Brokerage", data: data.map(function (d) { return d[p + "_brokerage"] || 0; }), borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.08)", fill: true, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Transaction", data: data.map(function (d) { return d[p + "_transaction"] || 0; }), borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
                         { label: "Statutory", data: data.map(function (d) { return d[p + "_statutory"] || 0; }), borderColor: "#7c3aed", backgroundColor: "rgba(124,58,237,0.06)", fill: false, tension: 0.32, pointRadius: 1.5, borderWidth: 2 },
-                        { label: "Total TER", data: data.map(function (d) { return d[p + "_total_ter"] || 0; }), borderColor: "#dc2626", borderDash: [6, 4], fill: false, tension: 0.32, pointRadius: 0, borderWidth: 2.5 },
-                        { label: "Avg TER", data: data.map(function () { return avgTotalTer; }), borderColor: "#94a3b8", borderDash: [3, 3], fill: false, tension: 0, pointRadius: 0, borderWidth: 2 }
+                        { label: "Total TER", data: totalTer, borderColor: "#dc2626", borderDash: [6, 4], fill: false, tension: 0.32, pointRadius: 0, borderWidth: 2.5 },
+                        { label: "Rolling Avg TER", data: movingAvgTer, borderColor: "#94a3b8", borderDash: [3, 3], fill: false, tension: 0.28, pointRadius: 0, borderWidth: 2 }
                     ]
                 },
                 options: {
@@ -1174,11 +1240,11 @@
             var tbody = document.getElementById("dailyTableBody");
             var p = planPrefix();
             if (!data || !data.length) {
-                tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No daily data available</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>';
                 return;
             }
             tbody.innerHTML = data.slice().reverse().slice(0, 120).map(function (d) {
-                return "<tr><td>" + d.date + "</td><td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td><td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";
+                return "<tr><td>" + d.date + "</td><td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_brokerage"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_transaction"]).replace("%", "") + "</td><td class='num'>" + fmt(d[p + "_statutory"]).replace("%", "") + "</td><td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";
             }).join("");
         }
 
@@ -1189,38 +1255,17 @@
             document.getElementById("lowestTerCategory").textContent = cat || "the selected scheme category";
             var rows = (summaryData.schemes || []).filter(function (s) {
                 var ter = Number(s[p] || 0);
-                return (!cat || s.category === cat) && ter > 0 && ter <= currentMaxTer;
+                return (!cat || s.category === cat) && ter > 0;
             }).sort(function (a, b) { return Number(a[p] || 0) - Number(b[p] || 0); }).slice(0, 12);
             var tbody = document.getElementById("lowestTerBody");
             if (!rows.length) {
-                tbody.innerHTML = '<tr><td colspan="2" class="empty-msg">No funds available</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';
                 return;
             }
             tbody.innerHTML = rows.map(function (s) {
-                return "<tr><td><div class='fund-name'>" + (s.scheme_name || "-") + "</div><div class='badge'>" + (s.category || "-") + "</div></td><td class='num strong'>" + fmt(s[p]) + "</td></tr>";
+                return "<tr><td><div class='fund-name'>" + (s.scheme_name || "-") + "</div></td><td><span class='badge'>" + (s.category || "-") + "</span></td><td class='num strong'>" + fmt(s[p]) + "</td></tr>";
             }).join("");
         }
-
-        function downloadCurrentData() {
-            if (!currentScheme || !currentDailyData) return alert("Select a scheme first");
-            var blob = new Blob([JSON.stringify({ scheme: currentScheme, daily: filterDataByWindow(currentDailyData) }, null, 2)], { type: "application/json" });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = currentScheme.id + "-ter.json";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        }
-        window.downloadCurrentData = downloadCurrentData;
-
-        document.addEventListener("DOMContentLoaded", function () {
-            var input = document.getElementById("customDaysInput");
-            input.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") applyCustomDays();
-            });
-        });
 
         init();
     </script>
