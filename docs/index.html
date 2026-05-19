@@ -927,16 +927,31 @@
         <div style="width:min(1440px,100%);margin:0 auto;padding:28px 40px 44px;">
             <div style="margin-bottom:24px;">
                 <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;">Compare Mutual Funds</h2>
-                <p style="color:var(--muted);margin-top:4px;">Add up to 4 funds to compare their TER metrics side-by-side. <span style="color:#94a3b8;font-style:italic">(Based on overall average TER)</span></p>
+                <p style="color:var(--muted);margin-top:4px;">Add up to 4 funds to compare their TER metrics side-by-side.</p>
             </div>
 
-            <div id="compareSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px;"></div>
+            <div id="compareSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px;"></div>
+
+            <div id="compareControls" style="display:none;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-weight:800;font-size:13px;color:var(--muted);">Plan:</span>
+                    <button class="chip compare-plan-btn active" type="button" onclick="setComparePlan('direct')">Direct</button>
+                    <button class="chip compare-plan-btn" type="button" onclick="setComparePlan('regular')">Regular</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-weight:800;font-size:13px;color:var(--muted);">Period:</span>
+                    <button class="chip compare-period-btn active" type="button" onclick="setComparePeriod('overall')">Overall Avg</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(30)">30D Avg</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(90)">90D Avg</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(180)">6M Avg</button>
+                </div>
+            </div>
 
             <div class="card" id="compareResultCard" style="display:none;">
                 <div class="panel-head">
                     <div>
                         <h3>Fund Comparison</h3>
-                        <p>Side-by-side TER breakdown (Direct Plan averages)</p>
+                        <p id="compareSubtitle">Side-by-side TER breakdown (Direct Plan, overall average)</p>
                     </div>
                 </div>
                 <div class="table-wrap" style="overflow-x:auto;">
@@ -1040,10 +1055,12 @@
             font-size: 24px;
         }
         .compare-add-text { color: var(--muted); font-size: 13px; font-weight: 700; }
-        #compareTable th { white-space: nowrap; }
-        #compareTable td { font-size: 13px; }
+        #compareTable th { white-space: nowrap; text-align: center; }
+        #compareTable td { font-size: 13px; text-align: center; }
+        #compareTable td.metric-label { text-align: left; }
         .metric-label { font-weight: 800; color: var(--text); }
         .best-val { color: var(--accent); font-weight: 800; }
+        .compare-plan-btn, .compare-period-btn { font-size: 12px; min-height: 32px; padding: 0 12px; }
         @media (max-width: 760px) {
             #compareView > div { padding: 14px 10px 28px; }
             #compareSlots { grid-template-columns: 1fr 1fr; }
@@ -1063,6 +1080,9 @@
         var dailyPageSize = 15;
         var compareSlots = [null, null, null, null];
         var currentView = "dashboard";
+        var comparePlan = "direct";
+        var comparePeriod = "overall";
+        var compareDailyCache = {};
 
         async function init() {
             try {
@@ -1563,7 +1583,7 @@
             var schemes = (summaryData ? summaryData.schemes : []) || [];
             var results = schemes.filter(function (s) {
                 return ((s.scheme_name || "").toLowerCase().indexOf(query) !== -1 || (s.scheme_code || "").toLowerCase().indexOf(query) !== -1);
-            }).slice(0, 10);
+            }).slice(0, 50);
             if (!results.length) {
                 dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';
                 dropdown.classList.add("show"); return;
@@ -1584,32 +1604,52 @@
         }
         window.compareSearch = compareSearch;
 
+        function setComparePlan(plan) {
+            comparePlan = plan;
+            document.querySelectorAll(".compare-plan-btn").forEach(function(b) {
+                b.classList.toggle("active", b.textContent.trim().toLowerCase() === plan);
+            });
+            updateCompareTable();
+        }
+        window.setComparePlan = setComparePlan;
+
+        function setComparePeriod(period) {
+            comparePeriod = period;
+            document.querySelectorAll(".compare-period-btn").forEach(function(b) {
+                var label = period === "overall" ? "Overall Avg" : period === 30 ? "30D Avg" : period === 90 ? "90D Avg" : "6M Avg";
+                b.classList.toggle("active", b.textContent.trim() === label);
+            });
+            updateCompareTable();
+        }
+        window.setComparePeriod = setComparePeriod;
+
         function updateCompareTable() {
             var filled = compareSlots.filter(function (s) { return s !== null; });
             var card = document.getElementById("compareResultCard");
-            if (filled.length < 2) { card.style.display = "none"; return; }
+            var controls = document.getElementById("compareControls");
+            if (filled.length < 2) { card.style.display = "none"; controls.style.display = "none"; return; }
             card.style.display = "";
+            controls.style.display = "flex";
+            var planLabel = comparePlan === "direct" ? "Direct" : "Regular";
+            var periodLabel = comparePeriod === "overall" ? "overall average" : comparePeriod + "-day average";
+            document.getElementById("compareSubtitle").textContent = "Side-by-side TER breakdown (" + planLabel + " Plan, " + periodLabel + ")";
             var thead = document.getElementById("compareHead");
             var tbody = document.getElementById("compareBody");
-            var headerRow = "<tr><th>Metric</th>";
+            var headerRow = "<tr><th style='text-align:left'>Metric</th>";
             filled.forEach(function (s) {
-                var shortName = (s.scheme_name || "").length > 35 ? (s.scheme_name || "").substring(0, 35) + "…" : (s.scheme_name || "-");
+                var shortName = (s.scheme_name || "").length > 30 ? (s.scheme_name || "").substring(0, 30) + "…" : (s.scheme_name || "-");
                 headerRow += "<th>" + shortName + "</th>";
             });
             headerRow += "</tr>";
             thead.innerHTML = headerRow;
+            var p = comparePlan === "direct" ? "d" : "r";
             var metrics = [
-                { label: "Category", key: "category", isText: true },
-                { label: "Avg Direct BER", key: "avg_d_ber" },
-                { label: "Avg Direct Brokerage", key: "avg_d_brokerage" },
-                { label: "Avg Direct Transaction", key: "avg_d_transaction" },
-                { label: "Avg Direct Statutory", key: "avg_d_statutory" },
-                { label: "Avg Direct Total TER", key: "avg_d_total_ter" },
-                { label: "Avg Regular BER", key: "avg_r_ber" },
-                { label: "Avg Regular Brokerage", key: "avg_r_brokerage" },
-                { label: "Avg Regular Transaction", key: "avg_r_transaction" },
-                { label: "Avg Regular Statutory", key: "avg_r_statutory" },
-                { label: "Avg Regular Total TER", key: "avg_r_total_ter" },
+                { label: "Scheme Category", key: "category", isText: true },
+                { label: "Average Base Expense Ratio (BER)", key: "avg_" + p + "_ber" },
+                { label: "Average Brokerage Cost", key: "avg_" + p + "_brokerage" },
+                { label: "Average Transaction Cost", key: "avg_" + p + "_transaction" },
+                { label: "Average Statutory Levies", key: "avg_" + p + "_statutory" },
+                { label: "Average Total Expense Ratio (TER)", key: "avg_" + p + "_total_ter" },
                 { label: "Data Available From", key: "date_from", isDate: true },
                 { label: "Data Available To", key: "date_to", isDate: true }
             ];
@@ -1628,7 +1668,7 @@
                 vals.forEach(function (v, i) {
                     var cls = i === bestIdx ? " best-val" : "";
                     var display = m.isText ? v : m.isDate ? formatDisplayDate(v) : fmt(v);
-                    rows += "<td class='num" + cls + "'>" + display + "</td>";
+                    rows += "<td class='" + cls + "'>" + display + "</td>";
                 });
                 rows += "</tr>";
             });
