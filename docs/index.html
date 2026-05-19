@@ -932,18 +932,21 @@
 
             <div id="compareSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px;"></div>
 
-            <div id="compareControls" style="display:none;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-weight:800;font-size:13px;color:var(--muted);">Plan:</span>
+            <div id="compareControls" style="display:none;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;">
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:var(--soft);">
+                    <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Plan</span>
+                    <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>
                     <button class="chip compare-plan-btn active" type="button" onclick="setComparePlan('direct')">Direct</button>
                     <button class="chip compare-plan-btn" type="button" onclick="setComparePlan('regular')">Regular</button>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-weight:800;font-size:13px;color:var(--muted);">Period:</span>
-                    <button class="chip compare-period-btn active" type="button" onclick="setComparePeriod('overall')">Overall Avg</button>
-                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(30)">30D Avg</button>
-                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(90)">90D Avg</button>
-                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(180)">6M Avg</button>
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:var(--soft);">
+                    <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Period</span>
+                    <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>
+                    <button class="chip compare-period-btn active" type="button" onclick="setComparePeriod('overall')">All</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(30)">1M</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(90)">3M</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(180)">6M</button>
+                    <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(365)">1Y</button>
                 </div>
             </div>
 
@@ -1583,7 +1586,7 @@
             var schemes = (summaryData ? summaryData.schemes : []) || [];
             var results = schemes.filter(function (s) {
                 return ((s.scheme_name || "").toLowerCase().indexOf(query) !== -1 || (s.scheme_code || "").toLowerCase().indexOf(query) !== -1);
-            }).slice(0, 50);
+            }).slice(0, 1000);
             if (!results.length) {
                 dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';
                 dropdown.classList.add("show"); return;
@@ -1616,14 +1619,41 @@
         function setComparePeriod(period) {
             comparePeriod = period;
             document.querySelectorAll(".compare-period-btn").forEach(function(b) {
-                var label = period === "overall" ? "Overall Avg" : period === 30 ? "30D Avg" : period === 90 ? "90D Avg" : "6M Avg";
+                var label = period === "overall" ? "All" : period === 30 ? "1M" : period === 90 ? "3M" : period === 180 ? "6M" : "1Y";
                 b.classList.toggle("active", b.textContent.trim() === label);
             });
             updateCompareTable();
         }
         window.setComparePeriod = setComparePeriod;
 
-        function updateCompareTable() {
+        async function fetchCompareDailyData(scheme) {
+            if (!scheme || !scheme.id) return null;
+            if (compareDailyCache[scheme.id]) return compareDailyCache[scheme.id];
+            try {
+                var res = await fetch("data/daily/" + scheme.id + ".json");
+                if (!res.ok) return null;
+                var data = await res.json();
+                compareDailyCache[scheme.id] = data;
+                return data;
+            } catch (e) { return null; }
+        }
+
+        function calcPeriodAvg(dailyData, key, periodDays) {
+            if (!dailyData || !dailyData.length) return 0;
+            var data = dailyData;
+            if (periodDays !== "overall" && periodDays > 0) {
+                var lastDate = new Date(data[data.length - 1].date);
+                var cutoff = new Date(lastDate);
+                cutoff.setDate(cutoff.getDate() - periodDays);
+                data = data.filter(function (d) { return new Date(d.date) > cutoff; });
+            }
+            if (!data.length) return 0;
+            var sum = 0;
+            data.forEach(function (d) { sum += Number(d[key] || 0); });
+            return sum / data.length;
+        }
+
+        async function updateCompareTable() {
             var filled = compareSlots.filter(function (s) { return s !== null; });
             var card = document.getElementById("compareResultCard");
             var controls = document.getElementById("compareControls");
@@ -1631,7 +1661,7 @@
             card.style.display = "";
             controls.style.display = "flex";
             var planLabel = comparePlan === "direct" ? "Direct" : "Regular";
-            var periodLabel = comparePeriod === "overall" ? "overall average" : comparePeriod + "-day average";
+            var periodLabel = comparePeriod === "overall" ? "all available data" : comparePeriod + "-day average";
             document.getElementById("compareSubtitle").textContent = "Side-by-side TER breakdown (" + planLabel + " Plan, " + periodLabel + ")";
             var thead = document.getElementById("compareHead");
             var tbody = document.getElementById("compareBody");
@@ -1642,21 +1672,37 @@
             });
             headerRow += "</tr>";
             thead.innerHTML = headerRow;
+
             var p = comparePlan === "direct" ? "d" : "r";
-            var metrics = [
-                { label: "Scheme Category", key: "category", isText: true },
-                { label: "Average Base Expense Ratio (BER)", key: "avg_" + p + "_ber" },
-                { label: "Average Brokerage Cost", key: "avg_" + p + "_brokerage" },
-                { label: "Average Transaction Cost", key: "avg_" + p + "_transaction" },
-                { label: "Average Statutory Levies", key: "avg_" + p + "_statutory" },
-                { label: "Average Total Expense Ratio (TER)", key: "avg_" + p + "_total_ter" },
-                { label: "Data Available From", key: "date_from", isDate: true },
-                { label: "Data Available To", key: "date_to", isDate: true }
+            var useDailyData = (comparePeriod !== "overall");
+            var dailyDataArr = [];
+            if (useDailyData) {
+                tbody.innerHTML = '<tr><td colspan="' + (filled.length + 1) + '" class="empty-msg">Loading daily data...</td></tr>';
+                for (var i = 0; i < filled.length; i++) {
+                    dailyDataArr.push(await fetchCompareDailyData(filled[i]));
+                }
+            }
+
+            var metricDefs = [
+                { label: "Scheme Category", sKey: "category", dKey: null, isText: true },
+                { label: "Average Base Expense Ratio (BER)", sKey: "avg_" + p + "_ber", dKey: p + "_ber" },
+                { label: "Average Brokerage Cost", sKey: "avg_" + p + "_brokerage", dKey: p + "_brokerage" },
+                { label: "Average Transaction Cost", sKey: "avg_" + p + "_transaction", dKey: p + "_transaction" },
+                { label: "Average Statutory Levies", sKey: "avg_" + p + "_statutory", dKey: p + "_statutory" },
+                { label: "Average Total Expense Ratio (TER)", sKey: "avg_" + p + "_total_ter", dKey: p + "_total_ter" },
+                { label: "Data Available From", sKey: "date_from", dKey: null, isDate: true },
+                { label: "Data Available To", sKey: "date_to", dKey: null, isDate: true }
             ];
             var rows = "";
-            metrics.forEach(function (m) {
+            metricDefs.forEach(function (m) {
                 rows += "<tr><td class='metric-label'>" + m.label + "</td>";
-                var vals = filled.map(function (s) { return m.isText || m.isDate ? (s[m.key] || "-") : Number(s[m.key] || 0); });
+                var vals = filled.map(function (s, i) {
+                    if (m.isText || m.isDate) return s[m.sKey] || "-";
+                    if (useDailyData && m.dKey && dailyDataArr[i]) {
+                        return calcPeriodAvg(dailyDataArr[i], m.dKey, comparePeriod);
+                    }
+                    return Number(s[m.sKey] || 0);
+                });
                 var bestIdx = -1;
                 if (!m.isText && !m.isDate) {
                     var positiveVals = vals.filter(function (v) { return v > 0; });
