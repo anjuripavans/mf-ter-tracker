@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TER Tracker | Mutual Fund Expense Ratio Dashboard</title>
+    <title>Mutual Fund Expense Ratio Tracker India | Compare TER & Find Low-Cost Funds</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -51,7 +51,7 @@
             z-index: 50;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 16px;
             min-height: 64px;
             padding: 0 40px;
             border-bottom: 1px solid var(--border);
@@ -60,13 +60,38 @@
             backdrop-filter: blur(16px);
         }
         .brand {
-            position: absolute;
-            left: 40px;
             display: flex;
             align-items: center;
             gap: 12px;
             min-width: max-content;
         }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: max-content;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 38px;
+            padding: 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 160ms ease;
+        }
+        .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .nav-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+        }
+        .nav-btn .material-symbols-outlined { font-size: 18px; }
         .brand-mark {
             display: grid;
             place-items: center;
@@ -624,18 +649,18 @@
         @media (max-width: 760px) {
             .topbar {
                 position: static;
-                align-items: stretch;
                 flex-direction: column;
-                gap: 14px;
-                padding: 16px;
+                align-items: stretch;
+                gap: 10px;
+                padding: 12px 14px;
             }
-            .brand {
-                position: static;
-                align-self: center;
-            }
+            .brand { align-self: center; }
+            .brand h1 { font-size: 15px; }
             .global-search { width: 100%; }
+            .nav-actions { justify-content: center; }
+            .nav-btn { height: 34px; padding: 0 12px; font-size: 12px; }
             .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            main { padding: 18px 14px 30px; }
+            main { padding: 14px 10px 28px; }
             .page-head { align-items: flex-start; flex-direction: column; }
             .kpi-grid,
             .controls,
@@ -643,7 +668,13 @@
             .component-grid,
             .market-grid { grid-template-columns: 1fr; }
             .panel-head { align-items: flex-start; flex-direction: column; }
-            .chart-shell { height: 310px; }
+            .chart-shell { height: 260px; }
+            .filter-sidebar { font-size: 13px; padding: 14px; }
+            .summary-value { font-size: 13px; white-space: normal; }
+            .component .value { font-size: 17px; }
+            td, th { padding: 10px 8px; font-size: 12px; }
+            .fund-name { max-width: 180px; font-size: 12px; }
+            .badge { max-width: 140px; font-size: 10px; }
         }
     </style>
 </head>
@@ -655,7 +686,7 @@
                     <path d="M24 3 45 24 24 45 3 24 24 3Zm-3 31V14L11 24l10 10Z" fill="currentColor"></path>
                 </svg>
             </span>
-            <h1>TER Tracker</h1>
+            <h1>MF TER Tracker India</h1>
         </a>
 
         <div class="global-search">
@@ -666,6 +697,14 @@
             </label>
         </div>
 
+        <div class="nav-actions">
+            <button class="nav-btn active" id="navDashboard" type="button" onclick="showView('dashboard')">
+                <span class="material-symbols-outlined">dashboard</span> Dashboard
+            </button>
+            <button class="nav-btn" id="navCompare" type="button" onclick="showView('compare')">
+                <span class="material-symbols-outlined">compare_arrows</span> Compare
+            </button>
+        </div>
     </header>
 
     <main id="dashboard">
@@ -733,8 +772,8 @@
             <section class="card" id="explorer">
                 <div class="panel-head" id="mainPanelHead">
                     <div>
-                        <h3 id="viewTitle">Overall Market Overview - Scheme TER Explorer</h3>
-                        <p id="viewSubtitle">Search and filter <span id="totalSchemesText">-</span> mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
+                        <h3 id="viewTitle">Overall Market Overview</h3>
+                        <p id="viewSubtitle">Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">-</span> Indian mutual fund schemes. Last updated <span id="lastUpdated">Loading...</span>.</p>
                     </div>
                 </div>
                 <div class="panel-body">
@@ -823,7 +862,7 @@
                         <div class="panel-head">
                             <div>
                                 <h3>Top 5 Lowest TER Funds</h3>
-                                <p>Within <span id="lowestTerCategory">the selected scheme category</span>.</p>
+                                <p>Within <span id="lowestTerCategory">the selected scheme category</span>. <span style="color:#94a3b8;font-style:italic">(Based on overall average TER)</span></p>
                             </div>
                         </div>
                         <div class="table-wrap">
@@ -883,6 +922,134 @@
         </p>
     </main>
 
+    <!-- Compare View -->
+    <section id="compareView" style="display:none">
+        <div style="width:min(1440px,100%);margin:0 auto;padding:28px 40px 44px;">
+            <div style="margin-bottom:24px;">
+                <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;">Compare Mutual Funds</h2>
+                <p style="color:var(--muted);margin-top:4px;">Add up to 4 funds to compare their TER metrics side-by-side. <span style="color:#94a3b8;font-style:italic">(Based on overall average TER)</span></p>
+            </div>
+
+            <div id="compareSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px;"></div>
+
+            <div class="card" id="compareResultCard" style="display:none;">
+                <div class="panel-head">
+                    <div>
+                        <h3>Fund Comparison</h3>
+                        <p>Side-by-side TER breakdown (Direct Plan averages)</p>
+                    </div>
+                </div>
+                <div class="table-wrap" style="overflow-x:auto;">
+                    <table id="compareTable">
+                        <thead id="compareHead"></thead>
+                        <tbody id="compareBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .compare-slot {
+            position: relative;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            padding: 16px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: border-color 160ms ease;
+        }
+        .compare-slot:hover { border-color: var(--primary); }
+        .compare-slot.filled {
+            border-style: solid;
+            border-color: var(--primary);
+            align-items: stretch;
+        }
+        .compare-slot-search {
+            position: relative;
+            width: 100%;
+        }
+        .compare-slot-search input {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            background: var(--background);
+            font-size: 13px;
+        }
+        .compare-slot-search input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+        }
+        .compare-slot-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            z-index: 100;
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            box-shadow: 0 12px 30px rgba(15,23,42,0.12);
+        }
+        .compare-slot-dropdown.show { display: block; }
+        .compare-slot-dropdown .autocomplete-item { font-size: 13px; padding: 10px 12px; }
+        .compare-slot-name {
+            font-weight: 800;
+            font-size: 13px;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .compare-slot-cat {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .compare-remove {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 24px; height: 24px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--danger);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .compare-add-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--background);
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .compare-add-text { color: var(--muted); font-size: 13px; font-weight: 700; }
+        #compareTable th { white-space: nowrap; }
+        #compareTable td { font-size: 13px; }
+        .metric-label { font-weight: 800; color: var(--text); }
+        .best-val { color: var(--accent); font-weight: 800; }
+        @media (max-width: 760px) {
+            #compareView > div { padding: 14px 10px 28px; }
+            #compareSlots { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         var summaryData = null;
@@ -894,6 +1061,8 @@
         var currentTableData = [];
         var currentDailyPage = 1;
         var dailyPageSize = 15;
+        var compareSlots = [null, null, null, null];
+        var currentView = "dashboard";
 
         async function init() {
             try {
@@ -910,6 +1079,7 @@
                 updateFilterCount();
                 showMarketDashboard();
                 updateLowestTer();
+                renderCompareSlots();
             } catch (e) {
                 console.error(e);
                 document.getElementById("lastUpdated").textContent = "Unable to load data";
@@ -1197,8 +1367,8 @@
             document.getElementById("schemeCards").style.display = "none";
             document.getElementById("marketCards").style.display = "";
             document.getElementById("mainPanelHead").style.display = "";
-            document.getElementById("viewTitle").textContent = "Overall Market Overview - Scheme TER Explorer";
-            document.getElementById("viewSubtitle").innerHTML = 'Search and filter <span id="totalSchemesText">' + Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() + '</span> mutual fund schemes. Last updated <span id="lastUpdated">' + (summaryData ? summaryData.last_updated : "-") + '</span>.';
+            document.getElementById("viewTitle").textContent = "Overall Market Overview";
+            document.getElementById("viewSubtitle").innerHTML = 'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' + Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() + '</span> Indian mutual fund schemes. Last updated <span id="lastUpdated">' + (summaryData ? summaryData.last_updated : "-") + '</span>.';
             document.getElementById("marketDirectTer").textContent = fmt(direct);
             document.getElementById("marketRegularTer").textContent = fmt(regular);
             document.getElementById("marketSpread").textContent = fmt(Math.max(0, regular - direct));
@@ -1347,6 +1517,122 @@
             tbody.innerHTML = rows.map(function (s) {
                 return "<tr><td><div class='fund-name'>" + (s.scheme_name || "-") + "</div></td><td><span class='badge'>" + (s.category || "-") + "</span></td><td class='num strong'>" + fmt(s[p]) + "</td></tr>";
             }).join("");
+        }
+
+        function showView(view) {
+            currentView = view;
+            document.getElementById("dashboard").style.display = view === "dashboard" ? "" : "none";
+            document.getElementById("compareView").style.display = view === "compare" ? "" : "none";
+            document.getElementById("navDashboard").classList.toggle("active", view === "dashboard");
+            document.getElementById("navCompare").classList.toggle("active", view === "compare");
+            if (view === "compare") renderCompareSlots();
+        }
+        window.showView = showView;
+
+        function renderCompareSlots() {
+            var container = document.getElementById("compareSlots");
+            container.innerHTML = "";
+            compareSlots.forEach(function (scheme, idx) {
+                var slot = document.createElement("div");
+                slot.className = "compare-slot" + (scheme ? " filled" : "");
+                if (scheme) {
+                    slot.innerHTML = '<button class="compare-remove" onclick="removeCompareSlot(' + idx + ')" title="Remove">&times;</button>' +
+                        '<div class="compare-slot-name">' + (scheme.scheme_name || "-") + '</div>' +
+                        '<div class="compare-slot-cat">' + (scheme.category || "-") + '</div>' +
+                        '<div class="compare-slot-cat">NSDL: ' + (scheme.scheme_code || "-") + '</div>';
+                } else {
+                    slot.innerHTML = '<div class="compare-add-icon">+</div>' +
+                        '<div class="compare-add-text">Add Fund ' + (idx + 1) + '</div>' +
+                        '<div class="compare-slot-search">' +
+                        '<input type="text" placeholder="Search fund..." oninput="compareSearch(this,' + idx + ')" onfocus="compareSearch(this,' + idx + ')">' +
+                        '<div class="compare-slot-dropdown" id="compareDrop' + idx + '"></div></div>';
+                }
+                container.appendChild(slot);
+            });
+            updateCompareTable();
+        }
+        window.removeCompareSlot = function (idx) {
+            compareSlots[idx] = null;
+            renderCompareSlots();
+        };
+
+        function compareSearch(input, idx) {
+            var query = input.value.toLowerCase().trim();
+            var dropdown = document.getElementById("compareDrop" + idx);
+            if (query.length < 2) { dropdown.classList.remove("show"); dropdown.innerHTML = ""; return; }
+            var schemes = (summaryData ? summaryData.schemes : []) || [];
+            var results = schemes.filter(function (s) {
+                return ((s.scheme_name || "").toLowerCase().indexOf(query) !== -1 || (s.scheme_code || "").toLowerCase().indexOf(query) !== -1);
+            }).slice(0, 10);
+            if (!results.length) {
+                dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';
+                dropdown.classList.add("show"); return;
+            }
+            dropdown.innerHTML = "";
+            results.forEach(function (s) {
+                var item = document.createElement("div");
+                item.className = "autocomplete-item";
+                item.innerHTML = '<div class="autocomplete-name">' + (s.scheme_name || "") + '</div><div class="autocomplete-meta">' + (s.scheme_code || "") + ' | ' + (s.category || "") + '</div>';
+                item.addEventListener("click", function () {
+                    compareSlots[idx] = s;
+                    dropdown.classList.remove("show");
+                    renderCompareSlots();
+                });
+                dropdown.appendChild(item);
+            });
+            dropdown.classList.add("show");
+        }
+        window.compareSearch = compareSearch;
+
+        function updateCompareTable() {
+            var filled = compareSlots.filter(function (s) { return s !== null; });
+            var card = document.getElementById("compareResultCard");
+            if (filled.length < 2) { card.style.display = "none"; return; }
+            card.style.display = "";
+            var thead = document.getElementById("compareHead");
+            var tbody = document.getElementById("compareBody");
+            var headerRow = "<tr><th>Metric</th>";
+            filled.forEach(function (s) {
+                var shortName = (s.scheme_name || "").length > 35 ? (s.scheme_name || "").substring(0, 35) + "…" : (s.scheme_name || "-");
+                headerRow += "<th>" + shortName + "</th>";
+            });
+            headerRow += "</tr>";
+            thead.innerHTML = headerRow;
+            var metrics = [
+                { label: "Category", key: "category", isText: true },
+                { label: "Avg Direct BER", key: "avg_d_ber" },
+                { label: "Avg Direct Brokerage", key: "avg_d_brokerage" },
+                { label: "Avg Direct Transaction", key: "avg_d_transaction" },
+                { label: "Avg Direct Statutory", key: "avg_d_statutory" },
+                { label: "Avg Direct Total TER", key: "avg_d_total_ter" },
+                { label: "Avg Regular BER", key: "avg_r_ber" },
+                { label: "Avg Regular Brokerage", key: "avg_r_brokerage" },
+                { label: "Avg Regular Transaction", key: "avg_r_transaction" },
+                { label: "Avg Regular Statutory", key: "avg_r_statutory" },
+                { label: "Avg Regular Total TER", key: "avg_r_total_ter" },
+                { label: "Data Available From", key: "date_from", isDate: true },
+                { label: "Data Available To", key: "date_to", isDate: true }
+            ];
+            var rows = "";
+            metrics.forEach(function (m) {
+                rows += "<tr><td class='metric-label'>" + m.label + "</td>";
+                var vals = filled.map(function (s) { return m.isText || m.isDate ? (s[m.key] || "-") : Number(s[m.key] || 0); });
+                var bestIdx = -1;
+                if (!m.isText && !m.isDate) {
+                    var positiveVals = vals.filter(function (v) { return v > 0; });
+                    if (positiveVals.length > 1) {
+                        var minVal = Math.min.apply(null, positiveVals);
+                        bestIdx = vals.indexOf(minVal);
+                    }
+                }
+                vals.forEach(function (v, i) {
+                    var cls = i === bestIdx ? " best-val" : "";
+                    var display = m.isText ? v : m.isDate ? formatDisplayDate(v) : fmt(v);
+                    rows += "<td class='num" + cls + "'>" + display + "</td>";
+                });
+                rows += "</tr>";
+            });
+            tbody.innerHTML = rows;
         }
 
         init();
