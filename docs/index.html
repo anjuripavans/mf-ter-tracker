@@ -792,21 +792,40 @@
         flex-direction: column;  
         align-items: stretch;  
         gap: 10px;  
-        padding: 12px 14px;  
+        padding: 12px 12px;  
+        width: 100%;  
       }  
   
       .brand {  
-        align-self: center;  
-        justify-content: center;  
+        width: 100%;  
+        align-self: stretch;  
+        justify-content: flex-start;  
       }  
   
       .brand h1 {  
         font-size: 15px;  
-        text-align: center;  
+        text-align: left;  
       }  
   
-      .global-search { width: 100%; }  
-      .nav-actions { justify-content: center; flex-wrap: wrap; }  
+      .global-search {  
+        width: 100%;  
+        justify-content: stretch;  
+      }  
+  
+      .search-box {  
+        width: 100%;  
+      }  
+  
+      .search-box:focus-within {  
+        width: 100%;  
+      }  
+  
+      .nav-actions {  
+        width: 100%;  
+        justify-content: flex-start;  
+        flex-wrap: wrap;  
+      }  
+  
       .nav-btn { height: 34px; padding: 0 12px; font-size: 12px; }  
   
       main {  
@@ -951,6 +970,10 @@
         margin-left: 0;  
         text-align: left;  
       }  
+  
+      #compareSlots {  
+        grid-template-columns: 1fr !important;  
+      }  
     }  
   </style>  
 </head>  
@@ -965,7 +988,7 @@
       <h1>Mutual Fund Expense Ratio Tracker India</h1>  
     </a>  
   
-    <div class="global-search">  
+    <div class="global-search" id="globalSearchWrap">  
       <label class="search-box" for="searchInput">  
         <span class="material-symbols-outlined" aria-hidden="true">search</span>  
         <input id="searchInput" type="text" placeholder="Search mutual funds by name or NSDL code..." autocomplete="off" />  
@@ -1006,19 +1029,19 @@
             </summary>  
             <div class="check-list">  
               <label class="filter-option">  
-                <input class="asset-checkbox" type="checkbox" value="Equity" />  
+                <input class="asset-checkbox" type="checkbox" value="Equity" checked />  
                 <span>Equity</span>  
               </label>  
               <label class="filter-option">  
-                <input class="asset-checkbox" type="checkbox" value="Debt" />  
+                <input class="asset-checkbox" type="checkbox" value="Debt" checked />  
                 <span>Debt</span>  
               </label>  
               <label class="filter-option">  
-                <input class="asset-checkbox" type="checkbox" value="Hybrid" />  
+                <input class="asset-checkbox" type="checkbox" value="Hybrid" checked />  
                 <span>Hybrid</span>  
               </label>  
               <label class="filter-option">  
-                <input class="asset-checkbox" type="checkbox" value="Others" />  
+                <input class="asset-checkbox" type="checkbox" value="Others" checked />  
                 <span>Others</span>  
               </label>  
             </div>  
@@ -1110,27 +1133,22 @@
               <article class="card component ber">  
                 <p class="kpi-label">Avg BER</p>  
                 <p class="value" id="avgBer">-</p>  
-                <p class="sub">Average Base Expense Ratio</p>  
               </article>  
               <article class="card component brk">  
                 <p class="kpi-label">Avg Brokerage</p>  
                 <p class="value" id="avgBrk">-</p>  
-                <p class="sub">Average brokerage cost</p>  
               </article>  
               <article class="card component txn">  
                 <p class="kpi-label">Avg Transaction</p>  
                 <p class="value" id="avgTxn">-</p>  
-                <p class="sub">Average transaction cost</p>  
               </article>  
               <article class="card component stat">  
                 <p class="kpi-label">Avg Statutory</p>  
                 <p class="value" id="avgStat">-</p>  
-                <p class="sub">Average statutory levies</p>  
               </article>  
               <article class="card component total">  
                 <p class="kpi-label">Avg Total TER</p>  
                 <p class="value" id="avgTotal">-</p>  
-                <p class="sub">Average total expense ratio</p>  
               </article>  
               <article class="card metric-info-card">  
                 <div class="metric-info-wrap">  
@@ -1208,7 +1226,7 @@
                 <span id="dailyPageLabel">Page 1 of 1</span>  
                 <button type="button" id="nextPageBtn" onclick="changeDailyPage(1)">Next</button>  
               </div>  
-            </section> 
+            </section>  
           </div>  
         </section>  
   
@@ -1293,6 +1311,7 @@
     var compareDailyCache = {};  
     var latestMarketRequestId = 0;  
     var marketDailyCache = {};  
+    var marketSnapshotCache = {};  
   
     function debounce(fn, ms) {  
       var t;  
@@ -1367,9 +1386,12 @@
     }  
   
     function getSelectedAssets() {  
-      return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
+      var checked = [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
         return input.value;  
       });  
+  
+      if (!checked.length) return ["Equity", "Debt", "Hybrid", "Others"];  
+      return checked;  
     }  
   
     function getSchemeCategoriesForAsset() {  
@@ -1552,7 +1574,7 @@
     }  
   
     async function clearFilters() {  
-      document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = false; });  
+      document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = true; });  
       document.querySelectorAll("input[name='planType']").forEach(function (input) { input.checked = false; });  
   
       currentPlan = "direct";  
@@ -1589,7 +1611,7 @@
     }  
   
     function filterDataByWindow(data, windowDays) {  
-      if (!data || !data.length || windowDays === 0) return data || [];  
+      if (!data || !data.length || windowDays === 0) return sortedByDateAsc(data || []);  
       var sorted = sortedByDateAsc(data);  
       var lastDate = new Date(sorted[sorted.length - 1].date);  
       var cutoff = new Date(lastDate);  
@@ -1659,6 +1681,11 @@
       return results;  
     }  
   
+    function getMarketSnapshotCacheKey(schemes, windowDays) {  
+      var ids = (schemes || []).map(function (s) { return String(s.id); }).sort().join("|");  
+      return windowDays + "::" + currentPlan + "::" + ids;  
+    }  
+  
     async function setWindow(days) {  
       currentWindowDays = days;  
   
@@ -1706,6 +1733,8 @@
   
     async function computeMarketSnapshot(schemes, windowDays) {  
       schemes = schemes || [];  
+      var cacheKey = getMarketSnapshotCacheKey(schemes, windowDays);  
+      if (marketSnapshotCache[cacheKey]) return marketSnapshotCache[cacheKey];  
   
       var distinctCategories = {};  
       schemes.forEach(function (s) {  
@@ -1763,7 +1792,7 @@
           }  
         });  
   
-        return {  
+        var fastSnapshot = {  
           labels: labels,  
           barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
           barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
@@ -1771,6 +1800,9 @@
           regularAvg: avgArray(allR),  
           categoriesCount: Object.keys(distinctCategories).length  
         };  
+  
+        marketSnapshotCache[cacheKey] = fastSnapshot;  
+        return fastSnapshot;  
       }  
   
       async function computeSchemeWindowAvg(s) {  
@@ -1817,7 +1849,7 @@
         }  
       });  
   
-      return {  
+      var slowSnapshot = {  
         labels: labels,  
         barDirect: labels.map(function (b) { return avgArray(perBucketD2[b] || []); }),  
         barRegular: labels.map(function (b) { return avgArray(perBucketR2[b] || []); }),  
@@ -1825,6 +1857,9 @@
         regularAvg: avgArray(allR2),  
         categoriesCount: Object.keys(distinctCategories).length  
       };  
+  
+      marketSnapshotCache[cacheKey] = slowSnapshot;  
+      return slowSnapshot;  
     }  
   
     async function showMarketDashboard() {  
@@ -2038,6 +2073,12 @@
       };  
     }  
   
+    function buildAverageLine(values) {  
+      var valid = (values || []).filter(function (v) { return isFinite(v); });  
+      var avg = avgArray(valid);  
+      return (values || []).map(function () { return avg; });  
+    }  
+  
     function updateSchemeChart(data, name) {  
       var canvas = document.getElementById("terChart");  
       if (!canvas) return;  
@@ -2045,14 +2086,8 @@
       if (chart) chart.destroy();  
   
       var p = planPrefix();  
-      var maWindow = currentWindowDays === 0 ? 20 : Math.max(10, Math.min(currentWindowDays, 90));  
       var totalTer = data.map(function (d) { return Number(d[p + "_total_ter"] || 0); });  
-  
-      var movingAvgTer = totalTer.map(function (_, idx) {  
-        var start = Math.max(0, idx - maWindow + 1);  
-        var slice = totalTer.slice(start, idx + 1);  
-        return slice.reduce(function (a, b) { return a + b; }, 0) / slice.length;  
-      });  
+      var avgTerLine = buildAverageLine(totalTer);  
   
       chart = new Chart(ctx, {  
         type: "line",  
@@ -2119,14 +2154,14 @@
               borderWidth: 2.5  
             },  
             {  
-              label: "Rolling Avg TER",  
-              data: movingAvgTer,  
+              label: "Avg TER",  
+              data: avgTerLine,  
               borderColor: "#94a3b8",  
               borderDash: [3, 3],  
               fill: false,  
-              tension: 0.28,  
+              tension: 0,  
               pointRadius: 0,  
-              pointHoverRadius: 4,  
+              pointHoverRadius: 0,  
               borderWidth: 2  
             }  
           ]  
@@ -2137,10 +2172,7 @@
           animation: false,  
           plugins: {  
             title: {  
-              display: true,  
-              text: name || "Selected scheme",  
-              color: "#0f172a",  
-              font: { size: 14, weight: "700" }  
+              display: false  
             },  
             legend: {  
               labels: {  
@@ -2152,7 +2184,12 @@
             },  
             tooltip: {  
               mode: "index",  
-              intersect: false  
+              intersect: false,  
+              callbacks: {  
+                label: function (ctx) {  
+                  return ctx.dataset.label + ": " + fmt(ctx.parsed.y);  
+                }  
+              }  
             }  
           },  
           scales: {  
@@ -2278,10 +2315,18 @@
     }  
   
     function showView(view) {  
-      document.getElementById("dashboard").style.display = view === "dashboard" ? "" : "none";  
-      document.getElementById("compareView").style.display = view === "compare" ? "" : "none";  
+      var dashboardEl = document.getElementById("dashboard");  
+      var compareEl = document.getElementById("compareView");  
+      var searchWrap = document.getElementById("globalSearchWrap");  
+  
+      dashboardEl.style.display = view === "dashboard" ? "" : "none";  
+      compareEl.style.display = view === "compare" ? "" : "none";  
       document.getElementById("navDashboard").classList.toggle("active", view === "dashboard");  
       document.getElementById("navCompare").classList.toggle("active", view === "compare");  
+  
+      if (searchWrap) {  
+        searchWrap.style.display = view === "dashboard" ? "" : "none";  
+      }  
   
       if (view === "compare") {  
         renderCompareSlots();  
@@ -2519,6 +2564,7 @@
         await showMarketDashboard();  
         updateLowestTer();  
         renderCompareSlots();  
+        showView("dashboard");  
   
         document.addEventListener("click", function (e) {  
           var compareView = document.getElementById("compareView");  
