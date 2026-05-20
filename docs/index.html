@@ -1,786 +1,1941 @@
 <!DOCTYPE html>  
-<html lang="en">  
+<html lang="en" class="light">  
 <head>  
-  <meta charset="UTF-8" />  
+  <meta charset="utf-8" />  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>Mutual Fund Expense Ratio Tracker India</title>  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  <title>Mutual Fund Expense Ratio Tracker India | Compare TER &amp; Find Low-Cost Funds</title>  
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />  
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />  
+  
   <style>  
-    * {  
-      box-sizing: border-box;  
+    :root {  
+      --primary: #0f766e;  
+      --primary-dark: #115e59;  
+      --background: #f4f7f6;  
+      --surface: #ffffff;  
+      --text: #0f172a;  
+      --muted: #64748b;  
+      --accent: #10b981;  
+      --warning: #f59e0b;  
+      --danger: #dc2626;  
+      --border: #e2e8f0;  
+      --soft: #f8fafc;  
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);  
+      --radius: 12px;  
     }  
   
+    * { box-sizing: border-box; margin: 0; padding: 0; }  
+    html { scroll-behavior: smooth; }  
     body {  
-      margin: 0;  
-      font-family: Inter, Arial, sans-serif;  
-      background: #f3f5f7;  
-      color: #1f2a37;  
-    }  
-  
-    .app {  
-      width: 100%;  
-      max-width: 100%;  
+      min-height: 100vh;  
+      background: var(--background);  
+      color: var(--text);  
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;  
+      font-size: 14px;  
+      line-height: 1.5;  
+      -webkit-font-smoothing: antialiased;  
       overflow-x: hidden;  
     }  
   
-    .top-shell {  
-      width: 100%;  
-      background: #ffffff;  
-      border-bottom: 1px solid #dde3ea;  
-      padding: 16px;  
-    }  
+    a { color: inherit; text-decoration: none; }  
+    button, input, select { font: inherit; }  
+    button { cursor: pointer; }  
   
-    .top-shell-inner {  
-      width: 100%;  
-      max-width: 100%;  
-      margin: 0;  
-    }  
-  
-    .brand-row {  
-      display: flex;  
-      align-items: center;  
-      gap: 12px;  
-      width: 100%;  
-      margin-bottom: 16px;  
-    }  
-  
-    .brand-icon {  
-      width: 42px;  
-      height: 42px;  
-      min-width: 42px;  
-      border-radius: 10px;  
-      background: #0f8b7d;  
-      color: white;  
-      display: flex;  
-      align-items: center;  
-      justify-content: center;  
+    .material-symbols-outlined {  
       font-size: 20px;  
-      font-weight: 700;  
+      line-height: 1;  
+      font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;  
     }  
   
-    .brand-title {  
-      margin: 0;  
-      font-size: 18px;  
-      line-height: 1.3;  
-      font-weight: 700;  
-      color: #142033;  
-    }  
-  
-    .search-block {  
-      width: 100%;  
-      position: relative;  
-      margin-bottom: 16px;  
-    }  
-  
-    .search-input-wrap {  
-      width: 100%;  
+    .topbar {  
+      position: sticky;  
+      top: 0;  
+      z-index: 50;  
       display: flex;  
       align-items: center;  
-      gap: 10px;  
-      background: #f8fafc;  
-      border: 1px solid #d7dee7;  
-      border-radius: 16px;  
-      padding: 14px 16px;  
-    }  
-  
-    .search-icon {  
-      font-size: 20px;  
-      color: #64748b;  
-    }  
-  
-    .search-input {  
-      border: 0;  
-      outline: none;  
-      background: transparent;  
-      width: 100%;  
-      font-size: 16px;  
-      color: #334155;  
-    }  
-  
-    .search-results {  
-      width: 100%;  
-      background: #fff;  
-      border: 1px solid #d7dee7;  
-      border-radius: 14px;  
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);  
-      margin-top: 8px;  
-      overflow: hidden;  
-      position: relative;  
-      z-index: 20;  
-    }  
-  
-    .search-result-item {  
-      width: 100%;  
-      border: 0;  
-      background: #fff;  
-      text-align: left;  
-      padding: 12px 14px;  
-      cursor: pointer;  
-      border-bottom: 1px solid #edf2f7;  
-    }  
-  
-    .search-result-item:last-child {  
-      border-bottom: none;  
-    }  
-  
-    .search-result-item:hover {  
-      background: #f8fafc;  
-    }  
-  
-    .result-title {  
-      font-size: 14px;  
-      font-weight: 700;  
-      color: #0f172a;  
-      margin-bottom: 4px;  
-    }  
-  
-    .result-sub {  
-      font-size: 12px;  
-      color: #64748b;  
-    }  
-  
-    .tab-row {  
-      display: flex;  
-      gap: 12px;  
-      flex-wrap: wrap;  
-      width: 100%;  
-    }  
-  
-    .tab-btn {  
-      border: 1px solid #d7dee7;  
-      background: white;  
-      color: #64748b;  
-      padding: 12px 18px;  
-      border-radius: 14px;  
-      font-size: 16px;  
-      font-weight: 600;  
-      cursor: pointer;  
-    }  
-  
-    .tab-btn.active {  
-      background: #0f8b7d;  
-      color: white;  
-      border-color: #0f8b7d;  
-    }  
-  
-    .page-section {  
-      padding: 20px 16px;  
-    }  
-  
-    .section-head {  
-      display: flex;  
-      justify-content: space-between;  
-      align-items: center;  
-      gap: 12px;  
-      margin-bottom: 14px;  
-      flex-wrap: wrap;  
-    }  
-  
-    .section-head h2 {  
-      margin: 0;  
-      font-size: 20px;  
-    }  
-  
-    .filter-toggle {  
-      border: 1px solid #d7dee7;  
-      background: #ffffff;  
-      color: #475569;  
-      padding: 10px 16px;  
-      border-radius: 14px;  
-      cursor: pointer;  
-      font-size: 15px;  
-      font-weight: 600;  
-    }  
-  
-    .filters-panel {  
-      background: #fff;  
-      border: 1px solid #d7dee7;  
-      border-radius: 18px;  
-      padding: 16px;  
-      margin-bottom: 14px;  
-    }  
-  
-    .filter-group label {  
-      display: block;  
-      font-size: 13px;  
-      font-weight: 700;  
-      color: #64748b;  
-      margin-bottom: 6px;  
-    }  
-  
-    .filter-group select {  
-      width: 100%;  
-      border: 1px solid #d7dee7;  
-      border-radius: 12px;  
-      padding: 12px;  
-      font-size: 15px;  
-      background: white;  
-    }  
-  
-    .range-row {  
-      display: flex;  
-      gap: 8px;  
-      flex-wrap: wrap;  
-      margin-bottom: 14px;  
-    }  
-  
-    .range-btn {  
-      border: 1px solid #d7dee7;  
-      background: #fff;  
-      color: #475569;  
-      border-radius: 12px;  
-      padding: 8px 14px;  
-      font-size: 14px;  
-      font-weight: 600;  
-      cursor: pointer;  
-    }  
-  
-    .range-btn.active {  
-      background: #0f8b7d;  
-      color: #fff;  
-      border-color: #0f8b7d;  
-    }  
-  
-    .chart-card {  
-      background: #fff;  
-      border: 1px solid #d7dee7;  
-      border-radius: 20px;  
-      padding: 16px;  
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);  
-      margin-bottom: 20px;  
-    }  
-  
-    .chart-title {  
-      font-size: 18px;  
-      font-weight: 700;  
-      margin-bottom: 12px;  
-      color: #0f172a;  
-    }  
-  
-    .chart-wrap {  
-      position: relative;  
-      width: 100%;  
-      height: 320px;  
-    }  
-  
-    .cards-grid {  
-      display: grid;  
-      grid-template-columns: 1fr;  
       gap: 16px;  
+      width: 100%;  
+      min-height: 64px;  
+      padding: 0 40px;  
+      border-bottom: 1px solid var(--border);  
+      background: rgba(255, 255, 255, 0.92);  
+      box-shadow: var(--shadow);  
+      backdrop-filter: blur(16px);  
     }  
   
-    .info-card,  
-    .metric-card {  
-      background: #fff;  
-      border: 1px solid #d7dee7;  
-      border-radius: 20px;  
-      padding: 18px;  
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);  
-    }  
-  
-    .info-grid {  
-      display: grid;  
-      grid-template-columns: 1fr;  
-    }  
-  
-    .info-item {  
-      padding: 14px 4px;  
-      border-bottom: 1px solid #e5ebf1;  
-    }  
-  
-    .info-item:last-child {  
-      border-bottom: none;  
-    }  
-  
-    .label {  
-      font-size: 13px;  
-      color: #64748b;  
-      font-weight: 800;  
-      letter-spacing: 0.04em;  
-      margin-bottom: 8px;  
-    }  
-  
-    .value {  
-      font-size: 18px;  
-      line-height: 1.4;  
-      font-weight: 700;  
-      color: #0f172a;  
-    }  
-  
-    .metric-card {  
-      border-left: 5px solid #0f8b7d;  
-    }  
-  
-    .metric-card.orange { border-left-color: #f59e0b; }  
-    .metric-card.blue { border-left-color: #2563eb; }  
-    .metric-card.purple { border-left-color: #7c3aed; }  
-    .metric-card.red { border-left-color: #dc2626; }  
-    .metric-card.green { border-left-color: #10b981; }  
-  
-    .metric-title {  
-      font-size: 13px;  
-      color: #64748b;  
-      font-weight: 800;  
-      margin-bottom: 10px;  
-    }  
-  
-    .metric-value {  
-      font-size: 22px;  
-      font-weight: 800;  
-      color: #0f172a;  
-    }  
-  
-    .chart-head {  
+    .brand {  
       display: flex;  
-      justify-content: space-between;  
       align-items: center;  
       gap: 12px;  
-      flex-wrap: wrap;  
-      margin-bottom: 12px;  
+      min-width: 0;  
     }  
   
-    .compare-screen {  
-      padding: 20px 16px;  
+    .brand-mark {  
+      display: grid;  
+      place-items: center;  
+      width: 32px;  
+      height: 32px;  
+      border-radius: 9px;  
+      background: var(--primary);  
+      color: #fff;  
+      flex: 0 0 auto;  
     }  
   
-    .compare-card {  
-      background: #fff;  
-      border: 1px solid #d7dee7;  
-      border-radius: 20px;  
-      padding: 20px;  
-      color: #475569;  
-      font-weight: 600;  
+    .brand-mark svg { width: 18px; height: 18px; }  
+  
+    .brand h1 {  
+      font-size: 20px;  
+      font-weight: 800;  
+      letter-spacing: -0.015em;  
+      line-height: 1.2;  
     }  
   
-    .hidden {  
+    .global-search {  
+      position: relative;  
+      flex: 1;  
+      display: flex;  
+      justify-content: center;  
+      min-width: 0;  
+    }  
+  
+    .global-search.hidden {  
       display: none !important;  
     }  
   
-    @media (min-width: 768px) {  
-      .top-shell {  
-        padding: 20px 24px;  
-      }  
+    .search-box {  
+      position: relative;  
+      width: min(460px, 100%);  
+      transition: width 180ms ease;  
+    }  
   
-      .page-section,  
-      .compare-screen {  
-        padding: 24px;  
-      }  
+    .search-box:focus-within { width: min(520px, 100%); }  
   
-      .cards-grid {  
-        grid-template-columns: repeat(2, 1fr);  
-      }  
+    .search-box .material-symbols-outlined {  
+      position: absolute;  
+      top: 50%;  
+      left: 14px;  
+      color: var(--muted);  
+      transform: translateY(-50%);  
+    }  
   
-      .info-card {  
-        grid-column: 1 / -1;  
+    .search-box input {  
+      width: 100%;  
+      height: 42px;  
+      padding: 0 14px 0 44px;  
+      border: 1px solid var(--border);  
+      border-radius: 10px;  
+      outline: none;  
+      background: var(--background);  
+      color: var(--text);  
+      box-shadow: var(--shadow);  
+    }  
+  
+    .search-box input:focus {  
+      border-color: var(--primary);  
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);  
+    }  
+  
+    .autocomplete-dropdown {  
+      display: none;  
+      position: absolute;  
+      top: calc(100% + 8px);  
+      left: 0;  
+      right: 0;  
+      z-index: 100;  
+      max-height: 360px;  
+      overflow-y: auto;  
+      border: 1px solid var(--border);  
+      border-radius: 12px;  
+      background: var(--surface);  
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);  
+    }  
+  
+    .autocomplete-dropdown.show { display: block; }  
+  
+    .autocomplete-item {  
+      padding: 12px 14px;  
+      border-bottom: 1px solid var(--border);  
+      cursor: pointer;  
+    }  
+  
+    .autocomplete-item:last-child { border-bottom: 0; }  
+    .autocomplete-item:hover { background: var(--soft); }  
+    .autocomplete-name { color: var(--text); font-weight: 700; }  
+    .autocomplete-meta {  
+      color: var(--muted);  
+      font-size: 12px;  
+      margin-top: 2px;  
+      word-break: break-word;  
+    }  
+  
+    .highlight {  
+      color: var(--primary);  
+      background: rgba(16, 185, 129, 0.12);  
+      border-radius: 4px;  
+    }  
+  
+    .autocomplete-no-results { padding: 14px; color: var(--muted); }  
+  
+    .nav-actions {  
+      display: flex;  
+      align-items: center;  
+      gap: 8px;  
+      min-width: max-content;  
+    }  
+  
+    .nav-btn {  
+      display: inline-flex;  
+      align-items: center;  
+      justify-content: center;  
+      gap: 6px;  
+      height: 38px;  
+      padding: 0 16px;  
+      border: 1px solid var(--border);  
+      border-radius: 10px;  
+      background: var(--surface);  
+      color: var(--muted);  
+      font-weight: 700;  
+      font-size: 13px;  
+      transition: all 160ms ease;  
+      white-space: nowrap;  
+    }  
+  
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }  
+  
+    .nav-btn.active {  
+      border-color: var(--primary);  
+      background: var(--primary);  
+      color: #fff;  
+    }  
+  
+    .nav-btn .material-symbols-outlined { font-size: 18px; }  
+  
+    main {  
+      width: 100%;  
+      max-width: 1440px;  
+      margin: 0 auto;  
+      padding: clamp(12px, 2vw, 28px) clamp(10px, 3vw, 40px) 44px;  
+    }  
+  
+    .workspace {  
+      display: grid;  
+      grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);  
+      gap: 22px;  
+      align-items: start;  
+    }  
+  
+    .layout {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 22px;  
+      min-width: 0;  
+    }  
+  
+    .grid { display: grid; gap: 18px; }  
+  
+    .card {  
+      position: relative;  
+      overflow: hidden;  
+      border: 1px solid var(--border);  
+      border-radius: var(--radius);  
+      background: var(--surface);  
+      box-shadow: var(--shadow);  
+      min-width: 0;  
+    }  
+  
+    .panel-head {  
+      display: flex;  
+      align-items: center;  
+      justify-content: space-between;  
+      gap: 16px;  
+      padding: 18px 20px;  
+      border-bottom: 1px solid var(--border);  
+    }  
+  
+    .panel-head h3 {  
+      font-size: 18px;  
+      font-weight: 800;  
+      letter-spacing: -0.01em;  
+    }  
+  
+    .panel-head p {  
+      color: var(--muted);  
+      font-size: 13px;  
+      margin-top: 2px;  
+      overflow-wrap: anywhere;  
+    }  
+  
+    .panel-head-market {  
+      align-items: flex-start;  
+    }  
+  
+    .market-updated {  
+      margin-left: auto;  
+      color: var(--muted);  
+      font-size: 12px;  
+      font-weight: 800;  
+      white-space: nowrap;  
+      padding-top: 2px;  
+    }  
+  
+    .panel-body {  
+      padding: 20px;  
+      min-width: 0;  
+    }  
+  
+    .filter-sidebar {  
+      position: sticky;  
+      top: 86px;  
+      display: flex;  
+      flex-direction: column;  
+      gap: 22px;  
+      padding: 18px;  
+      border: 1px solid var(--border);  
+      border-radius: 16px;  
+      background: var(--surface);  
+      box-shadow: var(--shadow);  
+      min-width: 0;  
+    }  
+  
+    .mobile-filter-toggle { display: none; }  
+  
+    .filter-content {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 22px;  
+    }  
+  
+    .filter-header,  
+    .filter-section-title {  
+      display: flex;  
+      align-items: center;  
+      justify-content: space-between;  
+      gap: 12px;  
+    }  
+  
+    .filter-header h3 {  
+      color: #112120;  
+      font-size: 18px;  
+      font-weight: 800;  
+    }  
+  
+    .filter-header button {  
+      border: 0;  
+      background: transparent;  
+      color: #15aca2;  
+      font-weight: 800;  
+      font-size: 13px;  
+    }  
+  
+    .filter-section {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 12px;  
+      padding-bottom: 20px;  
+      border-bottom: 1px solid #f1f5f9;  
+    }  
+  
+    details.filter-section > summary { list-style: none; }  
+    details.filter-section > summary::-webkit-details-marker { display: none; }  
+    details.filter-section:not([open]) { gap: 0; }  
+    details.filter-section:not([open]) .check-list,  
+    details.filter-section:not([open]) select { display: none; }  
+  
+    details.filter-section[open] .filter-section-title .material-symbols-outlined {  
+      transform: rotate(180deg);  
+    }  
+  
+    .filter-section:last-child { padding-bottom: 0; border-bottom: 0; }  
+  
+    .filter-section-title h4 {  
+      color: #112120;  
+      font-size: 14px;  
+      font-weight: 800;  
+    }  
+  
+    .filter-section-title .material-symbols-outlined {  
+      color: #94a3b8;  
+      font-size: 20px;  
+    }  
+  
+    .check-list {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 10px;  
+    }  
+  
+    .filter-option {  
+      display: flex;  
+      align-items: center;  
+      gap: 12px;  
+      color: #112120;  
+      cursor: pointer;  
+      font-weight: 700;  
+      font-size: 14px;  
+    }  
+  
+    .filter-option input {  
+      width: 16px;  
+      height: 16px;  
+      accent-color: #15aca2;  
+    }  
+  
+    .filter-section select {  
+      width: 100%;  
+      min-height: 40px;  
+      padding: 0 10px;  
+      border: 1px solid var(--border);  
+      border-radius: 10px;  
+      background: #f8fafc;  
+      color: var(--text);  
+      outline: none;  
+    }  
+  
+    .filter-section select:focus {  
+      box-shadow: 0 0 0 2px rgba(21, 172, 162, 0.18);  
+    }  
+  
+    .filter-note { color: var(--muted); font-size: 12px; }  
+  
+    .scheme-summary {  
+      display: grid;  
+      grid-template-columns: repeat(3, minmax(0, 1fr));  
+      gap: 1px;  
+      overflow: hidden;  
+      margin-bottom: 18px;  
+      border: 1px solid var(--border);  
+      border-radius: var(--radius);  
+      background: var(--border);  
+    }  
+  
+    .summary-cell {  
+      min-width: 0;  
+      padding: 14px;  
+      background: var(--surface);  
+      display: flex;  
+      flex-direction: column;  
+      justify-content: flex-start;  
+    }  
+  
+    .summary-label {  
+      color: var(--muted);  
+      font-size: 11px;  
+      font-weight: 800;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+    }  
+  
+    .summary-value {  
+      display: block;  
+      margin-top: 5px;  
+      color: var(--text);  
+      font-weight: 800;  
+      white-space: normal;  
+      overflow-wrap: anywhere;  
+      word-break: break-word;  
+      line-height: 1.35;  
+    }  
+  
+    .market-grid {  
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));  
+      margin-bottom: 20px;  
+    }  
+  
+    .component-grid {  
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));  
+      margin-bottom: 20px;  
+      align-items: stretch;  
+    }  
+  
+    .component {  
+      padding: 15px;  
+      border-left: 4px solid var(--primary);  
+    }  
+  
+    .component.ber { border-left-color: var(--accent); }  
+    .component.brk { border-left-color: var(--warning); }  
+    .component.txn { border-left-color: #2563eb; }  
+    .component.stat { border-left-color: #7c3aed; }  
+    .component.total { border-left-color: var(--danger); }  
+  
+    .metric-info-card {  
+      display: flex;  
+      align-items: center;  
+      justify-content: flex-start;  
+      padding: 16px 18px;  
+      min-height: 94px;  
+    }  
+  
+    .metric-info-wrap {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 6px;  
+    }  
+  
+    .metric-info-title {  
+      color: var(--primary);  
+      font-size: 12px;  
+      font-weight: 800;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+    }  
+  
+    .metric-info-card p {  
+      margin: 0;  
+      color: var(--muted);  
+      font-size: 13px;  
+      line-height: 1.45;  
+    }  
+  
+    .metric-info-card strong { color: var(--text); }  
+  
+    @media (min-width: 900px) {  
+      .metric-info-card {  
+        grid-column: span 2;  
       }  
     }  
   
-    @media (max-width: 767px) {  
-      .top-shell,  
-      .top-shell-inner,  
-      .search-block,  
-      .search-input-wrap,  
-      .tab-row,  
-      .brand-row {  
+    .kpi-label {  
+      color: var(--muted);  
+      font-size: 12px;  
+      font-weight: 800;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+    }  
+  
+    .component .value {  
+      margin-top: 8px;  
+      font-size: 21px;  
+      font-weight: 800;  
+      font-variant-numeric: tabular-nums;  
+      overflow-wrap: anywhere;  
+    }  
+  
+    .component .sub { display: none; }  
+  
+    .chart-shell {  
+      height: 380px;  
+      min-width: 0;  
+    }  
+  
+    .chart-range {  
+      display: flex;  
+      justify-content: flex-end;  
+      gap: 8px;  
+      margin-top: 14px;  
+      flex-wrap: wrap;  
+    }  
+  
+    .chip {  
+      min-height: 36px;  
+      padding: 0 12px;  
+      border: 1px solid var(--border);  
+      border-radius: 999px;  
+      background: var(--surface);  
+      color: var(--muted);  
+      font-weight: 800;  
+      font-size: 13px;  
+    }  
+  
+    .chip:hover { border-color: var(--primary); color: var(--primary); }  
+  
+    .chip.active {  
+      border-color: var(--primary);  
+      background: var(--primary);  
+      color: #fff;  
+    }  
+  
+    .daily-section { margin-top: 22px; }  
+    .daily-section .table-wrap { max-height: 560px; }  
+  
+    .table-wrap {  
+      max-height: 460px;  
+      overflow: auto;  
+      width: 100%;  
+    }  
+  
+    table {  
+      width: 100%;  
+      border-collapse: collapse;  
+      text-align: left;  
+    }  
+  
+    thead { position: sticky; top: 0; z-index: 1; }  
+  
+    th {  
+      padding: 12px 16px;  
+      border-bottom: 1px solid var(--border);  
+      background: var(--background);  
+      color: var(--muted);  
+      font-size: 11px;  
+      font-weight: 800;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+      white-space: nowrap;  
+    }  
+  
+    td {  
+      padding: 13px 16px;  
+      border-bottom: 1px solid var(--border);  
+      color: var(--text);  
+      font-size: 13px;  
+      vertical-align: middle;  
+    }  
+  
+    tr:hover td { background: #f8fafc; }  
+    .num { text-align: right; font-variant-numeric: tabular-nums; }  
+    .strong { color: var(--primary); font-weight: 800; }  
+  
+    .badge {  
+      display: inline-flex;  
+      max-width: 100%;  
+      align-items: center;  
+      padding: 4px 8px;  
+      border: 1px solid var(--border);  
+      border-radius: 7px;  
+      background: var(--background);  
+      color: var(--muted);  
+      font-size: 11px;  
+      font-weight: 700;  
+      white-space: normal;  
+      overflow-wrap: anywhere;  
+      word-break: break-word;  
+    }  
+  
+    .fund-name {  
+      font-weight: 800;  
+      max-width: 100%;  
+      white-space: normal;  
+      overflow-wrap: anywhere;  
+      word-break: break-word;  
+    }  
+  
+    .empty-msg {  
+      padding: 28px !important;  
+      text-align: center;  
+      color: var(--muted);  
+    }  
+  
+    .pagination {  
+      display: flex;  
+      align-items: center;  
+      justify-content: flex-end;  
+      gap: 10px;  
+      padding: 12px 16px;  
+      border-top: 1px solid var(--border);  
+      color: var(--muted);  
+      font-size: 12px;  
+      font-weight: 700;  
+    }  
+  
+    .pagination button {  
+      min-height: 32px;  
+      padding: 0 12px;  
+      border: 1px solid var(--border);  
+      border-radius: 8px;  
+      background: var(--surface);  
+      color: var(--text);  
+      font-weight: 800;  
+    }  
+  
+    .pagination button:disabled {  
+      opacity: 0.45;  
+      cursor: not-allowed;  
+    }  
+  
+    .footer {  
+      margin-top: 28px;  
+      color: var(--muted);  
+      font-size: 12px;  
+      text-align: center;  
+    }  
+  
+    .footer a { color: var(--primary); font-weight: 800; }  
+  
+    .compare-slot {  
+      position: relative;  
+      border: 2px dashed var(--border);  
+      border-radius: var(--radius);  
+      background: var(--surface);  
+      padding: 16px;  
+      min-height: 100px;  
+      display: flex;  
+      flex-direction: column;  
+      align-items: center;  
+      justify-content: center;  
+      gap: 10px;  
+      transition: border-color 160ms ease;  
+    }  
+  
+    .compare-slot:hover { border-color: var(--primary); }  
+  
+    .compare-slot.filled {  
+      border-style: solid;  
+      border-color: var(--primary);  
+      align-items: stretch;  
+    }  
+  
+    .compare-slot-search {  
+      position: relative;  
+      width: 100%;  
+    }  
+  
+    .compare-slot-search input {  
+      width: 100%;  
+      height: 38px;  
+      padding: 0 12px;  
+      border: 1px solid var(--border);  
+      border-radius: 8px;  
+      outline: none;  
+      background: var(--background);  
+      font-size: 13px;  
+    }  
+  
+    .compare-slot-search input:focus {  
+      border-color: var(--primary);  
+      box-shadow: 0 0 0 3px rgba(15,118,110,0.12);  
+    }  
+  
+    .compare-slot-dropdown {  
+      display: none;  
+      position: absolute;  
+      top: calc(100% + 4px);  
+      left: 0;  
+      right: 0;  
+      z-index: 100;  
+      max-height: 240px;  
+      overflow-y: auto;  
+      border: 1px solid var(--border);  
+      border-radius: 10px;  
+      background: var(--surface);  
+      box-shadow: 0 12px 30px rgba(15,23,42,0.12);  
+    }  
+  
+    .compare-slot-dropdown.show { display: block; }  
+    .compare-slot-dropdown .autocomplete-item { font-size: 13px; padding: 10px 12px; }  
+  
+    .compare-slot-name {  
+      font-weight: 800;  
+      font-size: 13px;  
+      color: var(--text);  
+      overflow-wrap: anywhere;  
+      word-break: break-word;  
+    }  
+  
+    .compare-slot-cat {  
+      font-size: 11px;  
+      color: var(--muted);  
+      overflow-wrap: anywhere;  
+      word-break: break-word;  
+    }  
+  
+    .compare-remove {  
+      position: absolute;  
+      top: 8px;  
+      right: 8px;  
+      width: 24px;  
+      height: 24px;  
+      border: 0;  
+      border-radius: 50%;  
+      background: var(--danger);  
+      color: #fff;  
+      font-size: 14px;  
+      line-height: 1;  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+    }  
+  
+    .compare-add-icon {  
+      width: 36px;  
+      height: 36px;  
+      border-radius: 50%;  
+      background: var(--background);  
+      color: var(--muted);  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+      font-size: 24px;  
+    }  
+  
+    .compare-add-text {  
+      color: var(--muted);  
+      font-size: 13px;  
+      font-weight: 700;  
+    }  
+  
+    #compareTable th {  
+      white-space: nowrap;  
+      text-align: center;  
+    }  
+  
+    #compareTable td {  
+      font-size: 13px;  
+      text-align: center;  
+    }  
+  
+    #compareTable td.metric-label { text-align: left; }  
+    .metric-label { font-weight: 800; color: var(--text); }  
+    .best-val { color: var(--accent); font-weight: 800; }  
+    .compare-plan-btn, .compare-period-btn { font-size: 12px; min-height: 32px; padding: 0 12px; }  
+  
+    @media (max-width: 1180px) {  
+      .topbar { padding: 0 24px; }  
+      main { padding: 24px 18px 36px; }  
+      .workspace { grid-template-columns: 1fr; }  
+      .filter-sidebar { position: static; }  
+      .component-grid,  
+      .market-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }  
+    }  
+  
+    @media (max-width: 760px) {  
+      .topbar {  
+        position: static;  
+        flex-direction: column;  
+        align-items: stretch;  
+        gap: 10px;  
         width: 100%;  
-        max-width: 100%;  
+        padding: 12px 14px;  
       }  
   
-      .brand-title {  
-        font-size: 16px;  
+      .brand {  
+        width: 100%;  
+        align-self: stretch;  
+        justify-content: flex-start;  
       }  
   
-      .search-input {  
+      .brand h1 {  
         font-size: 15px;  
+        text-align: left;  
+      }  
+  
+      .global-search {  
+        width: 100%;  
+        justify-content: stretch;  
+      }  
+  
+      .search-box,  
+      .search-box:focus-within {  
+        width: 100%;  
+      }  
+  
+      .nav-actions {  
+        width: 100%;  
+        justify-content: stretch;  
+        flex-wrap: nowrap;  
+      }  
+  
+      .nav-btn {  
+        flex: 1 1 0;  
+        height: 36px;  
+        padding: 0 12px;  
+        font-size: 12px;  
+      }  
+  
+      main {  
+        padding: 14px 10px 28px;  
+      }  
+  
+      .workspace {  
+        display: flex;  
+        flex-direction: column;  
+      }  
+  
+      .mobile-filter-toggle { display: block; }  
+  
+      .filter-sidebar {  
+        order: -1;  
+        position: static;  
+        top: auto;  
+        padding: 0;  
+        border: 0;  
+        background: transparent;  
+        box-shadow: none;  
+        gap: 10px;  
+      }  
+  
+      .mobile-filter-toggle .nav-btn {  
+        width: 100%;  
+        justify-content: center;  
+        background: var(--surface);  
+        border: 1px solid var(--border);  
+        box-shadow: var(--shadow);  
+      }  
+  
+      .filter-content {  
+        display: none;  
+        padding: 14px;  
+        border: 1px solid var(--border);  
+        border-radius: 16px;  
+        background: var(--surface);  
+        box-shadow: var(--shadow);  
+      }  
+  
+      .filter-content.show {  
+        display: flex;  
+        flex-direction: column;  
+        gap: 22px;  
+      }  
+  
+      .scheme-summary,  
+      .component-grid,  
+      .market-grid {  
+        grid-template-columns: 1fr;  
+      }  
+  
+      .panel-head {  
+        align-items: flex-start;  
+        flex-direction: column;  
+      }  
+  
+      .panel-head-market {  
+        flex-direction: row;  
+        align-items: flex-start;  
+        justify-content: space-between;  
+        gap: 10px;  
+      }  
+  
+      .market-updated {  
+        font-size: 11px;  
+        text-align: right;  
+        white-space: nowrap;  
+      }  
+  
+      .chart-shell {  
+        height: clamp(220px, 42vw, 300px);  
+      }  
+  
+      table {  
+        table-layout: auto;  
+      }  
+  
+      th, td {  
+        padding: 8px 8px;  
+        font-size: 11px;  
+        line-height: 1.35;  
+        word-break: normal;  
+        overflow-wrap: anywhere;  
+        vertical-align: middle;  
+      }  
+  
+      th {  
+        white-space: normal;  
+        min-width: 78px;  
+      }  
+  
+      #dailyTableBody td {  
+        white-space: nowrap;  
+      }  
+  
+      .fund-name {  
+        max-width: 100%;  
+        font-size: 11px;  
+        white-space: normal;  
+        word-break: break-word;  
+      }  
+  
+      .badge {  
+        max-width: 100%;  
+        font-size: 10px;  
+        white-space: normal;  
+        text-align: left;  
+      }  
+  
+      .table-wrap {  
+        overflow-x: auto;  
+        -webkit-overflow-scrolling: touch;  
+      }  
+  
+      #compareTable th {  
+        white-space: normal;  
+        min-width: 110px;  
+        vertical-align: bottom;  
+      }  
+  
+      #compareTable td {  
+        min-width: 90px;  
+      }  
+  
+      #compareTable td.metric-label,  
+      #compareTable th:first-child {  
+        min-width: 140px;  
+      }  
+  
+      #compareView > div { padding: 14px 10px 28px !important; }  
+      #compareSlots { grid-template-columns: 1fr 1fr !important; }  
+    }  
+  
+    @media (max-width: 480px) {  
+      .panel-head-market {  
+        flex-direction: column;  
+      }  
+  
+      .market-updated {  
+        margin-left: 0;  
+        text-align: left;  
       }  
     }  
   </style>  
 </head>  
 <body>  
-  <div class="app">  
-    <section class="top-shell">  
-      <div class="top-shell-inner">  
-        <div class="brand-row">  
-          <div class="brand-icon">◈</div>  
-          <h1 class="brand-title">Mutual Fund Expense Ratio Tracker India</h1>  
+  <header class="topbar">  
+    <a class="brand" href="#">  
+      <span class="brand-mark" aria-hidden="true">  
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">  
+          <path d="M24 3 45 24 24 45 3 24 24 3Zm-3 31V14L11 24l10 10Z" fill="currentColor"></path>  
+        </svg>  
+      </span>  
+      <h1>Mutual Fund Expense Ratio Tracker India</h1>  
+    </a>  
+  
+    <div class="global-search" id="topGlobalSearch">  
+      <label class="search-box" for="searchInput">  
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>  
+        <input id="searchInput" type="text" placeholder="Search mutual funds by name or NSDL code..." autocomplete="off" />  
+        <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>  
+      </label>  
+    </div>  
+  
+    <div class="nav-actions">  
+      <button class="nav-btn active" id="navDashboard" type="button" onclick="showView('dashboard')">  
+        <span class="material-symbols-outlined">dashboard</span> Dashboard  
+      </button>  
+      <button class="nav-btn" id="navCompare" type="button" onclick="showView('compare')">  
+        <span class="material-symbols-outlined">compare_arrows</span> Compare  
+      </button>  
+    </div>  
+  </header>  
+  
+  <main id="dashboard">  
+    <div class="workspace">  
+      <aside class="filter-sidebar" aria-label="Filters">  
+        <div class="mobile-filter-toggle">  
+          <button type="button" id="mobileFilterBtn" class="nav-btn" aria-expanded="false">  
+            <span class="material-symbols-outlined">filter_alt</span>  
+            Filters  
+          </button>  
         </div>  
   
-        <!-- Search should appear only on Dashboard -->  
-        <div class="search-block" id="dashboardSearchBlock">  
-          <div class="search-input-wrap">  
-            <span class="search-icon">⌕</span>  
-            <input  
-              id="searchInput"  
-              class="search-input"  
-              type="text"  
-              placeholder="Search mutual funds by name or NSDL code.."  
-            />  
+        <div class="filter-content" id="filterContent">  
+          <div class="filter-header">  
+            <h3>Filters</h3>  
+            <button type="button" onclick="clearFilters()">Clear all</button>  
           </div>  
-          <div id="searchResults" class="search-results hidden"></div>  
-        </div>  
   
-        <div class="tab-row">  
-          <button id="dashboardTab" class="tab-btn active">Dashboard</button>  
-          <button id="compareTab" class="tab-btn">Compare</button>  
-        </div>  
-      </div>  
-    </section>  
+          <details class="filter-section" open>  
+            <summary class="filter-section-title">  
+              <h4>Category</h4>  
+              <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>  
+            </summary>  
+            <div class="check-list">  
+              <label class="filter-option">  
+                <input class="asset-checkbox" type="checkbox" value="Equity" />  
+                <span>Equity</span>  
+              </label>  
+              <label class="filter-option">  
+                <input class="asset-checkbox" type="checkbox" value="Debt" />  
+                <span>Debt</span>  
+              </label>  
+              <label class="filter-option">  
+                <input class="asset-checkbox" type="checkbox" value="Hybrid" />  
+                <span>Hybrid</span>  
+              </label>  
+              <label class="filter-option">  
+                <input class="asset-checkbox" type="checkbox" value="Others" />  
+                <span>Others</span>  
+              </label>  
+            </div>  
+            <p class="filter-note"><span id="filterCount">-</span> schemes match current filters.</p>  
+          </details>  
   
-    <section id="dashboardScreen">  
-      <section class="page-section">  
-        <div class="section-head">  
-          <h2>Overview Market Chart</h2>  
-          <button id="toggleFiltersBtn" class="filter-toggle">Filters</button>  
-        </div>  
+          <details class="filter-section" open>  
+            <summary class="filter-section-title">  
+              <h4>Scheme Category</h4>  
+              <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>  
+            </summary>  
+            <select id="schemeCategoryFilter">  
+              <option value="">All Scheme Categories</option>  
+            </select>  
+          </details>  
   
-        <div id="filtersPanel" class="filters-panel hidden">  
-          <div class="filter-group">  
-            <label for="categoryFilter">Category</label>  
-            <select id="categoryFilter"></select>  
+          <details class="filter-section" open>  
+            <summary class="filter-section-title">  
+              <h4>Plan Type</h4>  
+              <span class="material-symbols-outlined" aria-hidden="true">expand_less</span>  
+            </summary>  
+            <div class="check-list">  
+              <label class="filter-option">  
+                <input id="btnDirect" name="planType" type="radio" value="direct" checked />  
+                <span>Direct</span>  
+              </label>  
+              <label class="filter-option">  
+                <input id="btnRegular" name="planType" type="radio" value="regular" />  
+                <span>Regular</span>  
+              </label>  
+            </div>  
+          </details>  
+        </div>  
+      </aside>  
+  
+      <div class="layout">  
+        <section class="card" id="explorer">  
+          <div class="panel-head panel-head-market" id="mainPanelHead">  
+            <div>  
+              <h3 id="viewTitle">Overall Market Overview</h3>  
+              <p id="viewSubtitle">  
+                Compare TER, find low-cost mutual funds, and track expense ratios across  
+                <span id="totalSchemesText">-</span> Indian mutual fund schemes.  
+              </p>  
+            </div>  
+            <div class="market-updated" id="marketUpdatedText">Updated: -</div>  
           </div>  
-        </div>  
   
-        <div class="range-row" id="overviewRangeRow">  
-          <button class="range-btn active" data-overview-range="1M">1M</button>  
-          <button class="range-btn" data-overview-range="3M">3M</button>  
-          <button class="range-btn" data-overview-range="6M">6M</button>  
-          <button class="range-btn" data-overview-range="1Y">1Y</button>  
-          <button class="range-btn" data-overview-range="All">All</button>  
-        </div>  
-  
-        <div class="chart-card">  
-          <div class="chart-title">Average TER Trend</div>  
-          <div class="chart-wrap">  
-            <canvas id="overviewChart"></canvas>  
-          </div>  
-        </div>  
-      </section>  
-  
-      <section class="page-section">  
-        <div class="cards-grid">  
-          <div class="info-card">  
-            <div class="info-grid">  
-              <div class="info-item">  
-                <div class="label">SCHEME</div>  
-                <div class="value" id="schemeName">-</div>  
+          <div class="panel-body">  
+            <div class="scheme-summary" id="schemeInfo" style="display:none">  
+              <div class="summary-cell">  
+                <span class="summary-label">Scheme</span>  
+                <span class="summary-value" id="schemeName">Select a scheme</span>  
               </div>  
-              <div class="info-item">  
-                <div class="label">SCHEME CATEGORY</div>  
-                <div class="value" id="schemeCategory">-</div>  
+              <div class="summary-cell">  
+                <span class="summary-label">Scheme Category</span>  
+                <span class="summary-value" id="schemeCategory">-</span>  
               </div>  
-              <div class="info-item">  
-                <div class="label">NSDL CODE</div>  
-                <div class="value" id="schemeNsdl">-</div>  
+              <div class="summary-cell">  
+                <span class="summary-label">NSDL Code</span>  
+                <span class="summary-value" id="schemeCode">-</span>  
               </div>  
             </div>  
-          </div>  
   
-          <div class="metric-card green">  
-            <div class="metric-title">AVG BER</div>  
-            <div class="metric-value" id="avgBer">-</div>  
-          </div>  
-  
-          <div class="metric-card orange">  
-            <div class="metric-title">AVG BROKERAGE</div>  
-            <div class="metric-value" id="avgBrokerage">-</div>  
-          </div>  
-  
-          <div class="metric-card blue">  
-            <div class="metric-title">AVG TRANSACTION</div>  
-            <div class="metric-value" id="avgTransaction">-</div>  
-          </div>  
-  
-          <div class="metric-card purple">  
-            <div class="metric-title">AVG STATUTORY</div>  
-            <div class="metric-value" id="avgStatutory">-</div>  
-          </div>  
-  
-          <div class="metric-card red">  
-            <div class="metric-title">AVG TOTAL TER</div>  
-            <div class="metric-value" id="avgTer">-</div>  
-          </div>  
-        </div>  
-      </section>  
-  
-      <section class="page-section">  
-        <div class="chart-card">  
-          <div class="chart-head">  
-            <div class="chart-title">Scheme TER Line Chart</div>  
-            <div class="range-row" id="schemeRangeRow">  
-              <button class="range-btn active" data-scheme-range="1M">1M</button>  
-              <button class="range-btn" data-scheme-range="3M">3M</button>  
-              <button class="range-btn" data-scheme-range="6M">6M</button>  
-              <button class="range-btn" data-scheme-range="1Y">1Y</button>  
-              <button class="range-btn" data-scheme-range="All">All</button>  
+            <div class="grid market-grid" id="marketCards" aria-label="Overall TER summary">  
+              <article class="card component brk">  
+                <p class="kpi-label">Avg Regular TER</p>  
+                <p class="value" id="marketRegularTer">-</p>  
+                <p class="sub">Across filtered schemes</p>  
+              </article>  
+              <article class="card component ber">  
+                <p class="kpi-label">Avg Direct TER</p>  
+                <p class="value" id="marketDirectTer">-</p>  
+                <p class="sub">Across filtered schemes</p>  
+              </article>  
+              <article class="card component total">  
+                <p class="kpi-label">Avg Spread</p>  
+                <p class="value" id="marketSpread">-</p>  
+                <p class="sub">Regular minus direct</p>  
+              </article>  
+              <article class="card component stat">  
+                <p class="kpi-label">Categories</p>  
+                <p class="value" id="marketCategoryCount">-</p>  
+                <p class="sub">Matching current filters</p>  
+              </article>  
             </div>  
+  
+            <div class="grid component-grid" id="schemeCards" style="display:none" aria-label="Selected scheme averages">  
+              <article class="card component ber">  
+                <p class="kpi-label">Avg BER</p>  
+                <p class="value" id="avgBer">-</p>  
+                <p class="sub">Average Base Expense Ratio</p>  
+              </article>  
+              <article class="card component brk">  
+                <p class="kpi-label">Avg Brokerage</p>  
+                <p class="value" id="avgBrk">-</p>  
+                <p class="sub">Average brokerage cost</p>  
+              </article>  
+              <article class="card component txn">  
+                <p class="kpi-label">Avg Transaction</p>  
+                <p class="value" id="avgTxn">-</p>  
+                <p class="sub">Average transaction cost</p>  
+              </article>  
+              <article class="card component stat">  
+                <p class="kpi-label">Avg Statutory</p>  
+                <p class="value" id="avgStat">-</p>  
+                <p class="sub">Average statutory levies</p>  
+              </article>  
+              <article class="card component total">  
+                <p class="kpi-label">Avg Total TER</p>  
+                <p class="value" id="avgTotal">-</p>  
+                <p class="sub">Average total expense ratio</p>  
+              </article>  
+              <article class="card metric-info-card">  
+                <div class="metric-info-wrap">  
+                  <p class="metric-info-title">Metric Info</p>  
+                  <p><strong>BER</strong> = Base Expense Ratio</p>  
+                  <p><strong>TER</strong> = Total Expense Ratio</p>  
+                </div>  
+              </article>  
+            </div>  
+  
+            <div class="chart-shell">  
+              <canvas id="terChart"></canvas>  
+            </div>  
+  
+            <div class="chart-range" aria-label="Chart range">  
+              <button class="chip range-btn" type="button" onclick="setWindow(30)">1M</button>  
+              <button class="chip range-btn" type="button" onclick="setWindow(90)">3M</button>  
+              <button class="chip range-btn" type="button" onclick="setWindow(180)">6M</button>  
+              <button class="chip range-btn" type="button" onclick="setWindow(365)">1Y</button>  
+              <button class="chip range-btn active" type="button" onclick="setWindow(0)">All</button>  
+            </div>  
+  
+            <section class="card daily-section" id="lowestTer">  
+              <div class="panel-head">  
+                <div>  
+                  <h3>Top 5 Lowest TER Funds</h3>  
+                  <p>  
+                    Within <span id="lowestTerCategory">the selected scheme category</span>.  
+                    <span style="color:#94a3b8;font-style:italic">(Based on overall average TER)</span>  
+                  </p>  
+                </div>  
+              </div>  
+              <div class="table-wrap">  
+                <table>  
+                  <thead>  
+                    <tr>  
+                      <th>Fund</th>  
+                      <th>Category</th>  
+                      <th class="num">TER</th>  
+                    </tr>  
+                  </thead>  
+                  <tbody id="lowestTerBody">  
+                    <tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>  
+                  </tbody>  
+                </table>  
+              </div>  
+            </section>  
+  
+            <section class="card daily-section">  
+              <div class="panel-head">  
+                <div>  
+                  <h3>Daily Data</h3>  
+                  <p><span id="tablePlanLabel">Direct Plan</span>, latest records first.</p>  
+                </div>  
+              </div>  
+              <div class="table-wrap">  
+                <table>  
+                  <thead>  
+                    <tr>  
+                      <th>Date</th>  
+                      <th class="num">BER</th>  
+                      <th class="num">Brokerage</th>  
+                      <th class="num">Transaction</th>  
+                      <th class="num">Statutory</th>  
+                      <th class="num">Total TER</th>  
+                    </tr>  
+                  </thead>  
+                  <tbody id="dailyTableBody">  
+                    <tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>  
+                  </tbody>  
+                </table>  
+              </div>  
+              <div class="pagination" id="dailyPagination" style="display:none">  
+                <button type="button" id="prevPageBtn" onclick="changeDailyPage(-1)">Previous</button>  
+                <span id="dailyPageLabel">Page 1 of 1</span>  
+                <button type="button" id="nextPageBtn" onclick="changeDailyPage(1)">Next</button>  
+              </div>  
+            </section>  
           </div>  
-          <div class="chart-wrap">  
-            <canvas id="schemeChart"></canvas>  
+        </section>  
+  
+        <p class="footer">  
+          Data source:  
+          <a href="https://www.amfiindia.com/ter-of-mf-schemes" target="_blank" rel="noreferrer">AMFI India</a>.  
+          Auto-updated via GitHub Actions.  
+        </p>  
+      </div>  
+    </div>  
+  </main>  
+  
+  <section id="compareView" style="display:none">  
+    <div style="width:min(1440px,100%);margin:0 auto;padding:28px 40px 44px;">  
+      <div style="margin-bottom:24px;">  
+        <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;">Compare Mutual Funds</h2>  
+        <p style="color:var(--muted);margin-top:4px;">Add up to 4 funds to compare their TER metrics side-by-side.</p>  
+      </div>  
+  
+      <div id="compareSlots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px;"></div>  
+  
+      <div id="compareControls" style="display:none;margin-bottom:20px;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;">  
+        <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;">  
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:var(--soft);">  
+            <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Plan</span>  
+            <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>  
+            <button class="chip compare-plan-btn active" type="button" onclick="setComparePlan('direct')">Direct</button>  
+            <button class="chip compare-plan-btn" type="button" onclick="setComparePlan('regular')">Regular</button>  
+          </div>  
+  
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:var(--soft);">  
+            <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Period</span>  
+            <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>  
+            <button class="chip compare-period-btn active" type="button" onclick="setComparePeriod('overall')">All</button>  
+            <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(30)">1M</button>  
+            <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(90)">3M</button>  
+            <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(180)">6M</button>  
+            <button class="chip compare-period-btn" type="button" onclick="setComparePeriod(365)">1Y</button>  
           </div>  
         </div>  
-      </section>  
-    </section>  
   
-    <section id="compareScreen" class="compare-screen hidden">  
-      <div class="compare-card">  
-        Compare screen active. Main search bar is intentionally hidden here as requested.  
+        <button class="nav-btn" type="button" onclick="clearCompareSlots()">  
+          <span class="material-symbols-outlined">delete_sweep</span>  
+          Clear All  
+        </button>  
       </div>  
-    </section>  
-  </div>  
   
+      <div class="card" id="compareResultCard" style="display:none;">  
+        <div class="panel-head">  
+          <div>  
+            <h3>Fund Comparison</h3>  
+            <p id="compareSubtitle">Side-by-side TER breakdown (Direct Plan, overall average)</p>  
+          </div>  
+        </div>  
+        <div class="table-wrap" style="overflow-x:auto;">  
+          <table id="compareTable">  
+            <thead id="compareHead"></thead>  
+            <tbody id="compareBody"></tbody>  
+          </table>  
+        </div>  
+      </div>  
+    </div>  
+  </section>  
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
   <script>  
-    // Replace this sample data with your actual data source  
-    const fundsData = [  
-      {  
-        schemeName: "Tata Banking & Financial Services Fund",  
-        schemeCategory: "Equity Scheme - Sectoral/ Thematic",  
-        nsdlCode: "TATA/O/E/SEC/15/10/0024",  
-        history: [  
-          { date: "2024-01-01", ber: 0.45, brokerage: 0.09, transaction: 0.11, statutory: 0.26, ter: 0.91 },  
-          { date: "2024-02-01", ber: 0.47, brokerage: 0.10, transaction: 0.12, statutory: 0.27, ter: 0.96 },  
-          { date: "2024-03-01", ber: 0.49, brokerage: 0.09, transaction: 0.11, statutory: 0.28, ter: 0.97 },  
-          { date: "2024-04-01", ber: 0.50, brokerage: 0.10, transaction: 0.12, statutory: 0.29, ter: 1.01 },  
-          { date: "2024-05-01", ber: 0.51, brokerage: 0.09, transaction: 0.11, statutory: 0.30, ter: 1.01 },  
-          { date: "2024-06-01", ber: 0.49, brokerage: 0.09, transaction: 0.11, statutory: 0.28, ter: 0.97 }  
-        ]  
-      },  
-      {  
-        schemeName: "Short Data Fund Example",  
-        schemeCategory: "Equity Scheme - Large Cap",  
-        nsdlCode: "SHORT/001",  
-        history: [  
-          { date: "2024-04-01", ber: 0.55, brokerage: 0.12, transaction: 0.10, statutory: 0.28, ter: 1.05 },  
-          { date: "2024-05-01", ber: 0.56, brokerage: 0.12, transaction: 0.10, statutory: 0.27, ter: 1.05 },  
-          { date: "2024-06-01", ber: 0.57, brokerage: 0.12, transaction: 0.10, statutory: 0.27, ter: 1.06 }  
-        ]  
-      },  
-      {  
-        schemeName: "Debt Income Fund",  
-        schemeCategory: "Debt Scheme",  
-        nsdlCode: "DEBT/002",  
-        history: [  
-          { date: "2024-01-01", ber: 0.20, brokerage: 0.03, transaction: 0.05, statutory: 0.09, ter: 0.37 },  
-          { date: "2024-02-01", ber: 0.21, brokerage: 0.03, transaction: 0.05, statutory: 0.09, ter: 0.38 },  
-          { date: "2024-03-01", ber: 0.22, brokerage: 0.03, transaction: 0.05, statutory: 0.09, ter: 0.39 },  
-          { date: "2024-04-01", ber: 0.22, brokerage: 0.04, transaction: 0.05, statutory: 0.09, ter: 0.40 },  
-          { date: "2024-05-01", ber: 0.23, brokerage: 0.04, transaction: 0.05, statutory: 0.09, ter: 0.41 },  
-          { date: "2024-06-01", ber: 0.24, brokerage: 0.04, transaction: 0.05, statutory: 0.09, ter: 0.42 }  
-        ]  
-      }  
-    ];  
+    var summaryData = null;  
+    var chart = null;  
   
-    let activeTab = "dashboard";  
-    let selectedFund = null;  
-    let schemeRange = "1M";      // default line chart range = 1M  
-    let overviewRange = "1M";    // overview also defaults to 1M  
-    let categoryFilter = "All";  
+    var currentPlan = "direct";  
+    var currentScheme = null;  
+    var currentDailyData = null;  
+    var currentWindowDays = 0;  
   
-    let overviewChartInstance = null;  
-    let schemeChartInstance = null;  
+    var currentTableData = [];  
+    var currentDailyPage = 1;  
+    var dailyPageSize = 15;  
   
-    const dashboardTab = document.getElementById("dashboardTab");  
-    const compareTab = document.getElementById("compareTab");  
-    const dashboardScreen = document.getElementById("dashboardScreen");  
-    const compareScreen = document.getElementById("compareScreen");  
-    const dashboardSearchBlock = document.getElementById("dashboardSearchBlock");  
+    var compareSlots = [null, null, null, null];  
+    var comparePlan = "direct";  
+    var comparePeriod = "overall";  
+    var compareDailyCache = {};  
+    var latestMarketRequestId = 0;  
+    var marketDailyCache = {};  
+    var isInitialized = false;  
   
-    const searchInput = document.getElementById("searchInput");  
-    const searchResults = document.getElementById("searchResults");  
-  
-    const toggleFiltersBtn = document.getElementById("toggleFiltersBtn");  
-    const filtersPanel = document.getElementById("filtersPanel");  
-    const categoryFilterSelect = document.getElementById("categoryFilter");  
-  
-    const schemeName = document.getElementById("schemeName");  
-    const schemeCategory = document.getElementById("schemeCategory");  
-    const schemeNsdl = document.getElementById("schemeNsdl");  
-    const avgBer = document.getElementById("avgBer");  
-    const avgBrokerage = document.getElementById("avgBrokerage");  
-    const avgTransaction = document.getElementById("avgTransaction");  
-    const avgStatutory = document.getElementById("avgStatutory");  
-    const avgTer = document.getElementById("avgTer");  
-  
-    function formatPercent(value) {  
-      if (value === null || value === undefined || isNaN(value)) return "-";  
-      return `${Number(value).toFixed(4)}%`;  
-    }  
-  
-    function average(arr) {  
-      if (!arr || !arr.length) return 0;  
-      return arr.reduce((sum, n) => sum + Number(n || 0), 0) / arr.length;  
-    }  
-  
-    function sortHistory(history = []) {  
-      return [...history].sort((a, b) => new Date(a.date) - new Date(b.date));  
-    }  
-  
-    function getRecordsByRange(history = [], range = "All") {  
-      const sorted = sortHistory(history);  
-      if (!sorted.length) return [];  
-  
-      if (range === "All") {  
-        // FIX: All should use all available records only.  
-        // So if only 3 months exist, All = same 3 months.  
-        return sorted;  
-      }  
-  
-      const map = {  
-        "1M": 1,  
-        "3M": 3,  
-        "6M": 6,  
-        "1Y": 12  
+    function debounce(fn, ms) {  
+      var t;  
+      return function () {  
+        var ctx = this;  
+        var args = arguments;  
+        clearTimeout(t);  
+        t = setTimeout(function () {  
+          fn.apply(ctx, args);  
+        }, ms);  
       };  
-  
-      const count = map[range] || sorted.length;  
-  
-      // If available data is less than requested, return whatever exists.  
-      return sorted.slice(-Math.min(count, sorted.length));  
     }  
   
-    function formatMonthLabel(dateStr) {  
-      const d = new Date(dateStr);  
-      return d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });  
+    function escapeHTML(str) {  
+      return String(str == null ? "" : str)  
+        .replace(/&/g, "&amp;")  
+        .replace(/</g, "&lt;")  
+        .replace(/>/g, "&gt;")  
+        .replace(/"/g, "&quot;")  
+        .replace(/'/g, "&#039;");  
     }  
   
-    function populateCategories() {  
-      const categories = ["All", ...new Set(fundsData.map(f => f.schemeCategory).filter(Boolean))];  
-      categoryFilterSelect.innerHTML = categories  
-        .map(cat => `<option value="${cat}">${cat}</option>`)  
-        .join("");  
-      categoryFilterSelect.value = "All";  
+    function fmt(value) {  
+      return Number(value || 0).toFixed(4) + "%";  
     }  
   
-    function getFilteredFundsByCategory() {  
-      if (categoryFilter === "All") return fundsData;  
-      return fundsData.filter(f => f.schemeCategory === categoryFilter);  
+    function fmt2(value) {  
+      return Number(value || 0).toFixed(2) + "%";  
     }  
   
-    function buildOverviewChartData() {  
-      const funds = getFilteredFundsByCategory();  
-      if (!funds.length) return [];  
+    function planPrefix() {  
+      return currentPlan === "direct" ? "d" : "r";  
+    }  
   
-      const grouped = {};  
+    function formatChartDate(value) {  
+      if (!value) return "-";  
+      var parts = value.split("-");  
+      if (parts.length === 3) return parts[2] + "-" + parts[1] + "-" + parts[0].substring(2);  
+      return value;  
+    }  
   
-      funds.forEach(fund => {  
-        const records = getRecordsByRange(fund.history, overviewRange);  
-        records.forEach(r => {  
-          if (!grouped[r.date]) grouped[r.date] = [];  
-          grouped[r.date].push(Number(r.ter || 0));  
+    function formatDisplayDate(value) {  
+      if (!value) return "-";  
+      var date = new Date(value + "T00:00:00");  
+      if (Number.isNaN(date.getTime())) return value;  
+      return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });  
+    }  
+  
+    function formatISTDateOnly(value) {  
+      if (!value) return "-";  
+  
+      var date = new Date(value);  
+      if (Number.isNaN(date.getTime())) {  
+        date = new Date(value + "T00:00:00Z");  
+      }  
+      if (Number.isNaN(date.getTime())) return value;  
+  
+      return date.toLocaleDateString("en-GB", {  
+        timeZone: "Asia/Kolkata",  
+        day: "2-digit",  
+        month: "short",  
+        year: "numeric"  
+      });  
+    }  
+  
+    function getAssetCategory(schemeCategory) {  
+      var cat = schemeCategory || "";  
+      if (cat.indexOf("Equity Scheme") === 0 || cat === "ELSS") return "Equity";  
+      if (cat.indexOf("Debt Scheme") === 0 || cat === "Income") return "Debt";  
+      if (cat.indexOf("Hybrid Scheme") === 0) return "Hybrid";  
+      return "Others";  
+    }  
+  
+    function getSelectedAssets() {  
+      return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
+        return input.value;  
+      });  
+    }  
+  
+    function getSchemeCategoriesForAsset() {  
+      var categories = (summaryData && summaryData.categories) ? summaryData.categories : [];  
+      var selectedAssets = getSelectedAssets();  
+      if (!selectedAssets.length || selectedAssets.length === 4) return categories;  
+      return categories.filter(function (cat) {  
+        return selectedAssets.indexOf(getAssetCategory(cat)) !== -1;  
+      });  
+    }  
+  
+    function populateSchemeCategoryFilter() {  
+      var sel = document.getElementById("schemeCategoryFilter");  
+      if (!sel) return;  
+      var selected = sel.value;  
+      sel.innerHTML = '<option value="">All Scheme Categories</option>';  
+      getSchemeCategoriesForAsset().forEach(function (cat) {  
+        var opt = document.createElement("option");  
+        opt.value = cat;  
+        opt.textContent = cat;  
+        sel.appendChild(opt);  
+      });  
+      if ([].slice.call(sel.options).some(function (opt) { return opt.value === selected; })) {  
+        sel.value = selected;  
+      }  
+    }  
+  
+    function updateFilterCount() {  
+      var el = document.getElementById("filterCount");  
+      if (el) el.textContent = filteredSchemes().length.toLocaleString();  
+    }  
+  
+    function filteredSchemes() {  
+      var catEl = document.getElementById("schemeCategoryFilter");  
+      var cat = catEl ? catEl.value : "";  
+      var queryEl = document.getElementById("searchInput");  
+      var query = queryEl ? queryEl.value.toLowerCase().trim() : "";  
+      var selectedAssets = getSelectedAssets();  
+      var schemes = (summaryData && summaryData.schemes) ? summaryData.schemes.slice() : [];  
+  
+      if (selectedAssets.length) {  
+        schemes = schemes.filter(function (s) {  
+          return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1;  
+        });  
+      }  
+  
+      if (cat) {  
+        schemes = schemes.filter(function (s) { return s.category === cat; });  
+      }  
+  
+      if (query) {  
+        schemes = schemes.filter(function (s) {  
+          return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
+                 (s.scheme_code || "").toLowerCase().indexOf(query) !== -1;  
+        });  
+      }  
+  
+      return schemes;  
+    }  
+  
+    function setupFilters() {  
+      document.querySelectorAll(".asset-checkbox").forEach(function (input) {  
+        input.addEventListener("change", async function () {  
+          populateSchemeCategoryFilter();  
+          updateFilterCount();  
+          if (!currentScheme) await showMarketDashboard();  
+          updateLowestTer();  
         });  
       });  
   
-      return Object.keys(grouped)  
-        .sort((a, b) => new Date(a) - new Date(b))  
-        .map(date => ({  
-          label: formatMonthLabel(date),  
-          value: average(grouped[date])  
-        }));  
-    }  
+      document.querySelectorAll("input[name='planType']").forEach(function (input) {  
+        input.addEventListener("change", async function () {  
+          if (input.checked) await switchPlan(input.value);  
+        });  
+      });  
   
-    function buildSchemeChartData() {  
-      if (!selectedFund) return [];  
-      const records = getRecordsByRange(selectedFund.history, schemeRange);  
-  
-      return records.map(r => ({  
-        label: formatMonthLabel(r.date),  
-        ter: Number(r.ter || 0)  
-      }));  
-    }  
-  
-    function updateCards() {  
-      if (!selectedFund) return;  
-  
-      const records = getRecordsByRange(selectedFund.history, schemeRange);  
-  
-      schemeName.textContent = selectedFund.schemeName || "-";  
-      schemeCategory.textContent = selectedFund.schemeCategory || "-";  
-      schemeNsdl.textContent = selectedFund.nsdlCode || "-";  
-  
-      avgBer.textContent = formatPercent(average(records.map(r => r.ber)));  
-      avgBrokerage.textContent = formatPercent(average(records.map(r => r.brokerage)));  
-      avgTransaction.textContent = formatPercent(average(records.map(r => r.transaction)));  
-      avgStatutory.textContent = formatPercent(average(records.map(r => r.statutory)));  
-      avgTer.textContent = formatPercent(average(records.map(r => r.ter)));  
-    }  
-  
-    function renderOverviewChart() {  
-      const data = buildOverviewChartData();  
-      const ctx = document.getElementById("overviewChart").getContext("2d");  
-  
-      if (overviewChartInstance) {  
-        overviewChartInstance.destroy();  
+      var sel = document.getElementById("schemeCategoryFilter");  
+      if (sel) {  
+        sel.addEventListener("change", async function () {  
+          updateFilterCount();  
+          if (!currentScheme) await showMarketDashboard();  
+          updateLowestTer();  
+        });  
       }  
+    }  
   
-      overviewChartInstance = new Chart(ctx, {  
-        type: "line",  
-        data: {  
-          labels: data.map(d => d.label),  
-          datasets: [  
-            {  
-              label: "Avg TER",  
-              data: data.map(d => d.value),  
-              borderColor: "#0f8b7d",  
-              backgroundColor: "rgba(15, 139, 125, 0.15)",  
-              fill: true,  
-              tension: 0.35,  
-              borderWidth: 3,  
-              pointRadius: 3,  
-              pointHoverRadius: 4  
-            }  
-          ]  
-        },  
-        options: {  
-          responsive: true,  
-          maintainAspectRatio: false,  
-          animation: false, // smoother immediate updates on first load  
-          plugins: {  
-            legend: {  
-              display: true  
-            },  
-            tooltip: {  
-              callbacks: {  
-                label: function(context) {  
-                  return `Avg TER: ${Number(context.raw).toFixed(3)}%`;  
-                }  
-              }  
-            }  
-          },  
-          scales: {  
-            y: {  
-              ticks: {  
-                callback: function(value) {  
-                  return value + "%";  
-                }  
-              }  
-            }  
+    function setupAutocomplete() {  
+      var input = document.getElementById("searchInput");  
+      var dropdown = document.getElementById("autocompleteDropdown");  
+      if (!input || !dropdown) return;  
+  
+      input.addEventListener("input", debounce(async function () {  
+        var query = input.value.toLowerCase().trim();  
+        updateFilterCount();  
+  
+        if (query.length < 2) {  
+          dropdown.classList.remove("show");  
+          dropdown.innerHTML = "";  
+  
+          if (query.length === 0) {  
+            currentScheme = null;  
+            currentDailyData = null;  
+            await showMarketDashboard();  
+            updateTable([]);  
+            updateLowestTer();  
           }  
+          return;  
         }  
+  
+        var results = filteredSchemes().slice(0, 14);  
+  
+        if (!results.length) {  
+          dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
+          dropdown.classList.add("show");  
+          return;  
+        }  
+  
+        dropdown.innerHTML = "";  
+  
+        results.forEach(function (s) {  
+          var item = document.createElement("div");  
+          item.className = "autocomplete-item";  
+  
+          var name = s.scheme_name || "";  
+          var lower = name.toLowerCase();  
+          var idx = lower.indexOf(query);  
+          var highlighted = escapeHTML(name);  
+  
+          if (idx >= 0) {  
+            highlighted =  
+              escapeHTML(name.slice(0, idx)) +  
+              '<span class="highlight">' + escapeHTML(name.slice(idx, idx + query.length)) + '</span>' +  
+              escapeHTML(name.slice(idx + query.length));  
+          }  
+  
+          item.innerHTML =  
+            '<div class="autocomplete-name">' + highlighted + '</div>' +  
+            '<div class="autocomplete-meta">' + escapeHTML(s.scheme_code || "") + " | " + escapeHTML(s.category || "") + '</div>';  
+  
+          item.addEventListener("click", function () {  
+            input.value = "";  
+            dropdown.classList.remove("show");  
+            selectScheme(s);  
+          });  
+  
+          dropdown.appendChild(item);  
+        });  
+  
+        dropdown.classList.add("show");  
+      }, 120));  
+  
+      document.addEventListener("click", function (e) {  
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove("show");  
+      });  
+  
+      input.addEventListener("keydown", function (e) {  
+        if (e.key === "Escape") dropdown.classList.remove("show");  
       });  
     }  
   
-    function renderSchemeChart() {  
-      const data = buildSchemeChartData();  
-      const ctx = document.getElementById("schemeChart").getContext("2d");  
+    function setupMobileFilters() {  
+      var btn = document.getElementById("mobileFilterBtn");  
+      var content = document.getElementById("filterContent");  
+      if (!btn || !content) return;  
   
-      if (schemeChartInstance) {  
-        schemeChartInstance.destroy();  
+      btn.addEventListener("click", function () {  
+        var isOpen = content.classList.toggle("show");  
+        btn.setAttribute("aria-expanded", isOpen ? "true" : "false");  
+      });  
+  
+      function syncFiltersForViewport() {  
+        if (window.innerWidth > 760) {  
+          content.classList.remove("show");  
+          btn.setAttribute("aria-expanded", "false");  
+        }  
       }  
   
-      schemeChartInstance = new Chart(ctx, {  
-        type: "line",  
+      window.addEventListener("resize", syncFiltersForViewport);  
+      syncFiltersForViewport();  
+    }  
+  
+    async function clearFilters() {  
+      document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = false; });  
+      document.querySelectorAll("input[name='planType']").forEach(function (input) { input.checked = false; });  
+  
+      currentPlan = "direct";  
+  
+      var btnDirect = document.getElementById("btnDirect");  
+      var btnRegular = document.getElementById("btnRegular");  
+      if (btnDirect) btnDirect.checked = true;  
+      if (btnRegular) btnRegular.checked = false;  
+  
+      var search = document.getElementById("searchInput");  
+      if (search) search.value = "";  
+  
+      populateSchemeCategoryFilter();  
+  
+      var schemeSel = document.getElementById("schemeCategoryFilter");  
+      if (schemeSel) schemeSel.value = "";  
+  
+      currentScheme = null;  
+      currentDailyData = null;  
+  
+      document.getElementById("tablePlanLabel").textContent = "Direct Plan";  
+  
+      updateFilterCount();  
+      await showMarketDashboard();  
+      updateTable([]);  
+      updateLowestTer();  
+    }  
+    window.clearFilters = clearFilters;  
+  
+    function sortedByDateAsc(data) {  
+      return (data || []).slice().sort(function (a, b) {  
+        return new Date(a.date) - new Date(b.date);  
+      });  
+    }  
+  
+    function filterDataByWindow(data, windowDays) {  
+      if (!data || !data.length || windowDays === 0) return sortedByDateAsc(data || []);  
+      var sorted = sortedByDateAsc(data);  
+      var lastDate = new Date(sorted[sorted.length - 1].date);  
+      var cutoff = new Date(lastDate);  
+      cutoff.setDate(cutoff.getDate() - windowDays);  
+      return sorted.filter(function (d) {  
+        return new Date(d.date) > cutoff;  
+      });  
+    }  
+  
+    function avgArray(arr) {  
+      if (!arr || !arr.length) return 0;  
+      return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;  
+    }  
+  
+    function safeNum(n) {  
+      var v = Number(n || 0);  
+      return isFinite(v) ? v : 0;  
+    }  
+  
+    function periodSuffix(days) {  
+      if (days === 30) return "_30";  
+      if (days === 90) return "_90";  
+      if (days === 180) return "_180";  
+      if (days === 365) return "_365";  
+      return "";  
+    }  
+    function summaryHasKeysForPeriod(days) {  
+      var suf = periodSuffix(days);  
+      if (!suf) return false;  
+      var first = summaryData && summaryData.schemes && summaryData.schemes[0];  
+      if (!first) return false;  
+      return ("avg_d_total_ter" + suf in first) && ("avg_r_total_ter" + suf in first);  
+    }  
+  
+    async function fetchMarketDailyData(scheme) {  
+      if (!scheme || !scheme.id) return [];  
+      if (marketDailyCache[scheme.id]) return marketDailyCache[scheme.id];  
+  
+      try {  
+        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        if (!res.ok) return [];  
+        var data = await res.json();  
+        marketDailyCache[scheme.id] = data;  
+        return data;  
+      } catch (e) {  
+        return [];  
+      }  
+    }  
+  
+    async function mapWithConcurrency(items, limit, mapper) {  
+      var idx = 0;  
+      var results = new Array(items.length);  
+  
+      async function worker() {  
+        while (true) {  
+          var i = idx++;  
+          if (i >= items.length) break;  
+          results[i] = await mapper(items[i], i);  
+        }  
+      }  
+  
+      var workers = [];  
+      var n = Math.min(limit, items.length);  
+      for (var k = 0; k < n; k++) workers.push(worker());  
+      await Promise.all(workers);  
+      return results;  
+    }  
+  
+    async function setWindow(days) {  
+      currentWindowDays = days;  
+  
+      document.querySelectorAll(".range-btn").forEach(function (button) {  
+        var label = days === 30 ? "1M" : days === 90 ? "3M" : days === 180 ? "6M" : days === 365 ? "1Y" : "All";  
+        button.classList.toggle("active", button.textContent.trim() === label);  
+      });  
+  
+      if (!summaryData) return;  
+  
+      if (currentScheme) {  
+        refreshDisplay();  
+      } else {  
+        await showMarketDashboard();  
+      }  
+    }  
+    window.setWindow = setWindow;  
+  
+    async function switchPlan(plan) {  
+      currentPlan = plan;  
+      document.getElementById("btnDirect").checked = plan === "direct";  
+      document.getElementById("btnRegular").checked = plan === "regular";  
+      document.getElementById("tablePlanLabel").textContent = plan === "direct" ? "Direct Plan" : "Regular Plan";  
+  
+      updateFilterCount();  
+      updateLowestTer();  
+  
+      if (currentScheme) refreshDisplay();  
+      else await showMarketDashboard();  
+    }  
+    window.switchPlan = switchPlan;  
+  
+    async function fetchCompareDailyData(scheme) {  
+      if (!scheme || !scheme.id) return null;  
+      if (compareDailyCache[scheme.id]) return compareDailyCache[scheme.id];  
+  
+      try {  
+        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        if (!res.ok) return null;  
+        var data = await res.json();  
+        compareDailyCache[scheme.id] = data;  
+        return data;  
+      } catch (e) {  
+        return null;  
+      }  
+    }  
+  
+    async function computeMarketSnapshot(schemes, windowDays) {  
+      schemes = schemes || [];  
+  
+      var distinctCategories = {};  
+      schemes.forEach(function (s) {  
+        if (s.category) distinctCategories[s.category] = true;  
+      });  
+  
+      var buckets = { Equity: [], Debt: [], Hybrid: [], Others: [] };  
+      schemes.forEach(function (s) {  
+        var b = getAssetCategory(s.category);  
+        if (!buckets[b]) buckets[b] = [];  
+        buckets[b].push(s);  
+      });  
+  
+      var labels = ["Equity", "Debt", "Hybrid", "Others"].filter(function (b) {  
+        return buckets[b] && buckets[b].length;  
+      });  
+  
+      var canUseSummary = false;  
+      var dKey = "avg_d_total_ter";  
+      var rKey = "avg_r_total_ter";  
+  
+      if (windowDays === 0) {  
+        canUseSummary = true;  
+      } else if (summaryHasKeysForPeriod(windowDays)) {  
+        var suf = periodSuffix(windowDays);  
+        dKey = "avg_d_total_ter" + suf;  
+        rKey = "avg_r_total_ter" + suf;  
+        canUseSummary = true;  
+      }  
+  
+      if (canUseSummary) {  
+        var allD = [];  
+        var allR = [];  
+        var perBucketD = {};  
+        var perBucketR = {};  
+  
+        labels.forEach(function (b) {  
+          perBucketD[b] = [];  
+          perBucketR[b] = [];  
+        });  
+  
+        schemes.forEach(function (s) {  
+          var b = getAssetCategory(s.category);  
+          var dv = safeNum(s[dKey]);  
+          var rv = safeNum(s[rKey]);  
+  
+          if (dv > 0) {  
+            allD.push(dv);  
+            if (perBucketD[b]) perBucketD[b].push(dv);  
+          }  
+  
+          if (rv > 0) {  
+            allR.push(rv);  
+            if (perBucketR[b]) perBucketR[b].push(rv);  
+          }  
+        });  
+  
+        return {  
+          labels: labels,  
+          barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
+          barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
+          directAvg: avgArray(allD),  
+          regularAvg: avgArray(allR),  
+          categoriesCount: Object.keys(distinctCategories).length  
+        };  
+      }  
+  
+      async function computeSchemeWindowAvg(s) {  
+        var data = await fetchMarketDailyData(s);  
+        if (!data || !data.length) {  
+          return { bucket: getAssetCategory(s.category), d: 0, r: 0 };  
+        }  
+  
+        var filtered = filterDataByWindow(data, windowDays);  
+  
+        var dVals = filtered.map(function (d) { return safeNum(d.d_total_ter); }).filter(function (v) { return v > 0; });  
+        var rVals = filtered.map(function (d) { return safeNum(d.r_total_ter); }).filter(function (v) { return v > 0; });  
+  
+        return {  
+          bucket: getAssetCategory(s.category),  
+          d: avgArray(dVals),  
+          r: avgArray(rVals)  
+        };  
+      }  
+  
+      var computed = await mapWithConcurrency(schemes, 10, computeSchemeWindowAvg);  
+  
+      var allD2 = [];  
+      var allR2 = [];  
+      var perBucketD2 = {};  
+      var perBucketR2 = {};  
+  
+      labels.forEach(function (b) {  
+        perBucketD2[b] = [];  
+        perBucketR2[b] = [];  
+      });  
+  
+      computed.forEach(function (row) {  
+        if (!row) return;  
+  
+        if (row.d > 0) {  
+          allD2.push(row.d);  
+          if (perBucketD2[row.bucket]) perBucketD2[row.bucket].push(row.d);  
+        }  
+  
+        if (row.r > 0) {  
+          allR2.push(row.r);  
+          if (perBucketR2[row.bucket]) perBucketR2[row.bucket].push(row.r);  
+        }  
+      });  
+  
+      return {  
+        labels: labels,  
+        barDirect: labels.map(function (b) { return avgArray(perBucketD2[b] || []); }),  
+        barRegular: labels.map(function (b) { return avgArray(perBucketR2[b] || []); }),  
+        directAvg: avgArray(allD2),  
+        regularAvg: avgArray(allR2),  
+        categoriesCount: Object.keys(distinctCategories).length  
+      };  
+    }  
+  
+    async function showMarketDashboard() {  
+      if (!summaryData) return;  
+  
+      var requestId = ++latestMarketRequestId;  
+      var schemes = filteredSchemes();  
+  
+      document.getElementById("schemeInfo").style.display = "none";  
+      document.getElementById("schemeCards").style.display = "none";  
+      document.getElementById("marketCards").style.display = "";  
+      document.getElementById("mainPanelHead").style.display = "";  
+      document.getElementById("viewTitle").textContent = "Overall Market Overview";  
+      document.getElementById("viewSubtitle").innerHTML =  
+        'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' +  
+        Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() +  
+        '</span> Indian mutual fund schemes.';  
+  
+      var updatedEl = document.getElementById("marketUpdatedText");  
+      if (updatedEl) {  
+        updatedEl.textContent = "Updated: " + formatISTDateOnly(summaryData ? summaryData.last_updated : "-");  
+      }  
+  
+      var snapshot = await computeMarketSnapshot(schemes, currentWindowDays);  
+      if (requestId !== latestMarketRequestId) return;  
+  
+      document.getElementById("marketDirectTer").textContent = fmt(snapshot.directAvg);  
+      document.getElementById("marketRegularTer").textContent = fmt(snapshot.regularAvg);  
+      document.getElementById("marketSpread").textContent = fmt(Math.max(0, snapshot.regularAvg - snapshot.directAvg));  
+      document.getElementById("marketCategoryCount").textContent = (snapshot.categoriesCount || 0).toLocaleString();  
+  
+      updateMarketChart(snapshot);  
+    }  
+  
+    function marketValueLabelsPlugin() {  
+      return {  
+        id: "marketValueLabels",  
+        afterDatasetsDraw: function (chartInstance) {  
+          if (!chartInstance || chartInstance.config.type !== "bar") return;  
+          var ctx = chartInstance.ctx;  
+          ctx.save();  
+          ctx.fillStyle = "#334155";  
+          ctx.font = "800 11px 'Plus Jakarta Sans', sans-serif";  
+          ctx.textAlign = "center";  
+          ctx.textBaseline = "bottom";  
+  
+          chartInstance.data.datasets.forEach(function (dataset, datasetIndex) {  
+            var meta = chartInstance.getDatasetMeta(datasetIndex);  
+            if (meta.hidden) return;  
+            meta.data.forEach(function (bar, index) {  
+              var value = dataset.data[index];  
+              if (!value || value <= 0) return;  
+              ctx.fillText(Number(value).toFixed(2) + "%", bar.x, bar.y - 4);  
+            });  
+          });  
+  
+          ctx.restore();  
+        }  
+      };  
+    }  
+  
+    function updateMarketChart(snapshot) {  
+      var canvas = document.getElementById("terChart");  
+      if (!canvas) return;  
+      var ctx = canvas.getContext("2d");  
+      if (chart) chart.destroy();  
+  
+      chart = new Chart(ctx, {  
+        type: "bar",  
         data: {  
-          labels: data.map(d => d.label),  
+          labels: snapshot.labels,  
           datasets: [  
             {  
-              label: "Avg TER", // renamed from Rolling Avg TER  
-              data: data.map(d => d.ter),  
-              borderColor: "#dc2626",  
-              backgroundColor: "rgba(220, 38, 38, 0.10)",  
-              tension: 0.35,  
-              fill: false,  
-              borderWidth: 3,  
-              pointRadius: 4,  
-              pointHoverRadius: 5  
+              label: "Direct TER",  
+              data: snapshot.barDirect,  
+              backgroundColor: "rgba(15,118,110,0.78)",  
+              borderRadius: 6  
+            },  
+            {  
+              label: "Regular TER",  
+              data: snapshot.barRegular,  
+              backgroundColor: "rgba(245,158,11,0.78)",  
+              borderRadius: 6  
             }  
           ]  
         },  
@@ -790,164 +1945,643 @@
           animation: false,  
           plugins: {  
             legend: {  
-              display: true  
+              labels: {  
+                boxWidth: 10,  
+                boxHeight: 10,  
+                color: "#64748b",  
+                usePointStyle: true  
+              }  
             },  
             tooltip: {  
               callbacks: {  
-                label: function(context) {  
-                  return `Avg TER: ${Number(context.raw).toFixed(3)}%`;  
+                label: function (ctx) {  
+                  return ctx.dataset.label + ": " + fmt2(ctx.parsed.y);  
                 }  
               }  
             }  
           },  
           scales: {  
             y: {  
-              ticks: {  
-                callback: function(value) {  
-                  return value + "%";  
+              beginAtZero: true,  
+              grid: { color: "#e2e8f0" },  
+              ticks: { color: "#64748b" },  
+              title: { display: true, text: "Average TER (%)" }  
+            },  
+            x: {  
+              grid: { display: false },  
+              ticks: { color: "#64748b" }  
+            }  
+          }  
+        },  
+        plugins: [marketValueLabelsPlugin()]  
+      });  
+    }  
+  
+    function calcAvg(data, key) {  
+      if (!data || !data.length) return 0;  
+      var values = data.map(function (d) { return Number(d[key] || 0); }).filter(function (v) { return isFinite(v); });  
+      if (!values.length) return 0;  
+      var sum = values.reduce(function (a, b) { return a + b; }, 0);  
+      return sum / values.length;  
+    }  
+  
+    async function selectScheme(scheme) {  
+      currentScheme = scheme;  
+      currentPlan = "direct";  
+  
+      document.getElementById("btnDirect").checked = true;  
+      document.getElementById("btnRegular").checked = false;  
+      document.getElementById("tablePlanLabel").textContent = "Direct Plan";  
+  
+      var assetCat = getAssetCategory(scheme.category);  
+      document.querySelectorAll(".asset-checkbox").forEach(function (cb) {  
+        cb.checked = (cb.value === assetCat);  
+      });  
+  
+      populateSchemeCategoryFilter();  
+      document.getElementById("schemeCategoryFilter").value = scheme.category || "";  
+      updateFilterCount();  
+  
+      document.getElementById("schemeInfo").style.display = "";  
+      document.getElementById("schemeCards").style.display = "";  
+      document.getElementById("marketCards").style.display = "none";  
+      document.getElementById("mainPanelHead").style.display = "none";  
+  
+      document.getElementById("schemeName").textContent = scheme.scheme_name || "-";  
+      document.getElementById("schemeCategory").textContent = scheme.category || "-";  
+      document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";  
+  
+      try {  
+        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        if (!res.ok) throw new Error("Daily data not found");  
+        currentDailyData = await res.json();  
+        updateLowestTer();  
+        refreshDisplay();  
+      } catch (e) {  
+        console.error(e);  
+        currentDailyData = [];  
+        updateTable([]);  
+        updateLowestTer();  
+      }  
+    }  
+  
+    function refreshDisplay() {  
+      if (!currentScheme || !currentDailyData) return;  
+      var filtered = filterDataByWindow(currentDailyData, currentWindowDays);  
+      updateKPICards(filtered);  
+      updateSchemeChart(filtered, currentScheme.scheme_name);  
+      updateTable(filtered);  
+    }  
+  
+    function updateKPICards(data) {  
+      var p = planPrefix();  
+      document.getElementById("avgBer").textContent = fmt(calcAvg(data, p + "_ber"));  
+      document.getElementById("avgBrk").textContent = fmt(calcAvg(data, p + "_brokerage"));  
+      document.getElementById("avgTxn").textContent = fmt(calcAvg(data, p + "_transaction"));  
+      document.getElementById("avgStat").textContent = fmt(calcAvg(data, p + "_statutory"));  
+      document.getElementById("avgTotal").textContent = fmt(calcAvg(data, p + "_total_ter"));  
+    }  
+  
+    function hoverGuidePlugin() {  
+      return {  
+        id: "hoverGuide",  
+        afterDraw: function (chartInstance) {  
+          var tooltip = chartInstance.tooltip;  
+          if (!tooltip || !tooltip._active || !tooltip._active.length) return;  
+  
+          var ctx = chartInstance.ctx;  
+          var activePoint = tooltip._active[0];  
+          var x = activePoint.element.x;  
+          var topY = chartInstance.chartArea.top;  
+          var bottomY = chartInstance.chartArea.bottom;  
+  
+          ctx.save();  
+          ctx.beginPath();  
+          ctx.moveTo(x, topY);  
+          ctx.lineTo(x, bottomY);  
+          ctx.lineWidth = 1;  
+          ctx.strokeStyle = "rgba(148,163,184,0.35)";  
+          ctx.stroke();  
+          ctx.restore();  
+        }  
+      };  
+    }  
+  
+    function buildAverageLine(values) {  
+      var valid = (values || []).filter(function (v) { return isFinite(v); });  
+      var average = avgArray(valid);  
+      return values.map(function () { return average; });  
+    }  
+  
+    function updateSchemeChart(data, name) {  
+      var canvas = document.getElementById("terChart");  
+      if (!canvas) return;  
+      var ctx = canvas.getContext("2d");  
+      if (chart) chart.destroy();  
+  
+      var p = planPrefix();  
+      var totalTer = data.map(function (d) { return Number(d[p + "_total_ter"] || 0); });  
+      var averageTerLine = buildAverageLine(totalTer);  
+  
+      chart = new Chart(ctx, {  
+        type: "line",  
+        data: {  
+          labels: data.map(function (d) { return formatChartDate(d.date); }),  
+          datasets: [  
+            {  
+              label: "BER",  
+              hidden: true,  
+              data: data.map(function (d) { return Number(d[p + "_ber"] || 0); }),  
+              borderColor: "#10b981",  
+              backgroundColor: "rgba(16,185,129,0.06)",  
+              fill: false,  
+              tension: 0.32,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2  
+            },  
+            {  
+              label: "Brokerage",  
+              hidden: true,  
+              data: data.map(function (d) { return Number(d[p + "_brokerage"] || 0); }),  
+              borderColor: "#f59e0b",  
+              backgroundColor: "rgba(245,158,11,0.06)",  
+              fill: false,  
+              tension: 0.32,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2  
+            },  
+            {  
+              label: "Transaction",  
+              hidden: true,  
+              data: data.map(function (d) { return Number(d[p + "_transaction"] || 0); }),  
+              borderColor: "#2563eb",  
+              backgroundColor: "rgba(37,99,235,0.06)",  
+              fill: false,  
+              tension: 0.32,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2  
+            },  
+            {  
+              label: "Statutory",  
+              hidden: true,  
+              data: data.map(function (d) { return Number(d[p + "_statutory"] || 0); }),  
+              borderColor: "#7c3aed",  
+              backgroundColor: "rgba(124,58,237,0.06)",  
+              fill: false,  
+              tension: 0.32,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2  
+            },  
+            {  
+              label: "Total TER",  
+              data: totalTer,  
+              borderColor: "#dc2626",  
+              borderDash: [6, 4],  
+              fill: false,  
+              tension: 0.32,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2.5  
+            },  
+            {  
+              label: "Avg TER",  
+              data: averageTerLine,  
+              borderColor: "#94a3b8",  
+              borderDash: [3, 3],  
+              fill: false,  
+              tension: 0,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
+              borderWidth: 2  
+            }  
+          ]  
+        },  
+        options: {  
+          responsive: true,  
+          maintainAspectRatio: false,  
+          animation: false,  
+          plugins: {  
+            title: {  
+              display: true,  
+              text: name || "Selected scheme",  
+              color: "#0f172a",  
+              font: { size: 14, weight: "700" }  
+            },  
+            legend: {  
+              labels: {  
+                boxWidth: 10,  
+                boxHeight: 10,  
+                color: "#64748b",  
+                usePointStyle: true  
+              }  
+            },  
+            tooltip: {  
+              mode: "index",  
+              intersect: false,  
+              callbacks: {  
+                label: function (ctx) {  
+                  return ctx.dataset.label + ": " + fmt2(ctx.parsed.y);  
                 }  
               }  
             }  
+          },  
+          scales: {  
+            y: {  
+              display: false,  
+              beginAtZero: false,  
+              grid: {  
+                display: false,  
+                drawBorder: false,  
+                drawTicks: false  
+              },  
+              border: {  
+                display: false  
+              },  
+              ticks: {  
+                display: false  
+              }  
+            },  
+            x: {  
+              display: false,  
+              grid: {  
+                display: false,  
+                drawBorder: false,  
+                drawTicks: false  
+              },  
+              border: {  
+                display: false  
+              },  
+              ticks: {  
+                display: false  
+              }  
+            }  
+          },  
+          interaction: {  
+            mode: "index",  
+            axis: "x",  
+            intersect: false  
+          },  
+          elements: {  
+            line: {  
+              capBezierPoints: true  
+            }  
           }  
+        },  
+        plugins: [hoverGuidePlugin()]  
+      });  
+    }  
+  
+    function updateTable(data) {  
+      var tbody = document.getElementById("dailyTableBody");  
+      currentTableData = data || [];  
+      var pagination = document.getElementById("dailyPagination");  
+  
+      if (!data || !data.length) {  
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Select a scheme to view daily data</td></tr>';  
+        pagination.style.display = "none";  
+        return;  
+      }  
+  
+      currentDailyPage = 1;  
+      renderDailyPage();  
+    }  
+  
+    function renderDailyPage() {  
+      var tbody = document.getElementById("dailyTableBody");  
+      var p = planPrefix();  
+      var reversed = currentTableData.slice().reverse();  
+      var totalPages = Math.max(1, Math.ceil(reversed.length / dailyPageSize));  
+      currentDailyPage = Math.min(Math.max(1, currentDailyPage), totalPages);  
+  
+      var start = (currentDailyPage - 1) * dailyPageSize;  
+      var pageRows = reversed.slice(start, start + dailyPageSize);  
+  
+      tbody.innerHTML = pageRows.map(function (d) {  
+        return "<tr><td>" + formatDisplayDate(d.date) + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_brokerage"]).replace("%", "") + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_transaction"]).replace("%", "") + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_statutory"]).replace("%", "") + "</td>" +  
+          "<td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";  
+      }).join("");  
+  
+      document.getElementById("dailyPagination").style.display = reversed.length > dailyPageSize ? "flex" : "none";  
+      document.getElementById("dailyPageLabel").textContent = "Page " + currentDailyPage + " of " + totalPages;  
+      document.getElementById("prevPageBtn").disabled = currentDailyPage <= 1;  
+      document.getElementById("nextPageBtn").disabled = currentDailyPage >= totalPages;  
+    }  
+  
+    function changeDailyPage(delta) {  
+      currentDailyPage += delta;  
+      renderDailyPage();  
+    }  
+    window.changeDailyPage = changeDailyPage;  
+  
+    function updateLowestTer() {  
+      if (!summaryData) return;  
+  
+      var pKey = currentPlan === "direct" ? "avg_d_total_ter" : "avg_r_total_ter";  
+      var cat = currentScheme ? currentScheme.category : ((document.getElementById("schemeCategoryFilter") || {}).value || "");  
+      document.getElementById("lowestTerCategory").textContent = cat || "the selected scheme category";  
+  
+      var rows = (summaryData.schemes || [])  
+        .filter(function (s) {  
+          var ter = Number(s[pKey] || 0);  
+          return (!cat || s.category === cat) && ter > 0;  
+        })  
+        .sort(function (a, b) {  
+          return Number(a[pKey] || 0) - Number(b[pKey] || 0);  
+        })  
+        .slice(0, 5);  
+  
+      var tbody = document.getElementById("lowestTerBody");  
+      if (!rows.length) {  
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';  
+        return;  
+      }  
+  
+      tbody.innerHTML = rows.map(function (s) {  
+        return "<tr><td><div class='fund-name'>" + escapeHTML(s.scheme_name || "-") + "</div></td>" +  
+          "<td><span class='badge'>" + escapeHTML(s.category || "-") + "</span></td>" +  
+          "<td class='num strong'>" + fmt(s[pKey]) + "</td></tr>";  
+      }).join("");  
+    }  
+  
+    function showView(view) {  
+      document.getElementById("dashboard").style.display = view === "dashboard" ? "" : "none";  
+      document.getElementById("compareView").style.display = view === "compare" ? "" : "none";  
+      document.getElementById("navDashboard").classList.toggle("active", view === "dashboard");  
+      document.getElementById("navCompare").classList.toggle("active", view === "compare");  
+  
+      var searchWrap = document.getElementById("topGlobalSearch");  
+      if (searchWrap) {  
+        searchWrap.classList.toggle("hidden", view === "compare");  
+      }  
+  
+      if (view === "compare") {  
+        renderCompareSlots();  
+        updateCompare();  
+      }  
+    }  
+    window.showView = showView;  
+  
+    function renderCompareSlots() {  
+      var container = document.getElementById("compareSlots");  
+      if (!container) return;  
+  
+      container.innerHTML = compareSlots.map(function (scheme, index) {  
+        if (scheme) {  
+          return (  
+            '<div class="compare-slot filled">' +  
+              '<button class="compare-remove" type="button" onclick="removeCompareSlot(' + index + ')">&times;</button>' +  
+              '<div class="compare-slot-name" title="' + escapeHTML(scheme.scheme_name || "") + '">' + escapeHTML(scheme.scheme_name || "-") + '</div>' +  
+              '<div class="compare-slot-cat">' + escapeHTML(scheme.category || "-") + '</div>' +  
+              '<div style="margin-top:8px;color:var(--primary);font-size:11px;font-weight:800;">Selected</div>' +  
+            '</div>'  
+          );  
         }  
-      });  
-    }  
   
-    function updateDashboard() {  
-      updateCards();  
-      renderSchemeChart();  
-    }  
-  
-    function setActiveTab(tab) {  
-      activeTab = tab;  
-  
-      if (tab === "dashboard") {  
-        dashboardScreen.classList.remove("hidden");  
-        compareScreen.classList.add("hidden");  
-        dashboardSearchBlock.classList.remove("hidden"); // search visible only here  
-        dashboardTab.classList.add("active");  
-        compareTab.classList.remove("active");  
-      } else {  
-        dashboardScreen.classList.add("hidden");  
-        compareScreen.classList.remove("hidden");  
-        dashboardSearchBlock.classList.add("hidden"); // hide search in compare  
-        compareTab.classList.add("active");  
-        dashboardTab.classList.remove("active");  
-      }  
-    }  
-  
-    function searchFunds(query) {  
-      const q = query.trim().toLowerCase();  
-      if (!q) return [];  
-      return fundsData.filter(f => {  
         return (  
-          (f.schemeName || "").toLowerCase().includes(q) ||  
-          (f.nsdlCode || "").toLowerCase().includes(q)  
+          '<div class="compare-slot">' +  
+            '<div class="compare-add-icon">+</div>' +  
+            '<div class="compare-add-text">Add Fund</div>' +  
+            '<div class="compare-slot-search">' +  
+              '<input type="text" placeholder="Search fund..." oninput="searchCompareSlot(' + index + ', this.value)" />' +  
+              '<div class="compare-slot-dropdown" id="compareDropdown' + index + '"></div>' +  
+            '</div>' +  
+          '</div>'  
         );  
-      });  
+      }).join("");  
+  
+      var selectedCount = compareSlots.filter(Boolean).length;  
+      document.getElementById("compareControls").style.display = selectedCount >= 2 ? "flex" : "none";  
+      document.getElementById("compareResultCard").style.display = selectedCount >= 2 ? "" : "none";  
     }  
   
-    function renderSearchResults(results) {  
+    function searchCompareSlot(index, query) {  
+      var dropdown = document.getElementById("compareDropdown" + index);  
+      if (!dropdown) return;  
+  
+      query = (query || "").toLowerCase().trim();  
+  
+      if (query.length < 2) {  
+        dropdown.classList.remove("show");  
+        dropdown.innerHTML = "";  
+        return;  
+      }  
+  
+      var usedIds = compareSlots.filter(Boolean).map(function (s) { return s.id; });  
+  
+      var results = (summaryData && summaryData.schemes ? summaryData.schemes : [])  
+        .filter(function (s) {  
+          return usedIds.indexOf(s.id) === -1 &&  
+            (  
+              (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
+              (s.scheme_code || "").toLowerCase().indexOf(query) !== -1  
+            );  
+        })  
+        .slice(0, 10);  
+  
       if (!results.length) {  
-        searchResults.innerHTML = `<div class="search-result-item">No matching mutual funds found.</div>`;  
-        searchResults.classList.remove("hidden");  
+        dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
+        dropdown.classList.add("show");  
         return;  
       }  
   
-      searchResults.innerHTML = results.slice(0, 8).map((fund, index) => `  
-        <button class="search-result-item" data-index="${index}">  
-          <div class="result-title">${fund.schemeName || "-"}</div>  
-          <div class="result-sub">${fund.schemeCategory || "-"} • ${fund.nsdlCode || "-"}</div>  
-        </button>  
-      `).join("");  
+      dropdown.innerHTML = results.map(function (s) {  
+        return (  
+          '<div class="autocomplete-item" onclick="selectCompareScheme(' + index + ', \'' + String(s.id).replace(/'/g, "\\'") + '\')">' +  
+            '<div class="autocomplete-name">' + escapeHTML(s.scheme_name || "-") + '</div>' +  
+            '<div class="autocomplete-meta">' + escapeHTML(s.category || "-") + '</div>' +  
+          '</div>'  
+        );  
+      }).join("");  
   
-      searchResults.classList.remove("hidden");  
+      dropdown.classList.add("show");  
+    }  
+    window.searchCompareSlot = searchCompareSlot;  
+    function selectCompareScheme(index, id) {  
+      var scheme = (summaryData && summaryData.schemes ? summaryData.schemes : []).find(function (s) {  
+        return String(s.id) === String(id);  
+      });  
+      if (!scheme) return;  
   
-      [...searchResults.querySelectorAll(".search-result-item")].forEach((btn, idx) => {  
-        btn.addEventListener("click", () => {  
-          selectedFund = results[idx];  
-          searchInput.value = selectedFund.schemeName || "";  
-          searchResults.classList.add("hidden");  
+      compareSlots[index] = scheme;  
+      renderCompareSlots();  
+      updateCompare();  
+    }  
+    window.selectCompareScheme = selectCompareScheme;  
   
-          // default line chart should always go back to 1M on new fund selection  
-          schemeRange = "1M";  
-          updateSchemeRangeButtons();  
-          updateDashboard();  
+    function removeCompareSlot(index) {  
+      compareSlots[index] = null;  
+      renderCompareSlots();  
+      updateCompare();  
+    }  
+    window.removeCompareSlot = removeCompareSlot;  
+  
+    function clearCompareSlots() {  
+      compareSlots = [null, null, null, null];  
+      compareDailyCache = {};  
+      renderCompareSlots();  
+      updateCompare();  
+    }  
+    window.clearCompareSlots = clearCompareSlots;  
+  
+    function setComparePlan(plan) {  
+      comparePlan = plan;  
+      document.querySelectorAll(".compare-plan-btn").forEach(function (btn) {  
+        btn.classList.toggle("active", btn.textContent.trim().toLowerCase() === plan);  
+      });  
+      updateCompare();  
+    }  
+    window.setComparePlan = setComparePlan;  
+  
+    function setComparePeriod(period) {  
+      comparePeriod = period;  
+      document.querySelectorAll(".compare-period-btn").forEach(function (btn) {  
+        var label = btn.textContent.trim();  
+        var active =  
+          (period === "overall" && label === "All") ||  
+          (period === 30 && label === "1M") ||  
+          (period === 90 && label === "3M") ||  
+          (period === 180 && label === "6M") ||  
+          (period === 365 && label === "1Y");  
+        btn.classList.toggle("active", active);  
+      });  
+      updateCompare();  
+    }  
+    window.setComparePeriod = setComparePeriod;  
+  
+    async function getCompareMetrics(scheme) {  
+      var prefix = comparePlan === "direct" ? "d" : "r";  
+  
+      if (comparePeriod === "overall") {  
+        return {  
+          ber: Number(scheme["avg_" + prefix + "_ber"] || 0),  
+          brokerage: Number(scheme["avg_" + prefix + "_brokerage"] || 0),  
+          transaction: Number(scheme["avg_" + prefix + "_transaction"] || 0),  
+          statutory: Number(scheme["avg_" + prefix + "_statutory"] || 0),  
+          total_ter: Number(scheme["avg_" + prefix + "_total_ter"] || 0)  
+        };  
+      }  
+  
+      var periodDays = Number(comparePeriod || 0);  
+      var daily = await fetchCompareDailyData(scheme);  
+      if (!daily || !daily.length) {  
+        return { ber: 0, brokerage: 0, transaction: 0, statutory: 0, total_ter: 0 };  
+      }  
+  
+      var filtered = filterDataByWindow(daily, periodDays);  
+  
+      return {  
+        ber: calcAvg(filtered, prefix + "_ber"),  
+        brokerage: calcAvg(filtered, prefix + "_brokerage"),  
+        transaction: calcAvg(filtered, prefix + "_transaction"),  
+        statutory: calcAvg(filtered, prefix + "_statutory"),  
+        total_ter: calcAvg(filtered, prefix + "_total_ter")  
+      };  
+    }  
+  
+    async function updateCompare() {  
+      var selected = compareSlots.filter(Boolean);  
+      var head = document.getElementById("compareHead");  
+      var body = document.getElementById("compareBody");  
+  
+      if (selected.length < 2) {  
+        head.innerHTML = "";  
+        body.innerHTML = "";  
+        document.getElementById("compareResultCard").style.display = "none";  
+        return;  
+      }  
+  
+      document.getElementById("compareResultCard").style.display = "";  
+  
+      var planLabel = comparePlan === "direct" ? "Direct Plan" : "Regular Plan";  
+      var periodLabel =  
+        comparePeriod === "overall" ? "overall average" :  
+        comparePeriod === 30 ? "1 month average" :  
+        comparePeriod === 90 ? "3 month average" :  
+        comparePeriod === 180 ? "6 month average" :  
+        comparePeriod === 365 ? "1 year average" : "selected period";  
+  
+      document.getElementById("compareSubtitle").textContent =  
+        "Side-by-side TER breakdown (" + planLabel + ", " + periodLabel + ")";  
+  
+      var metrics = await Promise.all(selected.map(getCompareMetrics));  
+  
+      head.innerHTML =  
+        "<tr><th style='text-align:left'>Metric</th>" +  
+        selected.map(function (scheme) {  
+          return "<th>" + escapeHTML(scheme.scheme_name || "-") + "</th>";  
+        }).join("") +  
+        "</tr>";  
+  
+      var rows = [  
+        { key: "ber", label: "Base Expense Ratio (BER)" },  
+        { key: "brokerage", label: "Brokerage" },  
+        { key: "transaction", label: "Transaction" },  
+        { key: "statutory", label: "Statutory" },  
+        { key: "total_ter", label: "Total TER" }  
+      ];  
+  
+      body.innerHTML = rows.map(function (row) {  
+        var vals = metrics.map(function (m) { return Number(m[row.key] || 0); });  
+        var positiveVals = vals.filter(function (v) { return v > 0; });  
+        var best = positiveVals.length ? Math.min.apply(null, positiveVals) : null;  
+  
+        return "<tr>" +  
+          "<td class='metric-label'>" + escapeHTML(row.label) + "</td>" +  
+          vals.map(function (v) {  
+            var cls = (best !== null && v === best) ? "best-val" : "";  
+            return "<td class='" + cls + "'>" + fmt(v) + "</td>";  
+          }).join("") +  
+          "</tr>";  
+      }).join("");  
+    }  
+  
+    async function init() {  
+      try {  
+        var res = await fetch("data/summary.json");  
+        if (!res.ok) throw new Error("Unable to load summary data");  
+        summaryData = await res.json();  
+  
+        populateSchemeCategoryFilter();  
+        setupFilters();  
+        setupAutocomplete();  
+        setupMobileFilters();  
+        updateFilterCount();  
+        renderCompareSlots();  
+  
+        await showMarketDashboard();  
+        updateLowestTer();  
+        isInitialized = true;  
+  
+        document.addEventListener("click", function (e) {  
+          var compareView = document.getElementById("compareView");  
+          if (compareView && !compareView.contains(e.target)) {  
+            document.querySelectorAll(".compare-slot-dropdown").forEach(function (d) {  
+              d.classList.remove("show");  
+            });  
+          }  
         });  
-      });  
-    }  
+      } catch (e) {  
+        console.error(e);  
   
-    function updateSchemeRangeButtons() {  
-      document.querySelectorAll("[data-scheme-range]").forEach(btn => {  
-        btn.classList.toggle("active", btn.dataset.schemeRange === schemeRange);  
-      });  
-    }  
-  
-    function updateOverviewRangeButtons() {  
-      document.querySelectorAll("[data-overview-range]").forEach(btn => {  
-        btn.classList.toggle("active", btn.dataset.overviewRange === overviewRange);  
-      });  
-    }  
-  
-    dashboardTab.addEventListener("click", () => setActiveTab("dashboard"));  
-    compareTab.addEventListener("click", () => setActiveTab("compare"));  
-  
-    toggleFiltersBtn.addEventListener("click", () => {  
-      filtersPanel.classList.toggle("hidden");  
-    });  
-  
-    categoryFilterSelect.addEventListener("change", (e) => {  
-      categoryFilter = e.target.value;  
-      renderOverviewChart();  
-    });  
-  
-    searchInput.addEventListener("input", (e) => {  
-      const value = e.target.value;  
-      if (!value.trim()) {  
-        searchResults.classList.add("hidden");  
-        return;  
+        document.getElementById("viewTitle").textContent = "Unable to load data";  
+        document.getElementById("viewSubtitle").textContent = "Please check that data/summary.json and daily files are available.";  
+        document.getElementById("marketDirectTer").textContent = "-";  
+        document.getElementById("marketRegularTer").textContent = "-";  
+        document.getElementById("marketSpread").textContent = "-";  
+        document.getElementById("marketCategoryCount").textContent = "-";  
+        document.getElementById("lowestTerBody").innerHTML = '<tr><td colspan="3" class="empty-msg">Failed to load data</td></tr>';  
+        document.getElementById("dailyTableBody").innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load data</td></tr>';  
+        var updatedEl = document.getElementById("marketUpdatedText");  
+        if (updatedEl) updatedEl.textContent = "Updated: -";  
       }  
-      const results = searchFunds(value);  
-      renderSearchResults(results);  
-    });  
-  
-    document.querySelectorAll("[data-overview-range]").forEach(btn => {  
-      btn.addEventListener("click", () => {  
-        overviewRange = btn.dataset.overviewRange;  
-        updateOverviewRangeButtons();  
-        renderOverviewChart(); // should update instantly even on first load  
-      });  
-    });  
-  
-    document.querySelectorAll("[data-scheme-range]").forEach(btn => {  
-      btn.addEventListener("click", () => {  
-        schemeRange = btn.dataset.schemeRange;  
-        updateSchemeRangeButtons();  
-        updateDashboard();  
-      });  
-    });  
-  
-    document.addEventListener("click", (e) => {  
-      if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {  
-        searchResults.classList.add("hidden");  
-      }  
-    });  
-  
-    function initDefaultFund() {  
-      selectedFund = fundsData[0] || null;  
-      if (selectedFund) {  
-        searchInput.value = selectedFund.schemeName || "";  
-      }  
-    }  
-  
-    function init() {  
-      populateCategories();  
-      initDefaultFund();  
-      setActiveTab("dashboard");  
-      updateOverviewRangeButtons();  
-      updateSchemeRangeButtons();  
-      renderOverviewChart(); // render on first load  
-      updateDashboard();     // line chart default 1M  
     }  
   
     init();  
