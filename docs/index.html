@@ -29,6 +29,7 @@
   
     * { box-sizing: border-box; margin: 0; padding: 0; }  
     html { scroll-behavior: smooth; }  
+  
     body {  
       min-height: 100vh;  
       background: var(--background);  
@@ -165,7 +166,9 @@
   
     .autocomplete-item:last-child { border-bottom: 0; }  
     .autocomplete-item:hover { background: var(--soft); }  
+  
     .autocomplete-name { color: var(--text); font-weight: 700; }  
+  
     .autocomplete-meta {  
       color: var(--muted);  
       font-size: 12px;  
@@ -522,7 +525,22 @@
     .chart-shell {  
       height: 380px;  
       min-width: 0;  
+      position: relative;  
     }  
+  
+    .chart-loading {  
+      position: absolute;  
+      inset: 0;  
+      display: none;  
+      align-items: center;  
+      justify-content: center;  
+      background: rgba(255,255,255,0.7);  
+      color: var(--muted);  
+      font-weight: 800;  
+      z-index: 2;  
+    }  
+  
+    .chart-loading.show { display: flex; }  
   
     .chart-range {  
       display: flex;  
@@ -1178,6 +1196,7 @@
             </div>  
   
             <div class="chart-shell">  
+              <div class="chart-loading" id="chartLoading">Loading chart...</div>  
               <canvas id="terChart"></canvas>  
             </div>  
   
@@ -1308,8 +1327,6 @@
       </div>  
     </div>  
   </section>  
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
   <script>  
     var summaryData = null;  
     var chart = null;  
@@ -1331,10 +1348,70 @@
     var comparePlan = "direct";  
     var comparePeriod = "overall";  
     var compareDailyCache = {};  
+  
     var latestMarketRequestId = 0;  
     var marketDailyCache = {};  
     var schemeAvgCache = {};  
-    var isInitialized = false;  
+  
+    var manualFilterState = {  
+      asset: false,  
+      schemeCategory: false  
+    };  
+  
+    var searchContext = {  
+      hasSelectedFromSearch: false,  
+      autoAppliedFilterFromSearch: false  
+    };  
+  
+    var marketValueLabelsPluginDef = {  
+      id: "marketValueLabels",  
+      afterDatasetsDraw: function (chartInstance) {  
+        if (!chartInstance || chartInstance.config.type !== "bar") return;  
+  
+        var ctx = chartInstance.ctx;  
+        ctx.save();  
+        ctx.fillStyle = "#334155";  
+        ctx.font = "800 11px 'Plus Jakarta Sans', sans-serif";  
+        ctx.textAlign = "center";  
+        ctx.textBaseline = "bottom";  
+  
+        chartInstance.data.datasets.forEach(function (dataset, datasetIndex) {  
+          var meta = chartInstance.getDatasetMeta(datasetIndex);  
+          if (!meta || meta.hidden) return;  
+  
+          meta.data.forEach(function (bar, index) {  
+            var value = Number(dataset.data[index] || 0);  
+            if (!value || value <= 0) return;  
+            ctx.fillText(value.toFixed(2) + "%", bar.x, bar.y - 4);  
+          });  
+        });  
+  
+        ctx.restore();  
+      }  
+    };  
+  
+    var hoverGuidePluginDef = {  
+      id: "hoverGuide",  
+      afterDraw: function (chartInstance) {  
+        var tooltip = chartInstance.tooltip;  
+        if (!tooltip || !tooltip._active || !tooltip._active.length) return;  
+  
+        var ctx = chartInstance.ctx;  
+        var activePoint = tooltip._active[0];  
+        var x = activePoint.element.x;  
+        var topY = chartInstance.chartArea.top;  
+        var bottomY = chartInstance.chartArea.bottom;  
+  
+        ctx.save();  
+        ctx.beginPath();  
+        ctx.moveTo(x, topY);  
+        ctx.lineTo(x, bottomY);  
+        ctx.lineWidth = 1;  
+        ctx.strokeStyle = "rgba(148,163,184,0.35)";  
+        ctx.stroke();  
+        ctx.restore();  
+      }  
+    };  
   
     function debounce(fn, ms) {  
       var t;  
@@ -1369,6 +1446,40 @@
       return currentPlan === "direct" ? "d" : "r";  
     }  
   
+    function comparePlanPrefix() {  
+      return comparePlan === "direct" ? "d" : "r";  
+    }  
+  
+    function safeNum(n) {  
+      var v = Number(n || 0);  
+      return isFinite(v) ? v : 0;  
+    }  
+  
+    function avgArray(arr) {  
+      if (!arr || !arr.length) return 0;  
+      return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;  
+    }  
+  
+    function setChartLoading(show, text) {  
+      var el = document.getElementById("chartLoading");  
+      if (!el) return;  
+      el.textContent = text || "Loading chart...";  
+      el.classList.toggle("show", !!show);  
+    }  
+  
+    function destroyChart() {  
+      if (chart) {  
+        chart.destroy();  
+        chart = null;  
+      }  
+    }  
+  
+    function ensureCanvasReady() {  
+      var canvas = document.getElementById("terChart");  
+      if (!canvas) return null;  
+      return canvas.getContext("2d");  
+    }  
+  
     function formatChartDate(value) {  
       if (!value) return "-";  
       var parts = value.split("-");  
@@ -1380,7 +1491,11 @@
       if (!value) return "-";  
       var date = new Date(value + "T00:00:00");  
       if (Number.isNaN(date.getTime())) return value;  
-      return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });  
+      return date.toLocaleDateString("en-GB", {  
+        day: "2-digit",  
+        month: "short",  
+        year: "2-digit"  
+      });  
     }  
   
     function formatISTDateOnly(value) {  
@@ -1400,257 +1515,53 @@
       });  
     }  
   
+    function normalizeCategory(cat) {  
+      return String(cat || "").trim();  
+    }  
+  
     function getAssetCategory(schemeCategory) {  
-      var cat = schemeCategory || "";  
-      if (cat.indexOf("Equity Scheme") === 0 || cat === "ELSS") return "Equity";  
-      if (cat.indexOf("Debt Scheme") === 0 || cat === "Income") return "Debt";  
-      if (cat.indexOf("Hybrid Scheme") === 0) return "Hybrid";  
+      var cat = normalizeCategory(schemeCategory).toLowerCase();  
+  
+      if (!cat) return "Others";  
+  
+      if (cat.indexOf("equity scheme") === 0) return "Equity";  
+      if (cat.indexOf("debt scheme") === 0) return "Debt";  
+      if (cat.indexOf("hybrid scheme") === 0) return "Hybrid";  
+  
+      if (cat === "elss") return "Equity";  
+      if (cat === "income") return "Debt";  
+  
+      if (  
+        cat.indexOf("arbitrage") !== -1 ||  
+        cat.indexOf("equity savings") !== -1 ||  
+        cat.indexOf("balanced advantage") !== -1 ||  
+        cat.indexOf("multi asset allocation") !== -1 ||  
+        cat.indexOf("aggressive hybrid") !== -1 ||  
+        cat.indexOf("conservative hybrid") !== -1 ||  
+        cat.indexOf("dynamic asset allocation") !== -1  
+      ) {  
+        return "Hybrid";  
+      }  
+  
+      if (  
+        cat.indexOf("liquid") !== -1 ||  
+        cat.indexOf("overnight") !== -1 ||  
+        cat.indexOf("money market") !== -1 ||  
+        cat.indexOf("corporate bond") !== -1 ||  
+        cat.indexOf("credit risk") !== -1 ||  
+        cat.indexOf("banking and psu") !== -1 ||  
+        cat.indexOf("gilt") !== -1 ||  
+        cat.indexOf("floater") !== -1 ||  
+        cat.indexOf("low duration") !== -1 ||  
+        cat.indexOf("medium duration") !== -1 ||  
+        cat.indexOf("short duration") !== -1 ||  
+        cat.indexOf("ultra short") !== -1 ||  
+        cat.indexOf("long duration") !== -1  
+      ) {  
+        return "Debt";  
+      }  
+  
       return "Others";  
-    }  
-  
-    function getSelectedAssets() {  
-      return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
-        return input.value;  
-      });  
-    }  
-  
-    function getSchemeCategoriesForAsset() {  
-      var categories = (summaryData && summaryData.categories) ? summaryData.categories : [];  
-      var selectedAssets = getSelectedAssets();  
-      if (!selectedAssets.length || selectedAssets.length === 4) return categories;  
-      return categories.filter(function (cat) {  
-        return selectedAssets.indexOf(getAssetCategory(cat)) !== -1;  
-      });  
-    }  
-  
-    function populateSchemeCategoryFilter() {  
-      var sel = document.getElementById("schemeCategoryFilter");  
-      if (!sel) return;  
-      var selected = sel.value;  
-      sel.innerHTML = '<option value="">All Scheme Categories</option>';  
-      getSchemeCategoriesForAsset().forEach(function (cat) {  
-        var opt = document.createElement("option");  
-        opt.value = cat;  
-        opt.textContent = cat;  
-        sel.appendChild(opt);  
-      });  
-      if ([].slice.call(sel.options).some(function (opt) { return opt.value === selected; })) {  
-        sel.value = selected;  
-      }  
-    }  
-  
-    function updateFilterCount() {  
-      var el = document.getElementById("filterCount");  
-      if (el) el.textContent = filteredSchemes().length.toLocaleString();  
-    }  
-  
-    function filteredSchemes() {  
-      var catEl = document.getElementById("schemeCategoryFilter");  
-      var cat = catEl ? catEl.value : "";  
-      var queryEl = document.getElementById("searchInput");  
-      var query = queryEl ? queryEl.value.toLowerCase().trim() : "";  
-      var selectedAssets = getSelectedAssets();  
-      var schemes = (summaryData && summaryData.schemes) ? summaryData.schemes.slice() : [];  
-  
-      if (selectedAssets.length) {  
-        schemes = schemes.filter(function (s) {  
-          return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1;  
-        });  
-      }  
-  
-      if (cat) {  
-        schemes = schemes.filter(function (s) { return s.category === cat; });  
-      }  
-  
-      if (query) {  
-        schemes = schemes.filter(function (s) {  
-          return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
-                 (s.scheme_code || "").toLowerCase().indexOf(query) !== -1;  
-        });  
-      }  
-  
-      return schemes;  
-    }  
-  
-    function setupFilters() {  
-      document.querySelectorAll(".asset-checkbox").forEach(function (input) {  
-        input.addEventListener("change", async function () {  
-          populateSchemeCategoryFilter();  
-          updateFilterCount();  
-          if (!currentScheme) await showMarketDashboard();  
-          await updateLowestTer();  
-        });  
-      });  
-  
-      document.querySelectorAll("input[name='planType']").forEach(function (input) {  
-        input.addEventListener("change", async function () {  
-          if (input.checked) await switchPlan(input.value);  
-        });  
-      });  
-  
-      var sel = document.getElementById("schemeCategoryFilter");  
-      if (sel) {  
-        sel.addEventListener("change", async function () {  
-          updateFilterCount();  
-          if (!currentScheme) await showMarketDashboard();  
-          await updateLowestTer();  
-        });  
-      }  
-    }  
-  
-    function setupAutocomplete() {  
-      var input = document.getElementById("searchInput");  
-      var dropdown = document.getElementById("autocompleteDropdown");  
-      if (!input || !dropdown) return;  
-  
-      input.addEventListener("input", debounce(async function () {  
-        var query = input.value.toLowerCase().trim();  
-        updateFilterCount();  
-  
-        if (query.length < 2) {  
-          dropdown.classList.remove("show");  
-          dropdown.innerHTML = "";  
-  
-          if (query.length === 0) {  
-            currentScheme = null;  
-            currentDailyData = null;  
-            currentWindowDays = DEFAULT_SCHEME_WINDOW_DAYS;  
-            await showMarketDashboard();  
-            updateTable([]);  
-            await updateLowestTer();  
-          }  
-          return;  
-        }  
-  
-        var results = filteredSchemes().slice(0, 14);  
-  
-        if (!results.length) {  
-          dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
-          dropdown.classList.add("show");  
-          return;  
-        }  
-  
-        dropdown.innerHTML = "";  
-  
-        results.forEach(function (s) {  
-          var item = document.createElement("div");  
-          item.className = "autocomplete-item";  
-  
-          var name = s.scheme_name || "";  
-          var lower = name.toLowerCase();  
-          var idx = lower.indexOf(query);  
-          var highlighted = escapeHTML(name);  
-  
-          if (idx >= 0) {  
-            highlighted =  
-              escapeHTML(name.slice(0, idx)) +  
-              '<span class="highlight">' + escapeHTML(name.slice(idx, idx + query.length)) + '</span>' +  
-              escapeHTML(name.slice(idx + query.length));  
-          }  
-  
-          item.innerHTML =  
-            '<div class="autocomplete-name">' + highlighted + '</div>' +  
-            '<div class="autocomplete-meta">' + escapeHTML(s.scheme_code || "") + " | " + escapeHTML(s.category || "") + '</div>';  
-  
-          item.addEventListener("click", function () {  
-            input.value = "";  
-            dropdown.classList.remove("show");  
-            selectScheme(s);  
-          });  
-  
-          dropdown.appendChild(item);  
-        });  
-  
-        dropdown.classList.add("show");  
-      }, 120));  
-  
-      document.addEventListener("click", function (e) {  
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove("show");  
-      });  
-  
-      input.addEventListener("keydown", function (e) {  
-        if (e.key === "Escape") dropdown.classList.remove("show");  
-      });  
-    }  
-    function setupMobileFilters() {  
-      var btn = document.getElementById("mobileFilterBtn");  
-      var content = document.getElementById("filterContent");  
-      if (!btn || !content) return;  
-  
-      btn.addEventListener("click", function () {  
-        var isOpen = content.classList.toggle("show");  
-        btn.setAttribute("aria-expanded", isOpen ? "true" : "false");  
-      });  
-  
-      function syncFiltersForViewport() {  
-        if (window.innerWidth > 760) {  
-          content.classList.remove("show");  
-          btn.setAttribute("aria-expanded", "false");  
-        }  
-      }  
-  
-      window.addEventListener("resize", syncFiltersForViewport);  
-      syncFiltersForViewport();  
-    }  
-  
-    async function clearFilters() {  
-      document.querySelectorAll(".asset-checkbox").forEach(function (input) { input.checked = false; });  
-      document.querySelectorAll("input[name='planType']").forEach(function (input) { input.checked = false; });  
-  
-      currentPlan = "direct";  
-      currentWindowDays = DEFAULT_SCHEME_WINDOW_DAYS;  
-  
-      var btnDirect = document.getElementById("btnDirect");  
-      var btnRegular = document.getElementById("btnRegular");  
-      if (btnDirect) btnDirect.checked = true;  
-      if (btnRegular) btnRegular.checked = false;  
-  
-      var search = document.getElementById("searchInput");  
-      if (search) search.value = "";  
-  
-      populateSchemeCategoryFilter();  
-  
-      var schemeSel = document.getElementById("schemeCategoryFilter");  
-      if (schemeSel) schemeSel.value = "";  
-  
-      currentScheme = null;  
-      currentDailyData = null;  
-  
-      document.getElementById("tablePlanLabel").textContent = "Direct Plan";  
-  
-      updateSchemeRangeButtons();  
-      updateFilterCount();  
-      await showMarketDashboard();  
-      updateTable([]);  
-      await updateLowestTer();  
-    }  
-    window.clearFilters = clearFilters;  
-  
-    function sortedByDateAsc(data) {  
-      return (data || []).slice().sort(function (a, b) {  
-        return new Date(a.date) - new Date(b.date);  
-      });  
-    }  
-  
-    function filterDataByWindow(data, windowDays) {  
-      if (!data || !data.length || windowDays === 0) return sortedByDateAsc(data || []);  
-      var sorted = sortedByDateAsc(data);  
-      var lastDate = new Date(sorted[sorted.length - 1].date);  
-      var cutoff = new Date(lastDate);  
-      cutoff.setDate(cutoff.getDate() - windowDays);  
-      return sorted.filter(function (d) {  
-        return new Date(d.date) > cutoff;  
-      });  
-    }  
-  
-    function avgArray(arr) {  
-      if (!arr || !arr.length) return 0;  
-      return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;  
-    }  
-  
-    function safeNum(n) {  
-      var v = Number(n || 0);  
-      return isFinite(v) ? v : 0;  
     }  
   
     function periodSuffix(days) {  
@@ -1669,18 +1580,184 @@
       return ("avg_d_total_ter" + suf in first) && ("avg_r_total_ter" + suf in first);  
     }  
   
-    async function fetchMarketDailyData(scheme) {  
-      if (!scheme || !scheme.id) return [];  
-      if (marketDailyCache[scheme.id]) return marketDailyCache[scheme.id];  
+    function sortedByDateAsc(data) {  
+      return (data || []).slice().sort(function (a, b) {  
+        return new Date(a.date + "T00:00:00") - new Date(b.date + "T00:00:00");  
+      });  
+    }  
+  
+    function filterDataByWindow(data, windowDays) {  
+      if (!data || !data.length || windowDays === 0) return sortedByDateAsc(data || []);  
+  
+      var sorted = sortedByDateAsc(data);  
+      var lastDate = new Date(sorted[sorted.length - 1].date + "T00:00:00");  
+      var cutoff = new Date(lastDate);  
+      cutoff.setDate(cutoff.getDate() - windowDays);  
+  
+      return sorted.filter(function (d) {  
+        return new Date(d.date + "T00:00:00") > cutoff;  
+      });  
+    }  
+  
+    function calcAvg(data, key) {  
+      if (!data || !data.length) return 0;  
+      var values = data  
+        .map(function (d) { return Number(d[key] || 0); })  
+        .filter(function (v) { return isFinite(v); });  
+      if (!values.length) return 0;  
+      return values.reduce(function (a, b) { return a + b; }, 0) / values.length;  
+    }  
+  
+    function getSelectedAssets() {  
+      return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
+        return input.value;  
+      });  
+    }  
+  
+    function getSchemeCategoriesForAsset() {  
+      var categories = (summaryData && summaryData.categories) ? summaryData.categories : [];  
+      var selectedAssets = getSelectedAssets();  
+  
+      if (!selectedAssets.length || selectedAssets.length === 4) return categories;  
+  
+      return categories.filter(function (cat) {  
+        return selectedAssets.indexOf(getAssetCategory(cat)) !== -1;  
+      });  
+    }  
+  
+    function populateSchemeCategoryFilter() {  
+      var sel = document.getElementById("schemeCategoryFilter");  
+      if (!sel) return;  
+  
+      var selected = sel.value;  
+      sel.innerHTML = '<option value="">All Scheme Categories</option>';  
+  
+      getSchemeCategoriesForAsset().forEach(function (cat) {  
+        var opt = document.createElement("option");  
+        opt.value = cat;  
+        opt.textContent = cat;  
+        sel.appendChild(opt);  
+      });  
+  
+      var exists = [].slice.call(sel.options).some(function (opt) {  
+        return opt.value === selected;  
+      });  
+  
+      if (exists) sel.value = selected;  
+      else sel.value = "";  
+    }  
+  
+    function hasAnyManualFilter() {  
+      if (manualFilterState.asset || manualFilterState.schemeCategory) return true;  
+      return false;  
+    }  
+  
+    function setAssetCheckboxes(values) {  
+      var selected = values || [];  
+      document.querySelectorAll(".asset-checkbox").forEach(function (cb) {  
+        cb.checked = selected.indexOf(cb.value) !== -1;  
+      });  
+    }  
+  
+    function clearAutoAppliedSearchFilters() {  
+      if (!searchContext.autoAppliedFilterFromSearch) return;  
+  
+      if (!hasAnyManualFilter()) {  
+        setAssetCheckboxes([]);  
+        populateSchemeCategoryFilter();  
+        var sel = document.getElementById("schemeCategoryFilter");  
+        if (sel) sel.value = "";  
+      }  
+  
+      searchContext.autoAppliedFilterFromSearch = false;  
+    }  
+  
+    function updateFilterCount() {  
+      var el = document.getElementById("filterCount");  
+      if (el) el.textContent = filteredSchemes().length.toLocaleString();  
+    }  
+  
+    function filteredSchemes(options) {  
+      options = options || {};  
+  
+      var catEl = document.getElementById("schemeCategoryFilter");  
+      var selectedCategory = catEl ? catEl.value : "";  
+  
+      var queryEl = document.getElementById("searchInput");  
+      var query = options.query != null  
+        ? String(options.query).toLowerCase().trim()  
+        : (queryEl ? queryEl.value.toLowerCase().trim() : "");  
+  
+      var applyFilters = options.ignoreFilters ? false : true;  
+      var applySearch = options.ignoreQuery ? false : true;  
+  
+      var selectedAssets = applyFilters ? getSelectedAssets() : [];  
+      var schemes = (summaryData && summaryData.schemes) ? summaryData.schemes.slice() : [];  
+  
+      if (applyFilters && selectedAssets.length) {  
+        schemes = schemes.filter(function (s) {  
+          return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1;  
+        });  
+      }  
+  
+      if (applyFilters && selectedCategory) {  
+        schemes = schemes.filter(function (s) {  
+          return String(s.category || "") === selectedCategory;  
+        });  
+      }  
+  
+      if (applySearch && query) {  
+        schemes = schemes.filter(function (s) {  
+          return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
+                 (s.scheme_code || "").toLowerCase().indexOf(query) !== -1;  
+        });  
+      }  
+  
+      return schemes;  
+    }  
+  
+    function getAutocompleteResults(query) {  
+      query = String(query || "").trim().toLowerCase();  
+      if (!query) return [];  
+  
+      var shouldRespectFilters = hasAnyManualFilter();  
+      var base = shouldRespectFilters  
+        ? filteredSchemes({ query: query, ignoreQuery: false, ignoreFilters: false })  
+        : filteredSchemes({ query: query, ignoreQuery: false, ignoreFilters: true });  
+  
+      return base.slice(0, 14);  
+    }  
+  
+    async function fetchDailyDataBySchemeId(id) {  
+      if (!id) return [];  
+      if (marketDailyCache[id]) return marketDailyCache[id];  
   
       try {  
-        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        var res = await fetch("data/daily/" + id + ".json");  
         if (!res.ok) return [];  
         var data = await res.json();  
-        marketDailyCache[scheme.id] = data;  
-        return data;  
+        marketDailyCache[id] = Array.isArray(data) ? data : [];  
+        return marketDailyCache[id];  
       } catch (e) {  
         return [];  
+      }  
+    }  
+  
+    async function fetchMarketDailyData(scheme) {  
+      if (!scheme || !scheme.id) return [];  
+      return fetchDailyDataBySchemeId(scheme.id);  
+    }  
+  
+    async function fetchCompareDailyData(scheme) {  
+      if (!scheme || !scheme.id) return null;  
+      if (compareDailyCache[scheme.id]) return compareDailyCache[scheme.id];  
+  
+      try {  
+        var data = await fetchDailyDataBySchemeId(scheme.id);  
+        compareDailyCache[scheme.id] = data;  
+        return data;  
+      } catch (e) {  
+        return null;  
       }  
     }  
   
@@ -1705,10 +1782,12 @@
   
     function updateSchemeRangeButtons() {  
       document.querySelectorAll(".range-btn").forEach(function (button) {  
-        var label = currentWindowDays === 30 ? "1M" :  
-                    currentWindowDays === 90 ? "3M" :  
-                    currentWindowDays === 180 ? "6M" :  
-                    currentWindowDays === 365 ? "1Y" : "All";  
+        var label =  
+          currentWindowDays === 30 ? "1M" :  
+          currentWindowDays === 90 ? "3M" :  
+          currentWindowDays === 180 ? "6M" :  
+          currentWindowDays === 365 ? "1Y" : "All";  
+  
         button.classList.toggle("active", button.textContent.trim() === label);  
       });  
     }  
@@ -1716,341 +1795,293 @@
     async function setWindow(days) {  
       currentWindowDays = days;  
       updateSchemeRangeButtons();  
-  
-      if (!summaryData) return;  
-  
-      if (currentScheme) {  
-        refreshDisplay();  
-      }  
+      if (currentScheme) refreshDisplay();  
     }  
     window.setWindow = setWindow;  
   
-    async function switchPlan(plan) {  
-      currentPlan = plan;  
-      document.getElementById("btnDirect").checked = plan === "direct";  
-      document.getElementById("btnRegular").checked = plan === "regular";  
-      document.getElementById("tablePlanLabel").textContent = plan === "direct" ? "Direct Plan" : "Regular Plan";  
+    function renderAutocompleteResults(results, query) {  
+      var dropdown = document.getElementById("autocompleteDropdown");  
+      if (!dropdown) return;  
   
+      if (!results.length) {  
+        dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
+        dropdown.classList.add("show");  
+        return;  
+      }  
+  
+      dropdown.innerHTML = "";  
+  
+      results.forEach(function (s) {  
+        var item = document.createElement("div");  
+        item.className = "autocomplete-item";  
+  
+        var name = s.scheme_name || "";  
+        var lower = name.toLowerCase();  
+        var q = String(query || "").toLowerCase();  
+        var idx = lower.indexOf(q);  
+        var highlighted = escapeHTML(name);  
+  
+        if (idx >= 0) {  
+          highlighted =  
+            escapeHTML(name.slice(0, idx)) +  
+            '<span class="highlight">' + escapeHTML(name.slice(idx, idx + q.length)) + '</span>' +  
+            escapeHTML(name.slice(idx + q.length));  
+        }  
+  
+        item.innerHTML =  
+          '<div class="autocomplete-name">' + highlighted + '</div>' +  
+          '<div class="autocomplete-meta">' + escapeHTML(s.scheme_code || "") + " | " + escapeHTML(s.category || "") + '</div>';  
+  
+        item.addEventListener("click", function () {  
+          var input = document.getElementById("searchInput");  
+          if (input) input.value = "";  
+          dropdown.classList.remove("show");  
+          selectScheme(s, { fromSearch: true });  
+        });  
+  
+        dropdown.appendChild(item);  
+      });  
+  
+      dropdown.classList.add("show");  
+    }  
+  
+    function setupAutocomplete() {  
+      var input = document.getElementById("searchInput");  
+      var dropdown = document.getElementById("autocompleteDropdown");  
+      if (!input || !dropdown) return;  
+  
+      input.addEventListener("focus", function () {  
+        if (searchContext.hasSelectedFromSearch && !hasAnyManualFilter()) {  
+          clearAutoAppliedSearchFilters();  
+          updateFilterCount();  
+        }  
+      });  
+  
+      input.addEventListener("input", debounce(async function () {  
+        var query = input.value.toLowerCase().trim();  
+  
+        if (searchContext.hasSelectedFromSearch && query.length > 0 && !hasAnyManualFilter()) {  
+          clearAutoAppliedSearchFilters();  
+        }  
+  
+        updateFilterCount();  
+  
+        if (query.length < 2) {  
+          dropdown.classList.remove("show");  
+          dropdown.innerHTML = "";  
+  
+          if (query.length === 0 && !currentScheme) {  
+            await showMarketDashboard();  
+            await updateLowestTer();  
+          }  
+          return;  
+        }  
+  
+        var results = getAutocompleteResults(query);  
+        renderAutocompleteResults(results, query);  
+      }, 100));  
+  
+      document.addEventListener("click", function (e) {  
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {  
+          dropdown.classList.remove("show");  
+        }  
+      });  
+  
+      input.addEventListener("keydown", function (e) {  
+        if (e.key === "Escape") dropdown.classList.remove("show");  
+      });  
+    }  
+  
+    function setupMobileFilters() {  
+      var btn = document.getElementById("mobileFilterBtn");  
+      var content = document.getElementById("filterContent");  
+      if (!btn || !content) return;  
+  
+      btn.addEventListener("click", function () {  
+        var isOpen = content.classList.toggle("show");  
+        btn.setAttribute("aria-expanded", isOpen ? "true" : "false");  
+      });  
+  
+      function syncFiltersForViewport() {  
+        if (window.innerWidth > 760) {  
+          content.classList.remove("show");  
+          btn.setAttribute("aria-expanded", "false");  
+        }  
+      }  
+  
+      window.addEventListener("resize", syncFiltersForViewport);  
+      syncFiltersForViewport();  
+    }  
+  
+    function setupFilters() {  
+      document.querySelectorAll(".asset-checkbox").forEach(function (input) {  
+        input.addEventListener("change", async function () {  
+          manualFilterState.asset = getSelectedAssets().length > 0;  
+          searchContext.hasSelectedFromSearch = false;  
+          searchContext.autoAppliedFilterFromSearch = false;  
+  
+          populateSchemeCategoryFilter();  
+          updateFilterCount();  
+  
+          if (!currentScheme) {  
+            await showMarketDashboard();  
+          }  
+          await updateLowestTer();  
+        });  
+      });  
+  
+      document.querySelectorAll("input[name='planType']").forEach(function (input) {  
+        input.addEventListener("change", async function () {  
+          if (input.checked) await switchPlan(input.value);  
+        });  
+      });  
+  
+      var sel = document.getElementById("schemeCategoryFilter");  
+      if (sel) {  
+        sel.addEventListener("change", async function () {  
+          manualFilterState.schemeCategory = !!sel.value;  
+          searchContext.hasSelectedFromSearch = false;  
+          searchContext.autoAppliedFilterFromSearch = false;  
+  
+          updateFilterCount();  
+  
+          if (!currentScheme) {  
+            await showMarketDashboard();  
+          }  
+          await updateLowestTer();  
+        });  
+      }  
+    }  
+  
+    async function clearFilters() {  
+      setAssetCheckboxes([]);  
+      manualFilterState.asset = false;  
+      manualFilterState.schemeCategory = false;  
+  
+      document.querySelectorAll("input[name='planType']").forEach(function (input) {  
+        input.checked = false;  
+      });  
+  
+      currentPlan = "direct";  
+      currentWindowDays = DEFAULT_SCHEME_WINDOW_DAYS;  
+  
+      var btnDirect = document.getElementById("btnDirect");  
+      var btnRegular = document.getElementById("btnRegular");  
+      if (btnDirect) btnDirect.checked = true;  
+      if (btnRegular) btnRegular.checked = false;  
+  
+      var search = document.getElementById("searchInput");  
+      if (search) search.value = "";  
+  
+      populateSchemeCategoryFilter();  
+  
+      var schemeSel = document.getElementById("schemeCategoryFilter");  
+      if (schemeSel) schemeSel.value = "";  
+  
+      currentScheme = null;  
+      currentDailyData = null;  
+      currentTableData = [];  
+      searchContext.hasSelectedFromSearch = false;  
+      searchContext.autoAppliedFilterFromSearch = false;  
+  
+      document.getElementById("tablePlanLabel").textContent = "Direct Plan";  
+  
+      updateSchemeRangeButtons();  
       updateFilterCount();  
+  
+      await showMarketDashboard();  
+      updateTable([]);  
       await updateLowestTer();  
-  
-      if (currentScheme) refreshDisplay();  
-      else await showMarketDashboard();  
     }  
-    window.switchPlan = switchPlan;  
+    window.clearFilters = clearFilters;  
   
-    async function fetchCompareDailyData(scheme) {  
-      if (!scheme || !scheme.id) return null;  
-      if (compareDailyCache[scheme.id]) return compareDailyCache[scheme.id];  
+    function buildRollingAverageLine(data, key) {  
+      var sorted = sortedByDateAsc(data || []);  
+      if (!sorted.length) return [];  
   
-      try {  
-        var res = await fetch("data/daily/" + scheme.id + ".json");  
-        if (!res.ok) return null;  
-        var data = await res.json();  
-        compareDailyCache[scheme.id] = data;  
-        return data;  
-      } catch (e) {  
-        return null;  
-      }  
-    }  
-  
-    async function getSchemeAverageTerForWindow(scheme, plan, windowDays) {  
-      if (!scheme) return 0;  
-  
-      var cacheKey = [scheme.id, plan, windowDays].join("|");  
-      if (cacheKey in schemeAvgCache) return schemeAvgCache[cacheKey];  
-  
-      var prefix = plan === "direct" ? "d" : "r";  
-      var suffix = periodSuffix(windowDays);  
-      var summaryKey = suffix ? ("avg_" + prefix + "_total_ter" + suffix) : ("avg_" + prefix + "_total_ter");  
-  
-      var summaryVal = Number(scheme[summaryKey] || 0);  
-      if (summaryVal > 0) {  
-        schemeAvgCache[cacheKey] = summaryVal;  
-        return summaryVal;  
-      }  
-  
-      try {  
-        var data = await fetchMarketDailyData(scheme);  
-        if (!data || !data.length) {  
-          schemeAvgCache[cacheKey] = 0;  
-          return 0;  
-        }  
-  
-        var filtered = filterDataByWindow(data, windowDays);  
-        if (!filtered.length) {  
-          schemeAvgCache[cacheKey] = 0;  
-          return 0;  
-        }  
-  
-        var vals = filtered  
-          .map(function (d) { return Number(d[prefix + "_total_ter"] || 0); })  
-          .filter(function (v) { return isFinite(v) && v > 0; });  
-  
-        var avg = avgArray(vals);  
-        schemeAvgCache[cacheKey] = avg;  
-        return avg;  
-      } catch (e) {  
-        schemeAvgCache[cacheKey] = 0;  
-        return 0;  
-      }  
-    }  
-  
-    async function computeMarketSnapshot(schemes, windowDays) {  
-      schemes = schemes || [];  
-  
-      var distinctCategories = {};  
-      schemes.forEach(function (s) {  
-        if (s.category) distinctCategories[s.category] = true;  
-      });  
-  
-      var buckets = { Equity: [], Debt: [], Hybrid: [], Others: [] };  
-      schemes.forEach(function (s) {  
-        var b = getAssetCategory(s.category);  
-        if (!buckets[b]) buckets[b] = [];  
-        buckets[b].push(s);  
-      });  
-  
-      var labels = ["Equity", "Debt", "Hybrid", "Others"].filter(function (b) {  
-        return buckets[b] && buckets[b].length;  
-      });  
-  
-      var dKey = "avg_d_total_ter";  
-      var rKey = "avg_r_total_ter";  
-      var canUseSummary = false;  
-  
+      var windowDays = currentWindowDays;  
       if (windowDays === 0) {  
-        canUseSummary = true;  
-      } else if (summaryHasKeysForPeriod(windowDays)) {  
-        var suf = periodSuffix(windowDays);  
-        dKey = "avg_d_total_ter" + suf;  
-        rKey = "avg_r_total_ter" + suf;  
-        canUseSummary = true;  
+        windowDays = Math.max(2, sorted.length);  
       }  
   
-      if (canUseSummary) {  
-        var allD = [];  
-        var allR = [];  
-        var perBucketD = {};  
-        var perBucketR = {};  
+      return sorted.map(function (point, index) {  
+        var currentDate = new Date(point.date + "T00:00:00");  
+        var startDate = new Date(currentDate);  
+        startDate.setDate(startDate.getDate() - windowDays + 1);  
   
-        labels.forEach(function (b) {  
-          perBucketD[b] = [];  
-          perBucketR[b] = [];  
-        });  
-  
-        schemes.forEach(function (s) {  
-          var b = getAssetCategory(s.category);  
-          var dv = safeNum(s[dKey]);  
-          var rv = safeNum(s[rKey]);  
-  
-          if (dv > 0) {  
-            allD.push(dv);  
-            perBucketD[b].push(dv);  
+        var vals = [];  
+        for (var i = 0; i <= index; i++) {  
+          var itemDate = new Date(sorted[i].date + "T00:00:00");  
+          if (itemDate >= startDate && itemDate <= currentDate) {  
+            var v = Number(sorted[i][key] || 0);  
+            if (isFinite(v)) vals.push(v);  
           }  
-          if (rv > 0) {  
-            allR.push(rv);  
-            perBucketR[b].push(rv);  
-          }  
-        });  
-  
-        return {  
-          labels: labels,  
-          barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
-          barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
-          directAvg: avgArray(allD),  
-          regularAvg: avgArray(allR),  
-          categoriesCount: Object.keys(distinctCategories).length  
-        };  
-      }  
-  
-      async function computeSchemeWindowAvg(s) {  
-        var data = await fetchMarketDailyData(s);  
-        if (!data || !data.length) {  
-          return null;  
         }  
-  
-        var filtered = filterDataByWindow(data, windowDays);  
-        if (!filtered.length) return null;  
-  
-        var dVals = filtered  
-          .map(function (d) { return safeNum(d.d_total_ter); })  
-          .filter(function (v) { return v > 0; });  
-  
-        var rVals = filtered  
-          .map(function (d) { return safeNum(d.r_total_ter); })  
-          .filter(function (v) { return v > 0; });  
-  
-        return {  
-          bucket: getAssetCategory(s.category),  
-          d: avgArray(dVals),  
-          r: avgArray(rVals)  
-        };  
-      }  
-  
-      var computed = await mapWithConcurrency(schemes, 6, computeSchemeWindowAvg);  
-  
-      var allD2 = [];  
-      var allR2 = [];  
-      var perBucketD2 = {};  
-      var perBucketR2 = {};  
-  
-      labels.forEach(function (b) {  
-        perBucketD2[b] = [];  
-        perBucketR2[b] = [];  
+        return avgArray(vals);  
       });  
-  
-      computed.forEach(function (row) {  
-        if (!row) return;  
-  
-        if (row.d > 0) {  
-          allD2.push(row.d);  
-          perBucketD2[row.bucket].push(row.d);  
-        }  
-        if (row.r > 0) {  
-          allR2.push(row.r);  
-          perBucketR2[row.bucket].push(row.r);  
-        }  
-      });  
-  
-      return {  
-        labels: labels,  
-        barDirect: labels.map(function (b) { return avgArray(perBucketD2[b] || []); }),  
-        barRegular: labels.map(function (b) { return avgArray(perBucketR2[b] || []); }),  
-        directAvg: avgArray(allD2),  
-        regularAvg: avgArray(allR2),  
-        categoriesCount: Object.keys(distinctCategories).length  
-      };  
     }  
   
-    async function showMarketDashboard() {  
-      if (!summaryData) return;  
+    function renderEmptyMarketChart(message) {  
+      var ctx = ensureCanvasReady();  
+      if (!ctx) return;  
   
-      var requestId = ++latestMarketRequestId;  
-      var schemes = filteredSchemes();  
+      destroyChart();  
   
-      document.getElementById("schemeInfo").style.display = "none";  
-      document.getElementById("schemeCards").style.display = "none";  
-      document.getElementById("marketCards").style.display = "";  
-      document.getElementById("mainPanelHead").style.display = "";  
-      document.getElementById("schemeChartRange").style.display = "none";  
-      document.getElementById("viewTitle").textContent = "Overall Market Overview";  
-      document.getElementById("viewSubtitle").innerHTML =  
-        'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' +  
-        Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() +  
-        '</span> Indian mutual fund schemes.';  
-  
-      var updatedEl = document.getElementById("marketUpdatedText");  
-      if (updatedEl) {  
-        updatedEl.textContent = "Updated: " + formatISTDateOnly(summaryData ? summaryData.last_updated : "-");  
-      }  
-  
-      document.getElementById("marketDirectTer").textContent = "Loading...";  
-      document.getElementById("marketRegularTer").textContent = "Loading...";  
-      document.getElementById("marketSpread").textContent = "Loading...";  
-      document.getElementById("marketCategoryCount").textContent = "Loading...";  
-  
-      var canvas = document.getElementById("terChart");  
-      if (canvas && chart) {  
-        chart.destroy();  
-        chart = null;  
-      }  
-  
-      var ctx = canvas ? canvas.getContext("2d") : null;  
-      if (ctx) {  
-        chart = new Chart(ctx, {  
-          type: "bar",  
-          data: {  
-            labels: ["Loading"],  
-            datasets: [  
-              {  
-                label: "Direct TER (1Y Avg)",  
-                data: [0],  
-                backgroundColor: "rgba(15,118,110,0.2)",  
-                borderRadius: 6  
-              },  
-              {  
-                label: "Regular TER (1Y Avg)",  
-                data: [0],  
-                backgroundColor: "rgba(245,158,11,0.2)",  
-                borderRadius: 6  
-              }  
-            ]  
-          },  
-          options: {  
-            responsive: true,  
-            maintainAspectRatio: false,  
-            animation: false,  
-            plugins: {  
-              legend: {  
-                labels: {  
-                  boxWidth: 10,  
-                  boxHeight: 10,  
-                  color: "#64748b",  
-                  usePointStyle: true  
-                }  
-              },  
-              tooltip: { enabled: false }  
+      chart = new Chart(ctx, {  
+        type: "bar",  
+        data: {  
+          labels: [message || "No data"],  
+          datasets: [  
+            {  
+              label: "Direct TER (1Y Avg)",  
+              data: [0],  
+              backgroundColor: "rgba(15,118,110,0.78)",  
+              borderRadius: 6  
             },  
-            scales: {  
-              y: {  
-                beginAtZero: true,  
-                grid: { color: "#e2e8f0" },  
-                ticks: { color: "#64748b" },  
-                title: { display: true, text: "Average TER (%)" }  
-              },  
-              x: {  
-                grid: { display: false },  
-                ticks: { color: "#64748b" }  
+            {  
+              label: "Regular TER (1Y Avg)",  
+              data: [0],  
+              backgroundColor: "rgba(245,158,11,0.78)",  
+              borderRadius: 6  
+            }  
+          ]  
+        },  
+        options: {  
+          responsive: true,  
+          maintainAspectRatio: false,  
+          animation: false,  
+          plugins: {  
+            legend: {  
+              labels: {  
+                boxWidth: 10,  
+                boxHeight: 10,  
+                color: "#64748b",  
+                usePointStyle: true  
               }  
+            },  
+            tooltip: { enabled: false }  
+          },  
+          scales: {  
+            y: {  
+              beginAtZero: true,  
+              grid: { color: "#e2e8f0" },  
+              ticks: { color: "#64748b" },  
+              title: { display: true, text: "Average TER (%)" }  
+            },  
+            x: {  
+              grid: { display: false },  
+              ticks: { color: "#64748b" }  
             }  
           }  
-        });  
-      }  
-  
-      var snapshot = await computeMarketSnapshot(schemes, MARKET_WINDOW_DAYS);  
-      if (requestId !== latestMarketRequestId) return;  
-  
-      document.getElementById("marketDirectTer").textContent = fmt(snapshot.directAvg);  
-      document.getElementById("marketRegularTer").textContent = fmt(snapshot.regularAvg);  
-      document.getElementById("marketSpread").textContent = fmt(Math.max(0, snapshot.regularAvg - snapshot.directAvg));  
-      document.getElementById("marketCategoryCount").textContent = (snapshot.categoriesCount || 0).toLocaleString();  
-  
-      updateMarketChart(snapshot);  
-    }  
-  
-    function marketValueLabelsPlugin() {  
-      return {  
-        id: "marketValueLabels",  
-        afterDatasetsDraw: function (chartInstance) {  
-          if (!chartInstance || chartInstance.config.type !== "bar") return;  
-          var ctx = chartInstance.ctx;  
-          ctx.save();  
-          ctx.fillStyle = "#334155";  
-          ctx.font = "800 11px 'Plus Jakarta Sans', sans-serif";  
-          ctx.textAlign = "center";  
-          ctx.textBaseline = "bottom";  
-  
-          chartInstance.data.datasets.forEach(function (dataset, datasetIndex) {  
-            var meta = chartInstance.getDatasetMeta(datasetIndex);  
-            if (meta.hidden) return;  
-            meta.data.forEach(function (bar, index) {  
-              var value = dataset.data[index];  
-              if (!value || value <= 0) return;  
-              ctx.fillText(Number(value).toFixed(2) + "%", bar.x, bar.y - 4);  
-            });  
-          });  
-  
-          ctx.restore();  
         }  
-      };  
+      });  
     }  
   
     function updateMarketChart(snapshot) {  
-      var canvas = document.getElementById("terChart");  
-      if (!canvas) return;  
-      var ctx = canvas.getContext("2d");  
-      if (chart) chart.destroy();  
+      var ctx = ensureCanvasReady();  
+      if (!ctx) return;  
+  
+      destroyChart();  
   
       chart = new Chart(ctx, {  
         type: "bar",  
@@ -2105,45 +2136,255 @@
             }  
           }  
         },  
-        plugins: [marketValueLabelsPlugin()]  
+        plugins: [marketValueLabelsPluginDef]  
       });  
     }  
   
-    function calcAvg(data, key) {  
-      if (!data || !data.length) return 0;  
-      var values = data.map(function (d) { return Number(d[key] || 0); }).filter(function (v) { return isFinite(v); });  
-      if (!values.length) return 0;  
-      var sum = values.reduce(function (a, b) { return a + b; }, 0);  
-      return sum / values.length;  
-    }  
+    async function getSchemeAverageTerForWindow(scheme, plan, windowDays) {  
+      if (!scheme) return 0;  
   
-    function buildRollingAverageLine(data, key) {  
-      var sorted = sortedByDateAsc(data || []);  
-      if (!sorted.length) return [];  
+      var cacheKey = [scheme.id, plan, windowDays].join("|");  
+      if (cacheKey in schemeAvgCache) return schemeAvgCache[cacheKey];  
   
-      var windowDays = currentWindowDays;  
-      if (windowDays === 0) {  
-        windowDays = Math.max(2, sorted.length);  
+      var prefix = plan === "direct" ? "d" : "r";  
+      var suffix = periodSuffix(windowDays);  
+      var summaryKey = suffix ? ("avg_" + prefix + "_total_ter" + suffix) : ("avg_" + prefix + "_total_ter");  
+  
+      var summaryVal = Number(scheme[summaryKey] || 0);  
+      if (summaryVal > 0) {  
+        schemeAvgCache[cacheKey] = summaryVal;  
+        return summaryVal;  
       }  
   
-      return sorted.map(function (point, index) {  
-        var currentDate = new Date(point.date);  
-        var startDate = new Date(currentDate);  
-        startDate.setDate(startDate.getDate() - windowDays + 1);  
-  
-        var vals = [];  
-        for (var i = 0; i <= index; i++) {  
-          var itemDate = new Date(sorted[i].date);  
-          if (itemDate >= startDate && itemDate <= currentDate) {  
-            var v = Number(sorted[i][key] || 0);  
-            if (isFinite(v)) vals.push(v);  
-          }  
+      try {  
+        var data = await fetchMarketDailyData(scheme);  
+        if (!data || !data.length) {  
+          schemeAvgCache[cacheKey] = 0;  
+          return 0;  
         }  
-        return avgArray(vals);  
-      });  
+  
+        var filtered = filterDataByWindow(data, windowDays);  
+        if (!filtered.length) {  
+          schemeAvgCache[cacheKey] = 0;  
+          return 0;  
+        }  
+  
+        var vals = filtered  
+          .map(function (d) { return Number(d[prefix + "_total_ter"] || 0); })  
+          .filter(function (v) { return isFinite(v) && v > 0; });  
+  
+        var avg = avgArray(vals);  
+        schemeAvgCache[cacheKey] = avg;  
+        return avg;  
+      } catch (e) {  
+        schemeAvgCache[cacheKey] = 0;  
+        return 0;  
+      }  
     }  
   
-    async function selectScheme(scheme) {  
+    async function computeMarketSnapshot(schemes, windowDays) {  
+      schemes = schemes || [];  
+  
+      var distinctCategories = {};  
+      schemes.forEach(function (s) {  
+        if (s.category) distinctCategories[s.category] = true;  
+      });  
+  
+      var buckets = { Equity: [], Debt: [], Hybrid: [], Others: [] };  
+      schemes.forEach(function (s) {  
+        var bucket = getAssetCategory(s.category);  
+        if (!buckets[bucket]) buckets[bucket] = [];  
+        buckets[bucket].push(s);  
+      });  
+  
+      var labels = ["Equity", "Debt", "Hybrid", "Others"].filter(function (b) {  
+        return buckets[b] && buckets[b].length;  
+      });  
+  
+      var dKey = "avg_d_total_ter";  
+      var rKey = "avg_r_total_ter";  
+      var canUseSummary = false;  
+  
+      if (windowDays === 0) {  
+        canUseSummary = true;  
+      } else if (summaryHasKeysForPeriod(windowDays)) {  
+        var suf = periodSuffix(windowDays);  
+        dKey = "avg_d_total_ter" + suf;  
+        rKey = "avg_r_total_ter" + suf;  
+        canUseSummary = true;  
+      }  
+  
+      if (canUseSummary) {  
+        var allD = [];  
+        var allR = [];  
+        var perBucketD = {};  
+        var perBucketR = {};  
+  
+        labels.forEach(function (b) {  
+          perBucketD[b] = [];  
+          perBucketR[b] = [];  
+        });  
+  
+        schemes.forEach(function (s) {  
+          var bucket = getAssetCategory(s.category);  
+          var dv = safeNum(s[dKey]);  
+          var rv = safeNum(s[rKey]);  
+  
+          if (dv > 0) {  
+            allD.push(dv);  
+            perBucketD[bucket].push(dv);  
+          }  
+          if (rv > 0) {  
+            allR.push(rv);  
+            perBucketR[bucket].push(rv);  
+          }  
+        });  
+  
+        return {  
+          labels: labels,  
+          barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
+          barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
+          directAvg: avgArray(allD),  
+          regularAvg: avgArray(allR),  
+          categoriesCount: Object.keys(distinctCategories).length  
+        };  
+      }  
+  
+      async function computeSchemeWindowAvg(s) {  
+        var data = await fetchMarketDailyData(s);  
+        if (!data || !data.length) return null;  
+  
+        var filtered = filterDataByWindow(data, windowDays);  
+        if (!filtered.length) return null;  
+  
+        var dVals = filtered  
+          .map(function (d) { return safeNum(d.d_total_ter); })  
+          .filter(function (v) { return v > 0; });  
+  
+        var rVals = filtered  
+          .map(function (d) { return safeNum(d.r_total_ter); })  
+          .filter(function (v) { return v > 0; });  
+  
+        return {  
+          bucket: getAssetCategory(s.category),  
+          d: avgArray(dVals),  
+          r: avgArray(rVals)  
+        };  
+      }  
+  
+      var computed = await mapWithConcurrency(schemes, 8, computeSchemeWindowAvg);  
+  
+      var allD2 = [];  
+      var allR2 = [];  
+      var perBucketD2 = {};  
+      var perBucketR2 = {};  
+  
+      labels.forEach(function (b) {  
+        perBucketD2[b] = [];  
+        perBucketR2[b] = [];  
+      });  
+  
+      computed.forEach(function (row) {  
+        if (!row) return;  
+  
+        if (row.d > 0) {  
+          allD2.push(row.d);  
+          perBucketD2[row.bucket].push(row.d);  
+        }  
+        if (row.r > 0) {  
+          allR2.push(row.r);  
+          perBucketR2[row.bucket].push(row.r);  
+        }  
+      });  
+  
+      return {  
+        labels: labels,  
+        barDirect: labels.map(function (b) { return avgArray(perBucketD2[b] || []); }),  
+        barRegular: labels.map(function (b) { return avgArray(perBucketR2[b] || []); }),  
+        directAvg: avgArray(allD2),  
+        regularAvg: avgArray(allR2),  
+        categoriesCount: Object.keys(distinctCategories).length  
+      };  
+    }  
+  
+    async function showMarketDashboard() {  
+      if (!summaryData) return;  
+  
+      var requestId = ++latestMarketRequestId;  
+      var schemes = filteredSchemes({ ignoreQuery: true });  
+  
+      document.getElementById("schemeInfo").style.display = "none";  
+      document.getElementById("schemeCards").style.display = "none";  
+      document.getElementById("marketCards").style.display = "";  
+      document.getElementById("mainPanelHead").style.display = "";  
+      document.getElementById("schemeChartRange").style.display = "none";  
+  
+      document.getElementById("viewTitle").textContent = "Overall Market Overview";  
+      document.getElementById("viewSubtitle").innerHTML =  
+        'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' +  
+        Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() +  
+        '</span> Indian mutual fund schemes.';  
+  
+      var updatedEl = document.getElementById("marketUpdatedText");  
+      if (updatedEl) {  
+        updatedEl.textContent = "Updated: " + formatISTDateOnly(summaryData ? summaryData.last_updated : "-");  
+      }  
+  
+      document.getElementById("marketDirectTer").textContent = "Loading...";  
+      document.getElementById("marketRegularTer").textContent = "Loading...";  
+      document.getElementById("marketSpread").textContent = "Loading...";  
+      document.getElementById("marketCategoryCount").textContent = "Loading...";  
+  
+      setChartLoading(true, "Loading chart...");  
+      renderEmptyMarketChart("Loading");  
+  
+      try {  
+        var snapshot = await computeMarketSnapshot(schemes, MARKET_WINDOW_DAYS);  
+        if (requestId !== latestMarketRequestId) return;  
+  
+        document.getElementById("marketDirectTer").textContent = fmt(snapshot.directAvg);  
+        document.getElementById("marketRegularTer").textContent = fmt(snapshot.regularAvg);  
+        document.getElementById("marketSpread").textContent = fmt(Math.max(0, snapshot.regularAvg - snapshot.directAvg));  
+        document.getElementById("marketCategoryCount").textContent = (snapshot.categoriesCount || 0).toLocaleString();  
+  
+        if (!snapshot.labels || !snapshot.labels.length) {  
+          renderEmptyMarketChart("No data");  
+        } else {  
+          updateMarketChart(snapshot);  
+        }  
+      } catch (e) {  
+        console.error(e);  
+        if (requestId !== latestMarketRequestId) return;  
+  
+        document.getElementById("marketDirectTer").textContent = "-";  
+        document.getElementById("marketRegularTer").textContent = "-";  
+        document.getElementById("marketSpread").textContent = "-";  
+        document.getElementById("marketCategoryCount").textContent = "-";  
+        renderEmptyMarketChart("Failed");  
+      } finally {  
+        if (requestId === latestMarketRequestId) {  
+          setChartLoading(false);  
+        }  
+      }  
+    }  
+  
+    async function switchPlan(plan) {  
+      currentPlan = plan;  
+      document.getElementById("btnDirect").checked = plan === "direct";  
+      document.getElementById("btnRegular").checked = plan === "regular";  
+      document.getElementById("tablePlanLabel").textContent = plan === "direct" ? "Direct Plan" : "Regular Plan";  
+  
+      updateFilterCount();  
+      await updateLowestTer();  
+  
+      if (currentScheme) refreshDisplay();  
+      else await showMarketDashboard();  
+    }  
+    window.switchPlan = switchPlan;  
+  
+    async function selectScheme(scheme, options) {  
+      options = options || {};  
+  
       currentScheme = scheme;  
       currentPlan = "direct";  
       currentWindowDays = DEFAULT_SCHEME_WINDOW_DAYS;  
@@ -2152,13 +2393,23 @@
       document.getElementById("btnRegular").checked = false;  
       document.getElementById("tablePlanLabel").textContent = "Direct Plan";  
   
-      var assetCat = getAssetCategory(scheme.category);  
-      document.querySelectorAll(".asset-checkbox").forEach(function (cb) {  
-        cb.checked = (cb.value === assetCat);  
-      });  
+      if (options.fromSearch) {  
+        searchContext.hasSelectedFromSearch = true;  
   
-      populateSchemeCategoryFilter();  
-      document.getElementById("schemeCategoryFilter").value = scheme.category || "";  
+        if (!hasAnyManualFilter()) {  
+          var assetCat = getAssetCategory(scheme.category);  
+          setAssetCheckboxes([assetCat]);  
+          populateSchemeCategoryFilter();  
+  
+          var sel = document.getElementById("schemeCategoryFilter");  
+          if (sel) sel.value = scheme.category || "";  
+  
+          searchContext.autoAppliedFilterFromSearch = true;  
+        } else {  
+          searchContext.autoAppliedFilterFromSearch = false;  
+        }  
+      }  
+  
       updateFilterCount();  
       updateSchemeRangeButtons();  
   
@@ -2172,10 +2423,10 @@
       document.getElementById("schemeCategory").textContent = scheme.category || "-";  
       document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";  
   
+      setChartLoading(true, "Loading chart...");  
+  
       try {  
-        var res = await fetch("data/daily/" + scheme.id + ".json");  
-        if (!res.ok) throw new Error("Daily data not found");  
-        currentDailyData = await res.json();  
+        currentDailyData = await fetchDailyDataBySchemeId(scheme.id);  
         await updateLowestTer();  
         refreshDisplay();  
       } catch (e) {  
@@ -2183,17 +2434,10 @@
         currentDailyData = [];  
         updateTable([]);  
         await updateLowestTer();  
+      } finally {  
+        setChartLoading(false);  
       }  
     }  
-  
-    function refreshDisplay() {  
-      if (!currentScheme || !currentDailyData) return;  
-      var filtered = filterDataByWindow(currentDailyData, currentWindowDays);  
-      updateKPICards(filtered);  
-      updateSchemeChart(filtered, currentScheme.scheme_name);  
-      updateTable(filtered);  
-    }  
-  
     function updateKPICards(data) {  
       var p = planPrefix();  
       document.getElementById("avgBer").textContent = fmt(calcAvg(data, p + "_ber"));  
@@ -2203,36 +2447,11 @@
       document.getElementById("avgTotal").textContent = fmt(calcAvg(data, p + "_total_ter"));  
     }  
   
-    function hoverGuidePlugin() {  
-      return {  
-        id: "hoverGuide",  
-        afterDraw: function (chartInstance) {  
-          var tooltip = chartInstance.tooltip;  
-          if (!tooltip || !tooltip._active || !tooltip._active.length) return;  
-  
-          var ctx = chartInstance.ctx;  
-          var activePoint = tooltip._active[0];  
-          var x = activePoint.element.x;  
-          var topY = chartInstance.chartArea.top;  
-          var bottomY = chartInstance.chartArea.bottom;  
-  
-          ctx.save();  
-          ctx.beginPath();  
-          ctx.moveTo(x, topY);  
-          ctx.lineTo(x, bottomY);  
-          ctx.lineWidth = 1;  
-          ctx.strokeStyle = "rgba(148,163,184,0.35)";  
-          ctx.stroke();  
-          ctx.restore();  
-        }  
-      };  
-    }  
-  
     function updateSchemeChart(data, name) {  
-      var canvas = document.getElementById("terChart");  
-      if (!canvas) return;  
-      var ctx = canvas.getContext("2d");  
-      if (chart) chart.destroy();  
+      var ctx = ensureCanvasReady();  
+      if (!ctx) return;  
+  
+      destroyChart();  
   
       var p = planPrefix();  
       var totalTer = data.map(function (d) { return Number(d[p + "_total_ter"] || 0); });  
@@ -2386,9 +2605,18 @@
             }  
           }  
         },  
-        plugins: [hoverGuidePlugin()]  
+        plugins: [hoverGuidePluginDef]  
       });  
     }  
+  
+    function refreshDisplay() {  
+      if (!currentScheme || !currentDailyData) return;  
+      var filtered = filterDataByWindow(currentDailyData, currentWindowDays);  
+      updateKPICards(filtered);  
+      updateSchemeChart(filtered, currentScheme.scheme_name);  
+      updateTable(filtered);  
+    }  
+  
     function updateTable(data) {  
       var tbody = document.getElementById("dailyTableBody");  
       currentTableData = data || [];  
@@ -2416,11 +2644,11 @@
   
       tbody.innerHTML = pageRows.map(function (d) {  
         return "<tr><td>" + formatDisplayDate(d.date) + "</td>" +  
-          "<td class='num'>" + fmt(d[p + "_ber"]).replace("%", "") + "</td>" +  
-          "<td class='num'>" + fmt(d[p + "_brokerage"]).replace("%", "") + "</td>" +  
-          "<td class='num'>" + fmt(d[p + "_transaction"]).replace("%", "") + "</td>" +  
-          "<td class='num'>" + fmt(d[p + "_statutory"]).replace("%", "") + "</td>" +  
-          "<td class='num strong'>" + fmt(d[p + "_total_ter"]).replace("%", "") + "</td></tr>";  
+          "<td class='num'>" + fmt(d[p + "_ber"]) + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_brokerage"]) + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_transaction"]) + "</td>" +  
+          "<td class='num'>" + fmt(d[p + "_statutory"]) + "</td>" +  
+          "<td class='num strong'>" + fmt(d[p + "_total_ter"]) + "</td></tr>";  
       }).join("");  
   
       document.getElementById("dailyPagination").style.display = reversed.length > dailyPageSize ? "flex" : "none";  
@@ -2435,33 +2663,42 @@
     }  
     window.changeDailyPage = changeDailyPage;  
   
+    function getLowestTerBaseSchemes(category) {  
+      var allSchemes = summaryData && summaryData.schemes ? summaryData.schemes : [];  
+  
+      if (category) {  
+        return allSchemes.filter(function (s) {  
+          return String(s.category || "") === String(category);  
+        });  
+      }  
+  
+      var filtered = filteredSchemes({ ignoreQuery: true });  
+      return filtered.length ? filtered : allSchemes;  
+    }  
+  
     async function getLowestTerRows(plan, windowDays, category) {  
-      var schemes = (summaryData && summaryData.schemes ? summaryData.schemes : []).filter(function (s) {  
-        return !category || s.category === category;  
-      });  
+      var schemes = getLowestTerBaseSchemes(category);  
   
       var prefix = plan === "direct" ? "d" : "r";  
       var suffix = periodSuffix(windowDays);  
       var summaryKey = suffix ? ("avg_" + prefix + "_total_ter" + suffix) : ("avg_" + prefix + "_total_ter");  
   
-      var hasSummaryKey = schemes.length && schemes.some(function (s) {  
-        return Number(s[summaryKey] || 0) > 0;  
-      });  
+      var rowsFromSummary = schemes  
+        .map(function (s) {  
+          return {  
+            scheme: s,  
+            value: Number(s[summaryKey] || 0)  
+          };  
+        })  
+        .filter(function (row) { return row.value > 0; })  
+        .sort(function (a, b) { return a.value - b.value; })  
+        .slice(0, 5);  
   
-      if (hasSummaryKey) {  
-        return schemes  
-          .filter(function (s) { return Number(s[summaryKey] || 0) > 0; })  
-          .sort(function (a, b) { return Number(a[summaryKey] || 0) - Number(b[summaryKey] || 0); })  
-          .slice(0, 5)  
-          .map(function (s) {  
-            return {  
-              scheme: s,  
-              value: Number(s[summaryKey] || 0)  
-            };  
-          });  
+      if (rowsFromSummary.length) {  
+        return rowsFromSummary;  
       }  
   
-      var computed = await mapWithConcurrency(schemes, 6, async function (s) {  
+      var computed = await mapWithConcurrency(schemes, 8, async function (s) {  
         var value = await getSchemeAverageTerForWindow(s, plan, windowDays);  
         return { scheme: s, value: value };  
       });  
@@ -2476,13 +2713,18 @@
       if (!summaryData) return;  
   
       var tbody = document.getElementById("lowestTerBody");  
-      var cat = currentScheme ? currentScheme.category : ((document.getElementById("schemeCategoryFilter") || {}).value || "");  
-      document.getElementById("lowestTerCategory").textContent = cat || "the selected scheme category";  
+      if (!tbody) return;  
+  
+      var category = currentScheme  
+        ? (currentScheme.category || "")  
+        : (((document.getElementById("schemeCategoryFilter") || {}).value) || "");  
+  
+      document.getElementById("lowestTerCategory").textContent = category || "the selected filters";  
   
       tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>';  
   
       try {  
-        var rows = await getLowestTerRows(currentPlan, LOWEST_TER_WINDOW_DAYS, cat);  
+        var rows = await getLowestTerRows(currentPlan, LOWEST_TER_WINDOW_DAYS, category);  
   
         if (!rows.length) {  
           tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';  
@@ -2648,7 +2890,7 @@
     window.setComparePeriod = setComparePeriod;  
   
     async function getCompareMetrics(scheme) {  
-      var prefix = comparePlan === "direct" ? "d" : "r";  
+      var prefix = comparePlanPrefix();  
   
       if (comparePeriod === "overall") {  
         return {  
@@ -2738,6 +2980,7 @@
       try {  
         var res = await fetch("data/summary.json");  
         if (!res.ok) throw new Error("Unable to load summary data");  
+  
         summaryData = await res.json();  
   
         populateSchemeCategoryFilter();  
@@ -2750,7 +2993,6 @@
   
         await showMarketDashboard();  
         await updateLowestTer();  
-        isInitialized = true;  
   
         document.addEventListener("click", function (e) {  
           var compareView = document.getElementById("compareView");  
@@ -2773,6 +3015,8 @@
         document.getElementById("dailyTableBody").innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load data</td></tr>';  
         var updatedEl = document.getElementById("marketUpdatedText");  
         if (updatedEl) updatedEl.textContent = "Updated: -";  
+        setChartLoading(false);  
+        renderEmptyMarketChart("Failed");  
       }  
     }  
   
