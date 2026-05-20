@@ -261,6 +261,19 @@
       overflow-wrap: anywhere;  
     }  
   
+    .panel-head-market {  
+      align-items: flex-start;  
+    }  
+  
+    .market-updated {  
+      margin-left: auto;  
+      color: var(--muted);  
+      font-size: 12px;  
+      font-weight: 800;  
+      white-space: nowrap;  
+      padding-top: 2px;  
+    }  
+  
     .panel-body {  
       padding: 20px;  
       min-width: 0;  
@@ -427,6 +440,7 @@
     .component-grid {  
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));  
       margin-bottom: 20px;  
+      align-items: stretch;  
     }  
   
     .component {  
@@ -439,6 +453,45 @@
     .component.txn { border-left-color: #2563eb; }  
     .component.stat { border-left-color: #7c3aed; }  
     .component.total { border-left-color: var(--danger); }  
+  
+    .metric-info-card {  
+      display: flex;  
+      align-items: center;  
+      justify-content: flex-start;  
+      padding: 16px 18px;  
+      min-height: 94px;  
+    }  
+  
+    .metric-info-wrap {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 6px;  
+    }  
+  
+    .metric-info-title {  
+      color: var(--primary);  
+      font-size: 12px;  
+      font-weight: 800;  
+      letter-spacing: 0.06em;  
+      text-transform: uppercase;  
+    }  
+  
+    .metric-info-card p {  
+      margin: 0;  
+      color: var(--muted);  
+      font-size: 13px;  
+      line-height: 1.45;  
+    }  
+  
+    .metric-info-card strong {  
+      color: var(--text);  
+    }  
+  
+    @media (min-width: 900px) {  
+      .metric-info-card {  
+        grid-column: span 2;  
+      }  
+    }  
   
     .kpi-label {  
       color: var(--muted);  
@@ -812,19 +865,43 @@
         flex-direction: column;  
       }  
   
+      .panel-head-market {  
+        flex-direction: row;  
+        align-items: flex-start;  
+        justify-content: space-between;  
+        gap: 10px;  
+      }  
+  
+      .market-updated {  
+        font-size: 11px;  
+        text-align: right;  
+        white-space: nowrap;  
+      }  
+  
       .chart-shell {  
         height: clamp(220px, 42vw, 300px);  
       }  
   
       table {  
-        table-layout: fixed;  
+        table-layout: auto;  
       }  
   
       th, td {  
-        padding: 8px 6px;  
+        padding: 8px 8px;  
         font-size: 11px;  
-        word-break: break-word;  
+        line-height: 1.35;  
+        word-break: normal;  
         overflow-wrap: anywhere;  
+        vertical-align: middle;  
+      }  
+  
+      th {  
+        white-space: normal;  
+        min-width: 78px;  
+      }  
+  
+      #dailyTableBody td {  
+        white-space: nowrap;  
       }  
   
       .fund-name {  
@@ -846,7 +923,12 @@
         -webkit-overflow-scrolling: touch;  
       }  
   
-      #compareTable th,  
+      #compareTable th {  
+        white-space: normal;  
+        min-width: 110px;  
+        vertical-align: bottom;  
+      }  
+  
       #compareTable td {  
         min-width: 90px;  
       }  
@@ -858,6 +940,17 @@
   
       #compareView > div { padding: 14px 10px 28px !important; }  
       #compareSlots { grid-template-columns: 1fr 1fr !important; }  
+    }  
+  
+    @media (max-width: 480px) {  
+      .panel-head-market {  
+        flex-direction: column;  
+      }  
+  
+      .market-updated {  
+        margin-left: 0;  
+        text-align: left;  
+      }  
     }  
   </style>  
 </head>  
@@ -963,15 +1056,15 @@
   
       <div class="layout">  
         <section class="card" id="explorer">  
-          <div class="panel-head" id="mainPanelHead">  
+          <div class="panel-head panel-head-market" id="mainPanelHead">  
             <div>  
               <h3 id="viewTitle">Overall Market Overview</h3>  
               <p id="viewSubtitle">  
                 Compare TER, find low-cost mutual funds, and track expense ratios across  
-                <span id="totalSchemesText">-</span> Indian mutual fund schemes. Last updated  
-                <span id="lastUpdated">Loading...</span>.  
+                <span id="totalSchemesText">-</span> Indian mutual fund schemes.  
               </p>  
             </div>  
+            <div class="market-updated" id="marketUpdatedText">Updated: -</div>  
           </div>  
   
           <div class="panel-body">  
@@ -1038,6 +1131,13 @@
                 <p class="kpi-label">Avg Total TER</p>  
                 <p class="value" id="avgTotal">-</p>  
                 <p class="sub">Average total expense ratio</p>  
+              </article>  
+              <article class="card metric-info-card">  
+                <div class="metric-info-wrap">  
+                  <p class="metric-info-title">Metric Info</p>  
+                  <p><strong>BER</strong> = Base Expense Ratio</p>  
+                  <p><strong>TER</strong> = Total Expense Ratio</p>  
+                </div>  
               </article>  
             </div>  
   
@@ -1108,7 +1208,7 @@
                 <span id="dailyPageLabel">Page 1 of 1</span>  
                 <button type="button" id="nextPageBtn" onclick="changeDailyPage(1)">Next</button>  
               </div>  
-            </section>  
+            </section> 
           </div>  
         </section>  
   
@@ -1192,6 +1292,7 @@
     var comparePeriod = "overall";  
     var compareDailyCache = {};  
     var latestMarketRequestId = 0;  
+    var marketDailyCache = {};  
   
     function debounce(fn, ms) {  
       var t;  
@@ -1238,6 +1339,23 @@
       var date = new Date(value + "T00:00:00");  
       if (Number.isNaN(date.getTime())) return value;  
       return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });  
+    }  
+  
+    function formatISTDateOnly(value) {  
+      if (!value) return "-";  
+  
+      var date = new Date(value);  
+      if (Number.isNaN(date.getTime())) {  
+        date = new Date(value + "T00:00:00Z");  
+      }  
+      if (Number.isNaN(date.getTime())) return value;  
+  
+      return date.toLocaleDateString("en-GB", {  
+        timeZone: "Asia/Kolkata",  
+        day: "2-digit",  
+        month: "short",  
+        year: "numeric"  
+      });  
     }  
   
     function getAssetCategory(schemeCategory) {  
@@ -1507,6 +1625,40 @@
       return ("avg_d_total_ter" + suf in first) && ("avg_r_total_ter" + suf in first);  
     }  
   
+    async function fetchMarketDailyData(scheme) {  
+      if (!scheme || !scheme.id) return [];  
+      if (marketDailyCache[scheme.id]) return marketDailyCache[scheme.id];  
+  
+      try {  
+        var res = await fetch("data/daily/" + scheme.id + ".json");  
+        if (!res.ok) return [];  
+        var data = await res.json();  
+        marketDailyCache[scheme.id] = data;  
+        return data;  
+      } catch (e) {  
+        return [];  
+      }  
+    }  
+  
+    async function mapWithConcurrency(items, limit, mapper) {  
+      var idx = 0;  
+      var results = new Array(items.length);  
+  
+      async function worker() {  
+        while (true) {  
+          var i = idx++;  
+          if (i >= items.length) break;  
+          results[i] = await mapper(items[i], i);  
+        }  
+      }  
+  
+      var workers = [];  
+      var n = Math.min(limit, items.length);  
+      for (var k = 0; k < n; k++) workers.push(worker());  
+      await Promise.all(workers);  
+      return results;  
+    }  
+  
     async function setWindow(days) {  
       currentWindowDays = days;  
   
@@ -1571,47 +1723,106 @@
         return buckets[b] && buckets[b].length;  
       });  
   
+      var canUseSummary = false;  
       var dKey = "avg_d_total_ter";  
       var rKey = "avg_r_total_ter";  
   
-      if (windowDays !== 0 && summaryHasKeysForPeriod(windowDays)) {  
+      if (windowDays === 0) {  
+        canUseSummary = true;  
+      } else if (summaryHasKeysForPeriod(windowDays)) {  
         var suf = periodSuffix(windowDays);  
         dKey = "avg_d_total_ter" + suf;  
         rKey = "avg_r_total_ter" + suf;  
+        canUseSummary = true;  
       }  
   
-      var allD = [];  
-      var allR = [];  
-      var perBucketD = {};  
-      var perBucketR = {};  
+      if (canUseSummary) {  
+        var allD = [];  
+        var allR = [];  
+        var perBucketD = {};  
+        var perBucketR = {};  
   
-      labels.forEach(function (b) {  
-        perBucketD[b] = [];  
-        perBucketR[b] = [];  
-      });  
+        labels.forEach(function (b) {  
+          perBucketD[b] = [];  
+          perBucketR[b] = [];  
+        });  
   
-      schemes.forEach(function (s) {  
-        var b = getAssetCategory(s.category);  
-        var dv = safeNum(s[dKey]);  
-        var rv = safeNum(s[rKey]);  
+        schemes.forEach(function (s) {  
+          var b = getAssetCategory(s.category);  
+          var dv = safeNum(s[dKey]);  
+          var rv = safeNum(s[rKey]);  
   
-        if (dv > 0) {  
-          allD.push(dv);  
-          if (perBucketD[b]) perBucketD[b].push(dv);  
+          if (dv > 0) {  
+            allD.push(dv);  
+            if (perBucketD[b]) perBucketD[b].push(dv);  
+          }  
+  
+          if (rv > 0) {  
+            allR.push(rv);  
+            if (perBucketR[b]) perBucketR[b].push(rv);  
+          }  
+        });  
+  
+        return {  
+          labels: labels,  
+          barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
+          barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
+          directAvg: avgArray(allD),  
+          regularAvg: avgArray(allR),  
+          categoriesCount: Object.keys(distinctCategories).length  
+        };  
+      }  
+  
+      async function computeSchemeWindowAvg(s) {  
+        var data = await fetchMarketDailyData(s);  
+        if (!data || !data.length) {  
+          return { bucket: getAssetCategory(s.category), d: 0, r: 0 };  
         }  
   
-        if (rv > 0) {  
-          allR.push(rv);  
-          if (perBucketR[b]) perBucketR[b].push(rv);  
+        var filtered = filterDataByWindow(data, windowDays);  
+  
+        var dVals = filtered.map(function (d) { return safeNum(d.d_total_ter); }).filter(function (v) { return v > 0; });  
+        var rVals = filtered.map(function (d) { return safeNum(d.r_total_ter); }).filter(function (v) { return v > 0; });  
+  
+        return {  
+          bucket: getAssetCategory(s.category),  
+          d: avgArray(dVals),  
+          r: avgArray(rVals)  
+        };  
+      }  
+  
+      var computed = await mapWithConcurrency(schemes, 10, computeSchemeWindowAvg);  
+  
+      var allD2 = [];  
+      var allR2 = [];  
+      var perBucketD2 = {};  
+      var perBucketR2 = {};  
+  
+      labels.forEach(function (b) {  
+        perBucketD2[b] = [];  
+        perBucketR2[b] = [];  
+      });  
+  
+      computed.forEach(function (row) {  
+        if (!row) return;  
+  
+        if (row.d > 0) {  
+          allD2.push(row.d);  
+          if (perBucketD2[row.bucket]) perBucketD2[row.bucket].push(row.d);  
+        }  
+  
+        if (row.r > 0) {  
+          allR2.push(row.r);  
+          if (perBucketR2[row.bucket]) perBucketR2[row.bucket].push(row.r);  
         }  
       });  
   
       return {  
         labels: labels,  
-        barDirect: labels.map(function (b) { return avgArray(perBucketD[b] || []); }),  
-        barRegular: labels.map(function (b) { return avgArray(perBucketR[b] || []); }),  
-        directAvg: avgArray(allD),  
-        regularAvg: avgArray(allR),  
+        barDirect: labels.map(function (b) { return avgArray(perBucketD2[b] || []); }),  
+        barRegular: labels.map(function (b) { return avgArray(perBucketR2[b] || []); }),  
+        directAvg: avgArray(allD2),  
+        regularAvg: avgArray(allR2),  
         categoriesCount: Object.keys(distinctCategories).length  
       };  
     }  
@@ -1628,9 +1839,12 @@
       document.getElementById("viewSubtitle").innerHTML =  
         'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' +  
         Number(summaryData ? summaryData.total_schemes : 0).toLocaleString() +  
-        '</span> Indian mutual fund schemes. Last updated <span id="lastUpdated">' +  
-        escapeHTML(summaryData ? summaryData.last_updated : "-") +  
-        '</span>.';  
+        '</span> Indian mutual fund schemes.';  
+  
+      var updatedEl = document.getElementById("marketUpdatedText");  
+      if (updatedEl) {  
+        updatedEl.textContent = "Updated: " + formatISTDateOnly(summaryData ? summaryData.last_updated : "-");  
+      }  
   
       var snapshot = await computeMarketSnapshot(schemes, currentWindowDays);  
       if (requestId !== latestMarketRequestId) return;  
@@ -1700,12 +1914,6 @@
           maintainAspectRatio: false,  
           animation: false,  
           plugins: {  
-            title: {  
-              display: true,  
-              text: "Average TER by broad category",  
-              color: "#0f172a",  
-              font: { size: 14, weight: "700" }  
-            },  
             legend: {  
               labels: {  
                 boxWidth: 10,  
@@ -1804,6 +2012,30 @@
       document.getElementById("avgTxn").textContent = fmt(calcAvg(data, p + "_transaction"));  
       document.getElementById("avgStat").textContent = fmt(calcAvg(data, p + "_statutory"));  
       document.getElementById("avgTotal").textContent = fmt(calcAvg(data, p + "_total_ter"));  
+    } 
+    function hoverGuidePlugin() {  
+      return {  
+        id: "hoverGuide",  
+        afterDraw: function (chartInstance) {  
+          var tooltip = chartInstance.tooltip;  
+          if (!tooltip || !tooltip._active || !tooltip._active.length) return;  
+  
+          var ctx = chartInstance.ctx;  
+          var activePoint = tooltip._active[0];  
+          var x = activePoint.element.x;  
+          var topY = chartInstance.chartArea.top;  
+          var bottomY = chartInstance.chartArea.bottom;  
+  
+          ctx.save();  
+          ctx.beginPath();  
+          ctx.moveTo(x, topY);  
+          ctx.lineTo(x, bottomY);  
+          ctx.lineWidth = 1;  
+          ctx.strokeStyle = "rgba(148,163,184,0.35)";  
+          ctx.stroke();  
+          ctx.restore();  
+        }  
+      };  
     }  
   
     function updateSchemeChart(data, name) {  
@@ -1832,10 +2064,11 @@
               hidden: true,  
               data: data.map(function (d) { return Number(d[p + "_ber"] || 0); }),  
               borderColor: "#10b981",  
-              backgroundColor: "rgba(16,185,129,0.08)",  
-              fill: true,  
+              backgroundColor: "rgba(16,185,129,0.06)",  
+              fill: false,  
               tension: 0.32,  
-              pointRadius: 1.5,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2  
             },  
             {  
@@ -1843,10 +2076,11 @@
               hidden: true,  
               data: data.map(function (d) { return Number(d[p + "_brokerage"] || 0); }),  
               borderColor: "#f59e0b",  
-              backgroundColor: "rgba(245,158,11,0.08)",  
-              fill: true,  
+              backgroundColor: "rgba(245,158,11,0.06)",  
+              fill: false,  
               tension: 0.32,  
-              pointRadius: 1.5,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2  
             },  
             {  
@@ -1857,7 +2091,8 @@
               backgroundColor: "rgba(37,99,235,0.06)",  
               fill: false,  
               tension: 0.32,  
-              pointRadius: 1.5,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2  
             },  
             {  
@@ -1868,7 +2103,8 @@
               backgroundColor: "rgba(124,58,237,0.06)",  
               fill: false,  
               tension: 0.32,  
-              pointRadius: 1.5,  
+              pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2  
             },  
             {  
@@ -1879,6 +2115,7 @@
               fill: false,  
               tension: 0.32,  
               pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2.5  
             },  
             {  
@@ -1889,6 +2126,7 @@
               fill: false,  
               tension: 0.28,  
               pointRadius: 0,  
+              pointHoverRadius: 4,  
               borderWidth: 2  
             }  
           ]  
@@ -1912,22 +2150,54 @@
                 usePointStyle: true  
               }  
             },  
-            tooltip: { mode: "index", intersect: false }  
+            tooltip: {  
+              mode: "index",  
+              intersect: false  
+            }  
           },  
           scales: {  
             y: {  
-              beginAtZero: true,  
-              grid: { color: "#e2e8f0" },  
-              ticks: { color: "#64748b" },  
-              title: { display: true, text: "Expense Ratio (%)" }  
+              display: false,  
+              beginAtZero: false,  
+              grid: {  
+                display: false,  
+                drawBorder: false,  
+                drawTicks: false  
+              },  
+              border: {  
+                display: false  
+              },  
+              ticks: {  
+                display: false  
+              }  
             },  
             x: {  
-              grid: { display: false },  
-              ticks: { color: "#64748b", maxTicksLimit: 12 }  
+              display: false,  
+              grid: {  
+                display: false,  
+                drawBorder: false,  
+                drawTicks: false  
+              },  
+              border: {  
+                display: false  
+              },  
+              ticks: {  
+                display: false  
+              }  
             }  
           },  
-          interaction: { mode: "nearest", axis: "x", intersect: false }  
-        }  
+          interaction: {  
+            mode: "index",  
+            axis: "x",  
+            intersect: false  
+          },  
+          elements: {  
+            line: {  
+              capBezierPoints: true  
+            }  
+          }  
+        },  
+        plugins: [hoverGuidePlugin()]  
       });  
     }  
   
@@ -1976,6 +2246,7 @@
       renderDailyPage();  
     }  
     window.changeDailyPage = changeDailyPage;  
+  
     function updateLowestTer() {  
       if (!summaryData) return;  
   
@@ -2268,6 +2539,8 @@
         document.getElementById("marketCategoryCount").textContent = "-";  
         document.getElementById("lowestTerBody").innerHTML = '<tr><td colspan="3" class="empty-msg">Failed to load data</td></tr>';  
         document.getElementById("dailyTableBody").innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load data</td></tr>';  
+        var updatedEl = document.getElementById("marketUpdatedText");  
+        if (updatedEl) updatedEl.textContent = "Updated: -";  
       }  
     }  
   
