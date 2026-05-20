@@ -1327,6 +1327,8 @@
       </div>  
     </div>  
   </section>  
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
   <script>  
     var summaryData = null;  
     var chart = null;  
@@ -1607,7 +1609,6 @@
       if (!values.length) return 0;  
       return values.reduce(function (a, b) { return a + b; }, 0) / values.length;  
     }  
-  
     function getSelectedAssets() {  
       return [].slice.call(document.querySelectorAll(".asset-checkbox:checked")).map(function (input) {  
         return input.value;  
