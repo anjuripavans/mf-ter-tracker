@@ -2,7 +2,7 @@ name: Daily TER Update
 
 on:
   schedule:
-    - cron: '30 16 * * *'
+    - cron: '0 13 * * *'
   workflow_dispatch:
 
 permissions:
