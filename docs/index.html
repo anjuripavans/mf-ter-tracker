@@ -1333,7 +1333,6 @@
     var compareDailyCache = {};  
     var latestMarketRequestId = 0;  
     var marketDailyCache = {};  
-    var schemeAvgCache = {};  
     var isInitialized = false;  
   
     function debounce(fn, ms) {  
@@ -1478,7 +1477,7 @@
           populateSchemeCategoryFilter();  
           updateFilterCount();  
           if (!currentScheme) await showMarketDashboard();  
-          await updateLowestTer();  
+          updateLowestTer();  
         });  
       });  
   
@@ -1493,7 +1492,7 @@
         sel.addEventListener("change", async function () {  
           updateFilterCount();  
           if (!currentScheme) await showMarketDashboard();  
-          await updateLowestTer();  
+          updateLowestTer();  
         });  
       }  
     }  
@@ -1517,7 +1516,7 @@
             currentWindowDays = DEFAULT_SCHEME_WINDOW_DAYS;  
             await showMarketDashboard();  
             updateTable([]);  
-            await updateLowestTer();  
+            updateLowestTer();  
           }  
           return;  
         }  
@@ -1622,7 +1621,7 @@
       updateFilterCount();  
       await showMarketDashboard();  
       updateTable([]);  
-      await updateLowestTer();  
+      updateLowestTer();  
     }  
     window.clearFilters = clearFilters;  
   
@@ -1732,7 +1731,7 @@
       document.getElementById("tablePlanLabel").textContent = plan === "direct" ? "Direct Plan" : "Regular Plan";  
   
       updateFilterCount();  
-      await updateLowestTer();  
+      updateLowestTer();  
   
       if (currentScheme) refreshDisplay();  
       else await showMarketDashboard();  
@@ -1751,48 +1750,6 @@
         return data;  
       } catch (e) {  
         return null;  
-      }  
-    }  
-  
-    async function getSchemeAverageTerForWindow(scheme, plan, windowDays) {  
-      if (!scheme) return 0;  
-  
-      var cacheKey = [scheme.id, plan, windowDays].join("|");  
-      if (cacheKey in schemeAvgCache) return schemeAvgCache[cacheKey];  
-  
-      var prefix = plan === "direct" ? "d" : "r";  
-      var suffix = periodSuffix(windowDays);  
-      var summaryKey = suffix ? ("avg_" + prefix + "_total_ter" + suffix) : ("avg_" + prefix + "_total_ter");  
-  
-      var summaryVal = Number(scheme[summaryKey] || 0);  
-      if (summaryVal > 0) {  
-        schemeAvgCache[cacheKey] = summaryVal;  
-        return summaryVal;  
-      }  
-  
-      try {  
-        var data = await fetchMarketDailyData(scheme);  
-        if (!data || !data.length) {  
-          schemeAvgCache[cacheKey] = 0;  
-          return 0;  
-        }  
-  
-        var filtered = filterDataByWindow(data, windowDays);  
-        if (!filtered.length) {  
-          schemeAvgCache[cacheKey] = 0;  
-          return 0;  
-        }  
-  
-        var vals = filtered  
-          .map(function (d) { return Number(d[prefix + "_total_ter"] || 0); })  
-          .filter(function (v) { return isFinite(v) && v > 0; });  
-  
-        var avg = avgArray(vals);  
-        schemeAvgCache[cacheKey] = avg;  
-        return avg;  
-      } catch (e) {  
-        schemeAvgCache[cacheKey] = 0;  
-        return 0;  
       }  
     }  
   
@@ -1815,9 +1772,9 @@
         return buckets[b] && buckets[b].length;  
       });  
   
+      var canUseSummary = false;  
       var dKey = "avg_d_total_ter";  
       var rKey = "avg_r_total_ter";  
-      var canUseSummary = false;  
   
       if (windowDays === 0) {  
         canUseSummary = true;  
@@ -1846,11 +1803,12 @@
   
           if (dv > 0) {  
             allD.push(dv);  
-            perBucketD[b].push(dv);  
+            if (perBucketD[b]) perBucketD[b].push(dv);  
           }  
+  
           if (rv > 0) {  
             allR.push(rv);  
-            perBucketR[b].push(rv);  
+            if (perBucketR[b]) perBucketR[b].push(rv);  
           }  
         });  
   
@@ -1867,19 +1825,13 @@
       async function computeSchemeWindowAvg(s) {  
         var data = await fetchMarketDailyData(s);  
         if (!data || !data.length) {  
-          return null;  
+          return { bucket: getAssetCategory(s.category), d: 0, r: 0 };  
         }  
   
         var filtered = filterDataByWindow(data, windowDays);  
-        if (!filtered.length) return null;  
   
-        var dVals = filtered  
-          .map(function (d) { return safeNum(d.d_total_ter); })  
-          .filter(function (v) { return v > 0; });  
-  
-        var rVals = filtered  
-          .map(function (d) { return safeNum(d.r_total_ter); })  
-          .filter(function (v) { return v > 0; });  
+        var dVals = filtered.map(function (d) { return safeNum(d.d_total_ter); }).filter(function (v) { return v > 0; });  
+        var rVals = filtered.map(function (d) { return safeNum(d.r_total_ter); }).filter(function (v) { return v > 0; });  
   
         return {  
           bucket: getAssetCategory(s.category),  
@@ -1888,7 +1840,7 @@
         };  
       }  
   
-      var computed = await mapWithConcurrency(schemes, 6, computeSchemeWindowAvg);  
+      var computed = await mapWithConcurrency(schemes, 10, computeSchemeWindowAvg);  
   
       var allD2 = [];  
       var allR2 = [];  
@@ -1905,11 +1857,12 @@
   
         if (row.d > 0) {  
           allD2.push(row.d);  
-          perBucketD2[row.bucket].push(row.d);  
+          if (perBucketD2[row.bucket]) perBucketD2[row.bucket].push(row.d);  
         }  
+  
         if (row.r > 0) {  
           allR2.push(row.r);  
-          perBucketR2[row.bucket].push(row.r);  
+          if (perBucketR2[row.bucket]) perBucketR2[row.bucket].push(row.r);  
         }  
       });  
   
@@ -1943,69 +1896,6 @@
       var updatedEl = document.getElementById("marketUpdatedText");  
       if (updatedEl) {  
         updatedEl.textContent = "Updated: " + formatISTDateOnly(summaryData ? summaryData.last_updated : "-");  
-      }  
-  
-      document.getElementById("marketDirectTer").textContent = "Loading...";  
-      document.getElementById("marketRegularTer").textContent = "Loading...";  
-      document.getElementById("marketSpread").textContent = "Loading...";  
-      document.getElementById("marketCategoryCount").textContent = "Loading...";  
-  
-      var canvas = document.getElementById("terChart");  
-      if (canvas && chart) {  
-        chart.destroy();  
-        chart = null;  
-      }  
-  
-      var ctx = canvas ? canvas.getContext("2d") : null;  
-      if (ctx) {  
-        chart = new Chart(ctx, {  
-          type: "bar",  
-          data: {  
-            labels: ["Loading"],  
-            datasets: [  
-              {  
-                label: "Direct TER (1Y Avg)",  
-                data: [0],  
-                backgroundColor: "rgba(15,118,110,0.2)",  
-                borderRadius: 6  
-              },  
-              {  
-                label: "Regular TER (1Y Avg)",  
-                data: [0],  
-                backgroundColor: "rgba(245,158,11,0.2)",  
-                borderRadius: 6  
-              }  
-            ]  
-          },  
-          options: {  
-            responsive: true,  
-            maintainAspectRatio: false,  
-            animation: false,  
-            plugins: {  
-              legend: {  
-                labels: {  
-                  boxWidth: 10,  
-                  boxHeight: 10,  
-                  color: "#64748b",  
-                  usePointStyle: true  
-                }  
-              },  
-              tooltip: { enabled: false }  
-            },  
-            scales: {  
-              y: {  
-                beginAtZero: true,  
-                grid: { color: "#e2e8f0" },  
-                ticks: { color: "#64748b" },  
-                title: { display: true, text: "Average TER (%)" }  
-              },  
-              x: {  
-                grid: { display: false },  
-                ticks: { color: "#64748b" }  
-              }  
-            }  
-          }  
-        });  
       }  
   
       var snapshot = await computeMarketSnapshot(schemes, MARKET_WINDOW_DAYS);  
@@ -2055,17 +1945,17 @@
       chart = new Chart(ctx, {  
         type: "bar",  
         data: {  
-          labels: snapshot.labels && snapshot.labels.length ? snapshot.labels : ["No data"],  
+          labels: snapshot.labels,  
           datasets: [  
             {  
               label: "Direct TER (1Y Avg)",  
-              data: snapshot.barDirect && snapshot.barDirect.length ? snapshot.barDirect : [0],  
+              data: snapshot.barDirect,  
               backgroundColor: "rgba(15,118,110,0.78)",  
               borderRadius: 6  
             },  
             {  
               label: "Regular TER (1Y Avg)",  
-              data: snapshot.barRegular && snapshot.barRegular.length ? snapshot.barRegular : [0],  
+              data: snapshot.barRegular,  
               backgroundColor: "rgba(245,158,11,0.78)",  
               borderRadius: 6  
             }  
@@ -2176,13 +2066,13 @@
         var res = await fetch("data/daily/" + scheme.id + ".json");  
         if (!res.ok) throw new Error("Daily data not found");  
         currentDailyData = await res.json();  
-        await updateLowestTer();  
+        updateLowestTer();  
         refreshDisplay();  
       } catch (e) {  
         console.error(e);  
         currentDailyData = [];  
         updateTable([]);  
-        await updateLowestTer();  
+        updateLowestTer();  
       }  
     }  
   
@@ -2435,70 +2325,43 @@
     }  
     window.changeDailyPage = changeDailyPage;  
   
-    async function getLowestTerRows(plan, windowDays, category) {  
-      var schemes = (summaryData && summaryData.schemes ? summaryData.schemes : []).filter(function (s) {  
-        return !category || s.category === category;  
-      });  
-  
+    function getLowestTerKeyByPlanAndWindow(plan, windowDays) {  
       var prefix = plan === "direct" ? "d" : "r";  
       var suffix = periodSuffix(windowDays);  
-      var summaryKey = suffix ? ("avg_" + prefix + "_total_ter" + suffix) : ("avg_" + prefix + "_total_ter");  
-  
-      var hasSummaryKey = schemes.length && schemes.some(function (s) {  
-        return Number(s[summaryKey] || 0) > 0;  
-      });  
-  
-      if (hasSummaryKey) {  
-        return schemes  
-          .filter(function (s) { return Number(s[summaryKey] || 0) > 0; })  
-          .sort(function (a, b) { return Number(a[summaryKey] || 0) - Number(b[summaryKey] || 0); })  
-          .slice(0, 5)  
-          .map(function (s) {  
-            return {  
-              scheme: s,  
-              value: Number(s[summaryKey] || 0)  
-            };  
-          });  
+      if (suffix) {  
+        return "avg_" + prefix + "_total_ter" + suffix;  
       }  
-  
-      var computed = await mapWithConcurrency(schemes, 6, async function (s) {  
-        var value = await getSchemeAverageTerForWindow(s, plan, windowDays);  
-        return { scheme: s, value: value };  
-      });  
-  
-      return computed  
-        .filter(function (x) { return x && x.value > 0; })  
-        .sort(function (a, b) { return a.value - b.value; })  
-        .slice(0, 5);  
+      return "avg_" + prefix + "_total_ter";  
     }  
   
-    async function updateLowestTer() {  
+    function updateLowestTer() {  
       if (!summaryData) return;  
   
-      var tbody = document.getElementById("lowestTerBody");  
+      var pKey = getLowestTerKeyByPlanAndWindow(currentPlan, LOWEST_TER_WINDOW_DAYS);  
       var cat = currentScheme ? currentScheme.category : ((document.getElementById("schemeCategoryFilter") || {}).value || "");  
       document.getElementById("lowestTerCategory").textContent = cat || "the selected scheme category";  
   
-      tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">Loading funds...</td></tr>';  
+      var rows = (summaryData.schemes || [])  
+        .filter(function (s) {  
+          var ter = Number(s[pKey] || 0);  
+          return (!cat || s.category === cat) && ter > 0;  
+        })  
+        .sort(function (a, b) {  
+          return Number(a[pKey] || 0) - Number(b[pKey] || 0);  
+        })  
+        .slice(0, 5);  
   
-      try {  
-        var rows = await getLowestTerRows(currentPlan, LOWEST_TER_WINDOW_DAYS, cat);  
-  
-        if (!rows.length) {  
-          tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';  
-          return;  
-        }  
-  
-        tbody.innerHTML = rows.map(function (row) {  
-          var s = row.scheme;  
-          return "<tr><td><div class='fund-name'>" + escapeHTML(s.scheme_name || "-") + "</div></td>" +  
-            "<td><span class='badge'>" + escapeHTML(s.category || "-") + "</span></td>" +  
-            "<td class='num strong'>" + fmt(row.value) + "</td></tr>";  
-        }).join("");  
-      } catch (e) {  
-        console.error(e);  
-        tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">Failed to load funds</td></tr>';  
+      var tbody = document.getElementById("lowestTerBody");  
+      if (!rows.length) {  
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No funds available</td></tr>';  
+        return;  
       }  
+  
+      tbody.innerHTML = rows.map(function (s) {  
+        return "<tr><td><div class='fund-name'>" + escapeHTML(s.scheme_name || "-") + "</div></td>" +  
+          "<td><span class='badge'>" + escapeHTML(s.category || "-") + "</span></td>" +  
+          "<td class='num strong'>" + fmt(s[pKey]) + "</td></tr>";  
+      }).join("");  
     }  
   
     function showView(view) {  
@@ -2749,7 +2612,7 @@
         updateSchemeRangeButtons();  
   
         await showMarketDashboard();  
-        await updateLowestTer();  
+        updateLowestTer();  
         isInitialized = true;  
   
         document.addEventListener("click", function (e) {  
