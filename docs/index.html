@@ -541,6 +541,12 @@
       position: relative;  
     }  
   
+    .chart-inner {  
+      position: relative;  
+      width: 100%;  
+      height: 100%;  
+    }  
+  
     canvas {  
       max-width: 100%;  
     }  
@@ -986,10 +992,10 @@
         -webkit-overflow-scrolling: touch;  
       }  
   
-      .chart-shell.is-scheme canvas {  
+      .chart-shell.is-scheme .chart-inner {  
         min-width: 600px;  
-        max-width: none;  
-        height: 100% !important;  
+        width: 600px;  
+        height: 100%;  
       }  
   
       table {  
@@ -1255,7 +1261,9 @@
   
             <div class="chart-shell">  
               <div class="chart-loading" id="chartLoading">Loading chart...</div>  
-              <canvas id="terChart"></canvas>  
+              <div class="chart-inner">  
+                <canvas id="terChart"></canvas>  
+              </div>  
             </div>  
   
             <div class="chart-range" id="schemeChartRange" aria-label="Chart range" style="display:none;">  
