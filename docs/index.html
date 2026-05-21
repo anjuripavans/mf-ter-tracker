@@ -536,7 +536,7 @@
     }  
   
     canvas {  
-      max-width: 100% !important;  
+      max-width: 100%;  
     }  
   
     .chart-loading {  
@@ -948,6 +948,14 @@
         width: 100%;  
         max-width: 100%;  
         height: clamp(220px, 42vw, 300px);  
+        overflow-x: auto;  
+        -webkit-overflow-scrolling: touch;  
+      }  
+  
+      .chart-shell.is-scheme canvas {  
+        min-width: 600px;  
+        max-width: none;  
+        height: 100% !important;  
       }  
   
       table {  
@@ -2339,6 +2347,9 @@
       document.getElementById("mainPanelHead").style.display = "";  
       document.getElementById("schemeChartRange").style.display = "none";  
   
+      var chartShell = document.querySelector(".chart-shell");  
+      if (chartShell) chartShell.classList.remove("is-scheme");  
+  
       document.getElementById("viewTitle").textContent = "Overall Market Overview";  
       document.getElementById("viewSubtitle").innerHTML =  
         'Compare TER, find low-cost mutual funds, and track expense ratios across <span id="totalSchemesText">' +  
@@ -2438,6 +2449,9 @@
       document.getElementById("marketCards").style.display = "none";  
       document.getElementById("mainPanelHead").style.display = "none";  
       document.getElementById("schemeChartRange").style.display = "flex";  
+  
+      var chartShell = document.querySelector(".chart-shell");  
+      if (chartShell) chartShell.classList.add("is-scheme");  
   
       document.getElementById("schemeName").textContent = scheme.scheme_name || "-";  
       document.getElementById("schemeCategory").textContent = scheme.category || "-";  
