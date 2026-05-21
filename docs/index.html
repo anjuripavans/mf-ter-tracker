@@ -1570,13 +1570,12 @@
       if (days === 30) return "_30";  
       if (days === 90) return "_90";  
       if (days === 180) return "_180";  
-      if (days === 365) return "_365";  
+      if (days === 365) return "";  
       return "";  
     }  
   
     function summaryHasKeysForPeriod(days) {  
-      var suf = periodSuffix(days);  
-      if (!suf) return false;  
+      var suf = periodSuffix(days);    
       var first = summaryData && summaryData.schemes && summaryData.schemes[0];  
       if (!first) return false;  
       return ("avg_d_total_ter" + suf in first) && ("avg_r_total_ter" + suf in first);  
