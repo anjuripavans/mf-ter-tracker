@@ -328,9 +328,9 @@
       margin-left: auto;  
       color: var(--muted);  
       font-size: 12px;  
-      font-weight: 800;  
       white-space: nowrap;  
       padding-top: 2px;  
+      text-align: right;
     }  
   
     .panel-body {  
@@ -1297,7 +1297,10 @@
                 <span id="totalSchemesText">-</span> Indian mutual fund schemes.  
               </p>  
             </div>  
-            <div class="market-updated" id="marketUpdatedText">Updated: -</div>  
+            <div class="market-updated">
+              <div id="marketUpdatedText" style="font-weight: 800;">Updated: -</div>
+              <div style="font-size: 10px; font-weight: 500; opacity: 0.85; margin-top: 3px;">Data from April 2026 onwards</div>
+            </div>  
           </div>  
   
           <div class="panel-body">  
