@@ -2693,8 +2693,7 @@
           labels: data.map(function (d) { return formatChartDate(d.date); }),  
           datasets: [  
             {  
-              label: "BER",  
-              hidden: true,  
+              label: "BER",    
               data: data.map(function (d) { return Number(d[p + "_ber"] || 0); }),  
               borderColor: "#10b981",  
               backgroundColor: "rgba(16,185,129,0.06)",  
