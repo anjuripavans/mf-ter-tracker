@@ -1953,7 +1953,10 @@
         var res = await fetch("data/daily/" + id + ".json");  
         if (!res.ok) return [];  
         var data = await res.json();  
-        marketDailyCache[id] = Array.isArray(data) ? data : [];  
+        var filtered = (Array.isArray(data) ? data : []).filter(function (d) {
+          return d.date >= "2026-04-01";
+        });
+        marketDailyCache[id] = filtered;  
         return marketDailyCache[id];  
       } catch (e) {  
         return [];  
@@ -2693,7 +2696,7 @@
           labels: data.map(function (d) { return formatChartDate(d.date); }),  
           datasets: [  
             {  
-              label: "BER",    
+              label: "BER",  
               data: data.map(function (d) { return Number(d[p + "_ber"] || 0); }),  
               borderColor: "#10b981",  
               backgroundColor: "rgba(16,185,129,0.06)",  
