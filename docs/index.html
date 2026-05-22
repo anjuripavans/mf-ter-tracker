@@ -1190,7 +1190,7 @@
 </head>  
 <body>  
   <header class="topbar">  
-    <a class="brand" href="#">  
+    <a class="brand" href="#" onclick="resetApp(event)">  
       <img src="logo.png?v=4" alt="Mutual Fund Expense Ratio Tracker India Logo" class="brand-logo" />  
       <div class="brand-text">  
         <span class="brand-sub">MUTUAL FUND</span>  
@@ -3000,6 +3000,13 @@
       }  
     }  
     window.showView = showView;  
+
+    function resetApp(event) {
+      if (event) event.preventDefault();
+      clearFilters();
+      showView("dashboard");
+    }
+    window.resetApp = resetApp;
   
     function renderCompareSlots() {  
       var container = document.getElementById("compareSlots");  
