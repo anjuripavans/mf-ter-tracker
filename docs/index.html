@@ -2534,7 +2534,8 @@
       var chartShell = document.querySelector(".chart-shell");  
       if (chartShell) chartShell.classList.add("is-scheme");  
   
-      document.getElementById("schemeName").textContent = scheme.scheme_name || "-";  
+      var planLabel = currentPlan === "direct" ? "Direct" : "Regular";
+      document.getElementById("schemeName").textContent = (scheme.scheme_name || "") + " - " + planLabel;
       document.getElementById("schemeCategory").textContent = scheme.category || "-";  
       document.getElementById("schemeCode").textContent = scheme.scheme_code || "-";  
   
@@ -2728,7 +2729,12 @@
       if (!currentScheme || !currentDailyData) return;  
       var filtered = filterDataByWindow(currentDailyData, currentWindowDays);  
       updateKPICards(filtered);  
-      updateSchemeChart(filtered, currentScheme.scheme_name);  
+      
+      var planLabel = currentPlan === "direct" ? "Direct" : "Regular";
+      var displayName = (currentScheme.scheme_name || "") + " - " + planLabel;
+      
+      document.getElementById("schemeName").textContent = displayName;
+      updateSchemeChart(filtered, displayName);  
       updateTable(filtered);  
     }  
   
