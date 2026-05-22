@@ -4,7 +4,7 @@
   <meta charset="utf-8" />  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
   <title>Mutual Fund Expense Ratio Tracker India | Compare TER &amp; Find Low-Cost Funds</title>  
-  <link rel="icon" type="image/png" href="logo.png" />  
+  <link rel="icon" type="image/png" href="logo.png?v=4" />  
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />  
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />  
@@ -76,36 +76,52 @@
     .brand {  
       display: flex;  
       align-items: center;  
-      gap: 12px;  
+      gap: 10px;  
       min-width: 0;  
       flex: 0 1 auto;  
     }  
   
-    .brand-mark {  
-      display: grid;  
-      place-items: center;  
-      width: 32px;  
-      height: 32px;  
-      border-radius: 9px;  
-      background: var(--primary);  
-      color: #fff;  
-      flex: 0 0 auto;  
-    }  
-  
-    .brand-mark svg { width: 18px; height: 18px; }  
-  
     .brand-logo {  
-      width: 32px;  
-      height: 32px;  
+      width: 44px;  
+      height: 44px;  
       object-fit: contain;  
       flex: 0 0 auto;  
+      margin-right: -4px;  
     }  
   
-    .brand h1 {  
-      font-size: 20px;  
+    .brand-text {  
+      display: flex;  
+      flex-direction: column;  
+      line-height: 1.15;  
+      text-align: left;  
+    }  
+  
+    .brand-sub {  
+      font-size: 11px;  
+      font-weight: 600;  
+      letter-spacing: 0.15em;  
+      color: var(--muted);  
+      text-transform: uppercase;  
+    }  
+  
+    .brand-main {  
+      font-size: 17px;  
+      font-weight: 700;  
+      color: var(--text);  
+      display: flex;  
+      align-items: center;  
+      gap: 6px;  
+    }  
+  
+    .badge-india {  
+      font-size: 10px;  
       font-weight: 800;  
-      letter-spacing: -0.015em;  
-      line-height: 1.2;  
+      background: rgba(15, 118, 110, 0.1);  
+      color: var(--primary);  
+      padding: 2px 6px;  
+      border-radius: 4px;  
+      text-transform: uppercase;  
+      letter-spacing: 0.05em;  
     }  
   
     .global-search {  
@@ -869,9 +885,23 @@
         justify-content: flex-start;  
       }  
   
-      .brand h1 {  
-        font-size: 15px;  
-        text-align: left;  
+      .brand-logo {  
+        width: 36px;  
+        height: 36px;  
+        margin-right: -2px;  
+      }  
+  
+      .brand-main {  
+        font-size: 14px;  
+      }  
+  
+      .brand-sub {  
+        font-size: 9px;  
+      }  
+  
+      .badge-india {  
+        font-size: 9px;  
+        padding: 1px 4px;  
       }  
   
       .global-search {  
@@ -1083,8 +1113,11 @@
 <body>  
   <header class="topbar">  
     <a class="brand" href="#">  
-      <img src="logo.png" alt="Mutual Fund Expense Ratio Tracker India Logo" class="brand-logo" />  
-      <h1>Mutual Fund Expense Ratio Tracker India</h1>  
+      <img src="logo.png?v=4" alt="Mutual Fund Expense Ratio Tracker India Logo" class="brand-logo" />  
+      <div class="brand-text">  
+        <span class="brand-sub">MUTUAL FUND</span>  
+        <span class="brand-main">Expense Ratio Tracker <span class="badge-india">India</span></span>  
+      </div>  
     </a>  
   
     <div class="global-search" id="topGlobalSearch">  
