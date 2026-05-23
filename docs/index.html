@@ -1526,10 +1526,10 @@
           </div>  
           
           <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:10px;background:var(--soft);">  
-            <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Presets</span>  
+            <span style="font-weight:800;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;">Quick Compare</span>  
             <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>  
             <select id="comparePresetSelect" onchange="onPresetChange(this.value)" style="border:0;background:transparent;font-weight:600;font-size:13px;color:var(--text);outline:none;cursor:pointer;padding-right:8px;font-family:inherit;">
-              <option value="">Select Preset...</option>
+              <option value="">Select Category...</option>
               <option value="nifty_50">Nifty 50 Index Funds</option>
               <option value="nifty_next_50">Nifty Next 50 Index Funds</option>
               <option value="nifty_midcap_150">Nifty Midcap 150 Index Funds</option>
@@ -1589,6 +1589,7 @@
     var comparePlan = "direct";  
     var comparePeriod = 365;  
     var compareDailyCache = {};  
+    var activePresetKey = "";  
   
     var latestMarketRequestId = 0;  
     var marketDailyCache = {};  
@@ -3141,6 +3142,9 @@
       if (!scheme) return;  
   
       compareSlots[index] = scheme;  
+      activePresetKey = "";
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = "";
       renderCompareSlots();  
       updateCompare();  
     }  
@@ -3148,6 +3152,9 @@
   
     function removeCompareSlot(index) {  
       compareSlots[index] = null;  
+      activePresetKey = "";
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = "";
       renderCompareSlots();  
       updateCompare();  
     }  
@@ -3156,15 +3163,23 @@
     function clearCompareSlots() {  
       compareSlots = [null, null, null, null, null];  
       compareDailyCache = {};  
+      activePresetKey = "";
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = "";
       renderCompareSlots();  
       updateCompare();  
     }  
     window.clearCompareSlots = clearCompareSlots;  
 
     async function onPresetChange(presetKey) {
-      if (!presetKey) return;
+      if (!presetKey) {
+        activePresetKey = "";
+        return;
+      }
       
-      document.getElementById("comparePresetSelect").value = "";
+      activePresetKey = presetKey;
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = presetKey;
       
       if (!summaryData || !summaryData.schemes) return;
       
@@ -3272,6 +3287,9 @@
       document.querySelectorAll(".compare-plan-btn").forEach(function (btn) {  
         btn.classList.toggle("active", btn.textContent.trim().toLowerCase() === plan);  
       });  
+      activePresetKey = "";
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = "";
       updateCompare();  
     }  
     window.setComparePlan = setComparePlan;  
@@ -3288,6 +3306,9 @@
           (period === 365 && label === "1Y");  
         btn.classList.toggle("active", active);  
       });  
+      activePresetKey = "";
+      var dropdown = document.getElementById("comparePresetSelect");
+      if (dropdown) dropdown.value = "";
       updateCompare();  
     }  
     window.setComparePeriod = setComparePeriod;  
