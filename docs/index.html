@@ -431,6 +431,7 @@
       font-size: 14px;  
     }  
   
+
     .filter-option input {  
       width: 16px;  
       height: 16px;  
@@ -1664,6 +1665,10 @@
       return Number(value || 0).toFixed(2) + "%";  
     }  
   
+    function isETF(category) {
+      return category === "Other Scheme - Other ETFs" || category === "Other Scheme - Gold ETF";
+    }
+  
     function planPrefix() {  
       return currentPlan === "direct" ? "d" : "r";  
     }  
@@ -1914,6 +1919,7 @@
       var selectedAssets = applyFilters ? getSelectedAssets() : [];  
       var schemes = (summaryData && summaryData.schemes) ? summaryData.schemes.slice() : [];  
   
+
       if (applyFilters && selectedAssets.length) {  
         schemes = schemes.filter(function (s) {  
           return selectedAssets.indexOf(getAssetCategory(s.category)) !== -1;  
@@ -1959,6 +1965,32 @@
         var filtered = (Array.isArray(data) ? data : []).filter(function (d) {
           return d.date >= "2026-04-01";
         });
+        
+        var schemeObj = summaryData && summaryData.schemes && summaryData.schemes.find(function (s) {
+          return s.id === id;
+        });
+        
+        if (schemeObj && isETF(schemeObj.category)) {
+          filtered.forEach(function (d) {
+            var dTotal = Number(d.d_total_ter || 0);
+            var rTotal = Number(d.r_total_ter || 0);
+            
+            if (rTotal > dTotal) {
+              d.d_ber = d.r_ber;
+              d.d_brokerage = d.r_brokerage;
+              d.d_transaction = d.r_transaction;
+              d.d_statutory = d.r_statutory;
+              d.d_total_ter = d.r_total_ter;
+            } else {
+              d.r_ber = d.d_ber;
+              d.r_brokerage = d.d_brokerage;
+              d.r_transaction = d.d_transaction;
+              d.r_statutory = d.d_statutory;
+              d.r_total_ter = d.d_total_ter;
+            }
+          });
+        }
+        
         marketDailyCache[id] = filtered;  
         return marketDailyCache[id];  
       } catch (e) {  
@@ -3223,6 +3255,30 @@
         if (!res.ok) throw new Error("Unable to load summary data");  
   
         summaryData = await res.json();  
+  
+        // Merge ETF data averages in summaryData
+        if (summaryData && summaryData.schemes) {
+          summaryData.schemes.forEach(function (s) {
+            if (isETF(s.category)) {
+              var dTotal = Number(s.avg_d_total_ter || 0);
+              var rTotal = Number(s.avg_r_total_ter || 0);
+              
+              if (rTotal > dTotal) {
+                s.avg_d_ber = s.avg_r_ber;
+                s.avg_d_brokerage = s.avg_r_brokerage;
+                s.avg_d_transaction = s.avg_r_transaction;
+                s.avg_d_statutory = s.avg_r_statutory;
+                s.avg_d_total_ter = s.avg_r_total_ter;
+              } else {
+                s.avg_r_ber = s.avg_d_ber;
+                s.avg_r_brokerage = s.avg_d_brokerage;
+                s.avg_r_transaction = s.avg_d_transaction;
+                s.avg_r_statutory = s.avg_d_statutory;
+                s.avg_r_total_ter = s.avg_d_total_ter;
+              }
+            }
+          });
+        }
   
         populateSchemeCategoryFilter();  
         setupFilters();  
