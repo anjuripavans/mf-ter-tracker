@@ -3138,24 +3138,18 @@
   
     async function getCompareMetrics(scheme) {  
       var prefix = comparePlanPrefix();  
-  
-      if (comparePeriod === "overall") {  
-        return {  
-          ber: Number(scheme["avg_" + prefix + "_ber"] || 0),  
-          brokerage: Number(scheme["avg_" + prefix + "_brokerage"] || 0),  
-          transaction: Number(scheme["avg_" + prefix + "_transaction"] || 0),  
-          statutory: Number(scheme["avg_" + prefix + "_statutory"] || 0),  
-          total_ter: Number(scheme["avg_" + prefix + "_total_ter"] || 0)  
-        };  
-      }  
-  
-      var periodDays = Number(comparePeriod || 0);  
       var daily = await fetchCompareDailyData(scheme);  
       if (!daily || !daily.length) {  
         return { ber: 0, brokerage: 0, transaction: 0, statutory: 0, total_ter: 0 };  
       }  
   
-      var filtered = filterDataByWindow(daily, periodDays);  
+      var filtered;  
+      if (comparePeriod === "overall") {  
+        filtered = sortedByDateAsc(daily);  
+      } else {  
+        var periodDays = Number(comparePeriod || 0);  
+        filtered = filterDataByWindow(daily, periodDays);  
+      }  
   
       return {  
         ber: calcAvg(filtered, prefix + "_ber"),  
