@@ -1970,7 +1970,7 @@
         ? filteredSchemes({ query: query, ignoreQuery: false, ignoreFilters: false })  
         : filteredSchemes({ query: query, ignoreQuery: false, ignoreFilters: true });  
   
-      return base.slice(0, 14);  
+      return base;  
     }  
   
     async function fetchDailyDataBySchemeId(id) {  
@@ -3113,8 +3113,7 @@
               (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
               (s.scheme_code || "").toLowerCase().indexOf(query) !== -1  
             );  
-        })  
-        .slice(0, 10);  
+        });  
   
       if (!results.length) {  
         dropdown.innerHTML = '<div class="autocomplete-no-results">No schemes found</div>';  
