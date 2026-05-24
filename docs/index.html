@@ -1952,9 +1952,13 @@
       }  
   
       if (applySearch && query) {  
+        var words = query.split(/\s+/).filter(Boolean);
         schemes = schemes.filter(function (s) {  
-          return (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
-                 (s.scheme_code || "").toLowerCase().indexOf(query) !== -1;  
+          var name = (s.scheme_name || "").toLowerCase();
+          var code = (s.scheme_code || "").toLowerCase();
+          return words.every(function (w) {
+            return name.indexOf(w) !== -1 || code.indexOf(w) !== -1;
+          });
         });  
       }  
   
@@ -2089,18 +2093,20 @@
         var item = document.createElement("div");  
         item.className = "autocomplete-item";  
   
-        var name = s.scheme_name || "";  
-        var lower = name.toLowerCase();  
-        var q = String(query || "").toLowerCase();  
-        var idx = lower.indexOf(q);  
-        var highlighted = escapeHTML(name);  
-  
-        if (idx >= 0) {  
-          highlighted =  
-            escapeHTML(name.slice(0, idx)) +  
-            '<span class="highlight">' + escapeHTML(name.slice(idx, idx + q.length)) + '</span>' +  
-            escapeHTML(name.slice(idx + q.length));  
-        }  
+        var words = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
+        var highlighted = escapeHTML(name);
+        
+        if (words.length) {
+          var sorted = words.slice().sort(function (a, b) { return b.length - a.length; });
+          var pattern = sorted.map(function (w) {
+            return w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          }).join('|');
+          
+          try {
+            var re = new RegExp('(' + pattern + ')', 'gi');
+            highlighted = highlighted.replace(re, '<span class="highlight">$1</span>');
+          } catch (e) {}
+        }
   
         item.innerHTML =  
           '<div class="autocomplete-name">' + highlighted + '</div>' +  
@@ -3105,14 +3111,15 @@
       }  
   
       var usedIds = compareSlots.filter(Boolean).map(function (s) { return s.id; });  
-  
+      var words = query.split(/\s+/).filter(Boolean);
       var results = (summaryData && summaryData.schemes ? summaryData.schemes : [])  
         .filter(function (s) {  
-          return usedIds.indexOf(s.id) === -1 &&  
-            (  
-              (s.scheme_name || "").toLowerCase().indexOf(query) !== -1 ||  
-              (s.scheme_code || "").toLowerCase().indexOf(query) !== -1  
-            );  
+          if (usedIds.indexOf(s.id) !== -1) return false;
+          var name = (s.scheme_name || "").toLowerCase();
+          var code = (s.scheme_code || "").toLowerCase();
+          return words.every(function (w) {
+            return name.indexOf(w) !== -1 || code.indexOf(w) !== -1;
+          });
         });  
   
       if (!results.length) {  
