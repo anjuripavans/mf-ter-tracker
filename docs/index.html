@@ -1958,11 +1958,18 @@
   
       if (applySearch && query) {  
         var words = query.split(/\s+/).filter(Boolean);
+        var cleanWords = words.map(function (w) { return w.replace(/[^a-z0-9]/g, ""); }).filter(Boolean);
         schemes = schemes.filter(function (s) {  
+          if (!cleanWords.length) return false;
           var name = (s.scheme_name || "").toLowerCase();
           var code = (s.scheme_code || "").toLowerCase();
-          return words.every(function (w) {
-            return name.indexOf(w) !== -1 || code.indexOf(w) !== -1;
+          var spacelessName = name.replace(/[^a-z0-9]/g, "");
+          var spacelessCode = code.replace(/[^a-z0-9]/g, "");
+          return cleanWords.every(function (w) {
+            return name.indexOf(w) !== -1 || 
+                   code.indexOf(w) !== -1 || 
+                   spacelessName.indexOf(w) !== -1 || 
+                   spacelessCode.indexOf(w) !== -1;
           });
         });  
       }  
@@ -3118,13 +3125,20 @@
   
       var usedIds = compareSlots.filter(Boolean).map(function (s) { return s.id; });  
       var words = query.split(/\s+/).filter(Boolean);
+      var cleanWords = words.map(function (w) { return w.replace(/[^a-z0-9]/g, ""); }).filter(Boolean);
       var results = (summaryData && summaryData.schemes ? summaryData.schemes : [])  
         .filter(function (s) {  
           if (usedIds.indexOf(s.id) !== -1) return false;
+          if (!cleanWords.length) return false;
           var name = (s.scheme_name || "").toLowerCase();
           var code = (s.scheme_code || "").toLowerCase();
-          return words.every(function (w) {
-            return name.indexOf(w) !== -1 || code.indexOf(w) !== -1;
+          var spacelessName = name.replace(/[^a-z0-9]/g, "");
+          var spacelessCode = code.replace(/[^a-z0-9]/g, "");
+          return cleanWords.every(function (w) {
+            return name.indexOf(w) !== -1 || 
+                   code.indexOf(w) !== -1 || 
+                   spacelessName.indexOf(w) !== -1 || 
+                   spacelessCode.indexOf(w) !== -1;
           });
         });  
   
