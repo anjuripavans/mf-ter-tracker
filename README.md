@@ -1,4 +1,4 @@
-# 📈 Mutual Fund Expense Ratio Tracker (MFTer)
+# 📈 Mutual Fund Expense Ratio Tracker (MF-TER)
 
 An automated, serverless web application that tracks and compares the daily **Total Expense Ratios (TER)** of mutual funds and ETFs in India. It fetches daily disclosures directly from the **Association of Mutual Funds in India (AMFI)** to help investors identify low-cost funds and compare Direct vs. Regular plans.
 
