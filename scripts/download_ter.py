@@ -216,6 +216,7 @@ def process_data():
     combined = combined.sort_values(["scheme_code", "date"])
 
     # --- Global April 2026 filter ---
+    today = pd.Timestamp.now()
     cutoff = pd.Timestamp("2026-04-01")
 
     recent = combined[combined["date"] >= cutoff].copy()
