@@ -215,12 +215,8 @@ def process_data():
     combined = combined.drop_duplicates(subset=["scheme_code", "date"], keep="last")
     combined = combined.sort_values(["scheme_code", "date"])
 
-    # --- Rolling 365-day window ---
-    today = pd.Timestamp.now()
-    cutoff = today - pd.Timedelta(days=365)
-    data_start = combined["date"].min()
-    if data_start > cutoff:
-        cutoff = data_start
+    # --- Global April 2026 filter ---
+    cutoff = pd.Timestamp("2026-04-01")
 
     recent = combined[combined["date"] >= cutoff].copy()
     print(f"\n  Data after cutoff ({cutoff.strftime('%Y-%m-%d')}): {len(recent)} rows")
