@@ -2098,6 +2098,7 @@
         var item = document.createElement("div");  
         item.className = "autocomplete-item";  
   
+        var name = s.scheme_name || "";
         var words = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
         var highlighted = escapeHTML(name);
         
