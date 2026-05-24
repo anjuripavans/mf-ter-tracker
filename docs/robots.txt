@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mf-expenseratio-tracker.vyneralabs.com/sitemap.xml
+Sitemap: https://mfter.vyneralabs.com/sitemap.xml
